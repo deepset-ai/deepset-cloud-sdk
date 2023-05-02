@@ -1,0 +1,54 @@
+name: Compliance Checks
+
+on:
+  push:
+    paths:
+      - 'pyproject.toml'
+  schedule:
+    - cron: '0 0 * * *'  # every day at midnight
+
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  SLACK_ALERT_CHANNEL: "#dc-alerts"
+
+jobs:
+  check-license-compliance:
+    name: Check license compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+
+      - uses: actions/setup-python@b55428b1882923874294fa556849718a1d7f2ca5
+        with:
+          python-version: 3.8
+
+      - name: Install prod dependencies
+        run: |
+          pip install hatch==v1.7.0
+          hatch run tools:requirements
+          pip install -r requirements.txt
+
+      - name: Create file with full dependency list
+        run: |
+          pip freeze > requirements-full.txt
+
+      - name: Send license report to Fossa
+        # This will collect all necessary information (mostly used dependencies) and send it to the Fossa API
+        uses: fossas/fossa-action@f61a4c0c263690f2ddb54b9822a719c25a7b608f # Use a specific version if locking is preferred
+        with:
+          api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
+
+      - name: Check license compliance
+        # This will poll the Fossa API until they have processed the information which we've sent in the previous step
+        # and fail if Fossa found an issue with the licences of our dependencies.
+        uses: fossas/fossa-action@f61a4c0c263690f2ddb54b9822a719c25a7b608f # Use a specific version if locking is preferred
+        with:
+          api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
+          run-tests: true
+
+      - name: Send Slack notification if license check failed
+        uses: act10ns/slack@ed1309ab9862e57e9e583e51c7889486b9a00b0f
+        if: failure() && github.ref == 'refs/heads/main'
+        with:
+          status: ${{ job.status }}
+          channel: ${{ env.SLACK_ALERT_CHANNEL }}

@@ -1,0 +1,124 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "platform-python-template"
+dynamic = ["version"]
+description = 'a python template for deepset projects'
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "deepset", email = "rohan.janjua@deepset.ai" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "pytest-cov==3.0.0",
+  "pytest==7.1.3",
+  "structlog==23.1.0",
+]
+
+[project.urls]
+Documentation = "https://github.com/unknown/platform-python-template#readme"
+Issues = "https://github.com/unknown/platform-python-template/issues"
+Source = "https://github.com/unknown/platform-python-template"
+
+[tool.hatch.version]
+path = "src/__about__.py"
+
+[tool.hatch.envs.default.scripts]
+tests-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=src tests"
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.10"]
+
+[tool.hatch.envs.code-quality]
+detached = true
+# Please keep these aligned with the versions defined in .pre-commit-config.yaml
+dependencies = [
+  "pylint==2.15.2",
+  "pydocstyle==6.3.0",
+  "black==23.3.0",
+  "isort==5.12.0",
+  "mypy==1.1.1",
+  "pre-commit==2.20.0",
+]
+
+[tool.hatch.envs.code-quality.scripts]
+types = "mypy src tests"
+format = "black src tests --check"
+format-fix = "black src tests"
+lint = "pylint src"
+sort = "isort --check --profile black ."
+hooks = "pre-commit install"
+docstrings = "pydocstyle src"
+
+[tool.hatch.envs.tools]
+detached = true
+# Please keep these aligned with the versions defined in .pre-commit-config.yaml
+dependencies = [
+  "pip-tools==6.13.0",
+]
+
+[tool.hatch.envs.tools.scripts]
+requirements = "pip-compile -o requirements.txt pyproject.toml"
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+omit = [
+  "src/__about__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.black]
+line-length = 120
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length=120
+disable = [
+  "fixme",
+  "c-extension-no-member",
+  "wrong-spelling-in-comment",
+  "wrong-spelling-in-docstring",
+  "missing-module-docstring"
+  ]
+[tool.pylint.'DESIGN']
+max-args=7
+
+[tool.pylint.'SIMILARITIES']
+min-similarity-lines=6
+
+[tool.pylint.'BASIC']
+good-names=[
+  "i",
+  "k",
+  "v",
+  "_",
+  "f1"
+  ]

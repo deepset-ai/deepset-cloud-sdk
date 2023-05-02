@@ -1,0 +1,39 @@
+name: 'Track metrics'
+on:
+  pull_request:
+    types:
+      - closed
+
+  pull_request_review:
+    types:
+      - submitted
+
+  issues:
+    types:
+      - closed
+
+  release:
+    types:
+      - published
+jobs:
+  track_metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: deepset-ai/velocity-metrics@v1
+        with:
+          event: ${{ toJson(github.event) }}
+          # Used to anonymize the users by replacing them with their team
+          teams: "@deepset-ai/exploration, @deepset-ai/production, @deepset-ai/platform-documentation"
+          # Access token with read access to the org to fetch the users for the teams
+          github_token: ${{ secrets.VELOCITY_METRICS_ORG_READ_TOKEN }}
+          # Datadog API key to send the events to Datadog
+          datadog_api_key: ${{ secrets.VELOCITY_METRICS_DATADOG_API_KEY }}
+          # Name of the tracked metrics in Datadog
+          issue_lifetime_metric_name: velocity.issue.lifetimeV2
+          pr_lifetime_metric_name: velocity.pr.lifetime
+          pr_review_time_metric_name: velocity.pr.review_time
+          pr_changed_files_metric_name: velocity.pr.changed_files
+          pr_additions_metric_name: velocity.pr.additions
+          pr_deletions_metric_name: velocity.pr.deletions
+          pr_review_comment_count_metric_name: velocity.pr.review_comment_count
+          pr_release_time_metric_name: velocity.pr.release_time

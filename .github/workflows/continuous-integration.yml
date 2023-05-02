@@ -1,0 +1,130 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+
+env:
+  HATCH_VERSION: "v1.7.0"
+
+jobs:
+  format-black:
+    name: Format black
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install Hatch
+        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Run black
+        run: hatch run code-quality:format
+
+
+  mypy:
+    name: MyPy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install Hatch
+        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Run mypy
+        run: hatch run code-quality:types
+
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install Hatch
+        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Run mypy
+        run: hatch run code-quality:lint
+
+  isort:
+    name: Sort imports
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install Hatch
+        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Run mypy
+        run: hatch run code-quality:sort
+
+  pydocstyle:
+    name: Check docstrings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install Hatch
+        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Run pydocstyle
+        run: hatch run code-quality:docstrings
+
+  scan-for-secrets:
+    name: Scan for secrets
+    runs-on: self-hosted-dc
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: wget -O - https://github.com/gitleaks/gitleaks/releases/download/v8.16.1/gitleaks_8.16.1_linux_x64.tar.gz | tar -xz
+      - run: ./gitleaks detect --log-opts "${{  github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+        if: github.event_name == 'pull_request'
+      - run: ./gitleaks detect --log-opts "${{  github.event.before }}..${{ github.event.after }}"
+        if: github.event_name == 'push'
+
+  tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install Hatch
+        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Run tests
+        run: hatch run tests-with-cov
+      - name: Coverage comment
+        id: coverage_comment
+        uses: py-cov-action/python-coverage-comment-action@48708266a6e77ebf564b50d9cff2b7df9a25b458
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  release:
+    name: Release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    needs: [format-black, mypy, lint, tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+         python-version: "3.10"
+      - name: Install Hatch
+        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Build
+        run: hatch build
+      # - name: Release
+      #   uses: some-release/action
+      #   with:
+      #     files: "dist/*"

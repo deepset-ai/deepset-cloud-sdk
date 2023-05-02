@@ -1,0 +1,22 @@
+name: Slack alert for high priority bugs
+
+on:
+  issues:
+    types:
+      - labeled
+
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_BUG_ALERT_URL }}
+  SLACK_ALERT_CHANNEL: "#dc-alerts"
+
+jobs:
+  add-comment:
+    if: github.event.label.name == 'high'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack alert for high priority bug
+        uses: act10ns/slack@ed1309ab9862e57e9e583e51c7889486b9a00b0f
+        with:
+          status: High Priority Bug
+          message: High Priority Bug ${{ github.event.issue.html_url }}
+          channel: ${{ env.SLACK_ALERT_CHANNEL }}
