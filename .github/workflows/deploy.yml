@@ -13,6 +13,8 @@ on:
 jobs:
   deploy:
     steps:
+      - uses: actions/checkout@v3
+
       - name: ci
         uses: ./.github/workflows/continuous-integration.yml
 
