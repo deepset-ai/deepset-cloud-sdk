@@ -1,4 +1,4 @@
-# Deepset Cloud SDK
+# deepset Cloud SDK
 
 ## SDK
 
