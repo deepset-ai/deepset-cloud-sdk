@@ -8,13 +8,6 @@ on:
       - "*"
   pull_request:
   workflow_call:
-    inputs:
-      config-path:
-        required: true
-        type: string
-    secrets:
-      token:
-        required: true
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
