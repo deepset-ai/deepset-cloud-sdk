@@ -8,9 +8,7 @@ on:
 
 jobs:
   deploy-test:
-    name: Deploy SDK Test PyPi
-    runs-on: ubuntu-latest
-    if: ${{ github.event.label.name == 'test-deploy' }}
+    if: ${{ github.event.label.name == 'test-deploy' }}`
     uses: ./.github/workflows/deploy.yml
     with:
       deployment-env: test

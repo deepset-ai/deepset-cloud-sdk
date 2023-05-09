@@ -3,10 +3,6 @@ name: Deploy
 on:
   workflow_call:
     inputs:
-      config-path:
-        required: true
-        type: string
-    env:
       deployment-env:
         required: true
 
@@ -22,7 +18,7 @@ jobs:
 
       - name: publish
         runs-on: ubuntu-latest
-        environment: ${{env.deployment-env}}
+        environment: ${{inputs.deployment-env}}
         env:
           pypi: ${{ env.PYPI_URL }}
         uses: pypa/gh-action-pypi-publish@release/v1
