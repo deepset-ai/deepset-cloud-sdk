@@ -5,6 +5,9 @@ on:
     types:
       - labeled
   workflow_dispatch:
+  push:
+    branches:
+      - ci/release-job
 
 jobs:
   deploy-test:
