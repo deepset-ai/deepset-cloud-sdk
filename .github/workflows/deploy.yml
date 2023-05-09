@@ -10,17 +10,17 @@ on:
       deployment-env:
         required: true
 
+
 jobs:
+  ci:
+    uses: ./.github/workflows/continuous-integration.yml
+
   deploy:
+    needs: [ci]
     steps:
       - uses: actions/checkout@v3
 
-      - name: ci
-        uses: ./.github/workflows/continuous-integration.yml
-
-      # to deploy to test, name your branch matching the pattern testdeploy/*
       - name: publish
-        needs: [ci]
         runs-on: ubuntu-latest
         environment: ${{env.deployment-env}}
         env:
