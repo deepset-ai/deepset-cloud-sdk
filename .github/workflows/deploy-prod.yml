@@ -7,7 +7,6 @@ on:
 
 jobs:
   deploy-prod:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     uses: ./.github/workflows/deploy.yml
     with:
       deployment_env: release
