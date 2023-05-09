@@ -11,6 +11,8 @@ on:
 
 jobs:
   deploy-test:
+    name: Deploy SDK Test PyPi
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy To Test PyPi
         if: ${{ github.event.label.name == 'test-deploy' }}
