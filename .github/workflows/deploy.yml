@@ -7,8 +7,7 @@ on:
         required: true
 
 env:
-  HATCH_VERSION: "v1.7.0"
-
+  HATCH_VERSION: "v1.7.0" # keep in sync with continuous-integration.yml
 
 jobs:
   ci:
@@ -19,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{inputs.deployment_env}}
     env:
-      pypi: ${{ env.PYPI_URL }}
+      pypi: ${{ vars.PYPI_URL }}
 
     steps:
 
