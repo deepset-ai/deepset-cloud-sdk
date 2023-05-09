@@ -125,15 +125,19 @@ jobs:
         run: hatch build
 
   # to deploy to test, name your branch matching the pattern testdeploy/*
-  test-release:
+  test-publish:
     name: Release to Test PyPi
     environment: test
     needs: [build]
-    uses: pypa/gh-action-pypi-publish@release/v1
+    runs-on: ubuntu-latest
+    steps:
+      uses: pypa/gh-action-pypi-publish@release/v1
 
   # deploys on main
-  release:
+  publish:
     name: Release to PyPi
     environment: release
     needs: [build]
-    uses: pypa/gh-action-pypi-publish@release/v1
+    runs-on: ubuntu-latest
+    steps:
+      uses: pypa/gh-action-pypi-publish@release/v1
