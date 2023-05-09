@@ -4,6 +4,7 @@ on:
   pull_request:
     types:
       - labeled
+  workflow_dispatch:
 
 jobs:
   deploy-test:
