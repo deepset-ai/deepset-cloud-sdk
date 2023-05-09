@@ -10,6 +10,7 @@ jobs:
     name: Deploy SDK PyPi
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Deploy To Prod PyPi
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: ./.github/workflows/deploy.yml

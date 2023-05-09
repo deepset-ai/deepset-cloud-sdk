@@ -14,6 +14,7 @@ jobs:
     name: Deploy SDK Test PyPi
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Deploy To Test PyPi
         if: ${{ github.event.label.name == 'test-deploy' }}
         uses: ./.github/workflows/deploy.yml
