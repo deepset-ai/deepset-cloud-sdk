@@ -122,3 +122,12 @@ good-names=[
   "_",
   "f1"
   ]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/tests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
