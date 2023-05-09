@@ -17,7 +17,7 @@ on:
         required: true
 
 env:
-  HATCH_VERSION: "v1.7.0"
+  HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
 
 jobs:
   format-black:

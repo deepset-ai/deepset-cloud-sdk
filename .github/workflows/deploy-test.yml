@@ -11,4 +11,4 @@ jobs:
     if: ${{ github.event.label.name == 'test-deploy' }}`
     uses: ./.github/workflows/deploy.yml
     with:
-      deployment-env: test
+      deployment_env: test
