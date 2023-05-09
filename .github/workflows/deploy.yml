@@ -1,0 +1,27 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      config-path:
+        required: true
+        type: string
+    env:
+      deployment-env:
+        required: true
+
+
+steps:
+  - name: ci
+    uses: ./.github/workflows/continuous-integration.yml
+
+  # to deploy to test, name your branch matching the pattern testdeploy/*
+  - name: publish
+    needs: [ci]
+    runs-on: ubuntu-latest
+    environment: ${{env.deployment-env}}
+    env:
+      pypi: ${{ env.PYPI_URL }}
+    uses: pypa/gh-action-pypi-publish@release/v1
+    with:
+      repository-url: ${{env.pypi}}

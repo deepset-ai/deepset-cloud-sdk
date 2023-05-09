@@ -7,6 +7,14 @@ on:
     tags:
       - "*"
   pull_request:
+  workflow_call:
+    inputs:
+      config-path:
+        required: true
+        type: string
+    secrets:
+      token:
+        required: true
 
 env:
   HATCH_VERSION: "v1.7.0"
@@ -80,7 +88,7 @@ jobs:
 
   scan-for-secrets:
     name: Scan for secrets
-    runs-on: self-hosted-dc
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
@@ -123,21 +131,3 @@ jobs:
         run: pip install hatch==${{ env.HATCH_VERSION }}
       - name: Build
         run: hatch build
-
-  # to deploy to test, name your branch matching the pattern testdeploy/*
-  test-publish:
-    name: Release to Test PyPi
-    environment: test
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: pypa/gh-action-pypi-publish@release/v1
-
-  # deploys on main
-  publish:
-    name: Release to PyPi
-    environment: release
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: pypa/gh-action-pypi-publish@release/v1

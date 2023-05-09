@@ -1,0 +1,14 @@
+name: Deploy to Test PyPi
+
+on:
+  pull_request:
+    types:
+      - labeled
+
+
+steps:
+  - name: Deploy To Test PyPi
+    if: ${{ github.event.label.name == 'test-deploy' }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deployment-env: test
