@@ -93,7 +93,7 @@ jobs:
         if: github.event_name == 'push'
 
   tests:
-    name: Unit Tests
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -112,6 +112,7 @@ jobs:
 
       - name: Run integration tests
         run: API_KEY=${{secrets.API_KEY}} API_URL=https://api.dev.cloud.dpst.dev/api/v1  hatch run tests-integration
+
 
   release:
     name: Release
