@@ -134,4 +134,4 @@ exclude = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["deepset_cloud_sdk"]
