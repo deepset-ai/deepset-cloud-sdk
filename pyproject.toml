@@ -35,10 +35,10 @@ Issues = "https://github.com/unknown/platform-python-template/issues"
 Source = "https://github.com/unknown/platform-python-template"
 
 [tool.hatch.version]
-path = "src/__about__.py"
+path = "deepset_cloud_sdk/__about__.py"
 
 [tool.hatch.envs.default.scripts]
-tests-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=src tests"
+tests-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests"
 
 [[tool.hatch.envs.all.matrix]]
 python = ["3.10"]
@@ -56,13 +56,13 @@ dependencies = [
 ]
 
 [tool.hatch.envs.code-quality.scripts]
-types = "mypy src tests"
-format = "black src tests --check"
-format-fix = "black src tests"
-lint = "pylint src"
+types = "mypy deepset_cloud_sdk tests"
+format = "black deepset_cloud_sdk tests --check"
+format-fix = "black deepset_cloud_sdk tests"
+lint = "pylint deepset_cloud_sdk"
 sort = "isort --check --profile black ."
 hooks = "pre-commit install"
-docstrings = "pydocstyle src"
+docstrings = "pydocstyle deepset_cloud_sdk"
 
 [tool.hatch.envs.tools]
 detached = true
@@ -78,7 +78,7 @@ requirements = "pip-compile -o requirements.txt pyproject.toml"
 branch = true
 relative_files = true
 omit = [
-  "src/__about__.py",
+  "deepset_cloud_sdk/__about__.py",
 ]
 
 [tool.coverage.report]
