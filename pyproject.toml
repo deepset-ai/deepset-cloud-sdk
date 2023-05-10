@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "platform-python-template"
+name = "deepset-cloud-sdk"
 dynamic = ["version"]
-description = 'a python template for deepset projects'
+description = 'deepset cloud SDK'
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
@@ -30,9 +30,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/unknown/platform-python-template#readme"
-Issues = "https://github.com/unknown/platform-python-template/issues"
-Source = "https://github.com/unknown/platform-python-template"
+Documentation = "https://github.com/deepset-ai/deepset-cloud-sdk#readme"
+Issues = "https://github.com/deepset-ai/deepset-cloud-sdk/issues"
+Source = "https://github.com/deepset-ai/deepset-cloud-sdk"
 
 [tool.hatch.version]
 path = "src/__about__.py"
@@ -122,3 +122,12 @@ good-names=[
   "_",
   "f1"
   ]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/tests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
