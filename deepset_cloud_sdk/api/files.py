@@ -22,8 +22,8 @@ logger = structlog.get_logger(__name__)
 
 @dataclass
 class File:
-    """
-    File primitive from deepset Cloud.
+    """File primitive from deepset Cloud. This dataclass is used for all
+    file related operations that dont include thea actual file content.
     """
 
     file_id: UUID
@@ -35,8 +35,9 @@ class File:
 
     @classmethod
     def from_dict(cls, env: Dict[str, Any]) -> Any:
-        """
-        Parse a dictionary into a File object.
+        """Parse a dictionary into a File object.
+        Not existing keys will be ignored.
+
         :param env: Dictionary to parse.
         """
         to_parse = {k: v for k, v in env.items() if k in inspect.signature(cls).parameters}
@@ -57,9 +58,10 @@ class FileList:
 
 
 class FilesAPI:
-    """
-    File API for deepset Cloud. This module takes care of all file related API calls to deepset Cloud, including
+    """File API for deepset Cloud. This module takes care of all file related API calls to deepset Cloud, including
     uploading, downloading, listing and deleting files.
+
+    :param deepset_cloud_api: Instance of the DeepsetCloudAPI.
     """
 
     def __init__(self, deepset_cloud_api: DeepsetCloudAPI) -> None:

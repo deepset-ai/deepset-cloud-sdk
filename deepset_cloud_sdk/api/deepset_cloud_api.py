@@ -10,6 +10,11 @@ logger = structlog.get_logger(__name__)
 
 
 class DeepsetCloudAPI:
+    """
+    Deepset cloud API client. This class takes care of all API calls to deepset Cloud and
+    handles authentication and error handling.
+    """
+
     def __init__(self, config: CommonConfig, client: httpx.AsyncClient) -> None:
         self.headers = {
             "Accept": "application/json",
