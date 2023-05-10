@@ -110,6 +110,9 @@ jobs:
         uses: py-cov-action/python-coverage-comment-action@48708266a6e77ebf564b50d9cff2b7df9a25b458
         with:
           GITHUB_TOKEN: ${{ github.token }}
+      # Integration tests are running against the dev environment
+      # the API_KEY is stored as a secret in the repository
+      # we are using the "automated-tests" organization with predefined users and workspaces
       - name: Run integration tests
         run: API_KEY=${{secrets.API_KEY}} API_URL=https://api.dev.cloud.dpst.dev/api/v1  hatch run tests-integration
 
