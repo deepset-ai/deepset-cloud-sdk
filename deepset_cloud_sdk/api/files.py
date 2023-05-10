@@ -125,6 +125,10 @@ class FilesAPI:
         """
         List all files in a workspace.
 
+        TODO: move this one level up to deepset_cloud_api since this is
+        logic on top of the raw API.
+        TODO: Take care of raising a timeout exception if the timeout is reached.
+
         :param workspace_name: Name of the workspace to use.
         """
         start = time.time()
