@@ -1,3 +1,5 @@
+"""DeepsetCloudAPI class."""
+
 from typing import Any, Dict, Optional
 
 import httpx
@@ -132,8 +134,8 @@ class DeepsetCloudAPI:
         data: Optional[Dict[str, Any]] = None,
         timeout: int = 20,
     ) -> Response:
-        """
-        Make a PUT request to the deepset Cloud API.
+        """Make a PUT request to the deepset Cloud API.
+
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
         :param params: Query parameters to pass.
@@ -160,9 +162,7 @@ class DeepsetCloudAPI:
 
 
 def get_deepset_cloud_api(config: CommonConfig, client: httpx.AsyncClient) -> DeepsetCloudAPI:
-    """
-    Deepset Cloud API factory. Returns an instance of DeepsetCloudAPI.
-
+    """Deepset Cloud API factory. Returns an instance of DeepsetCloudAPI.
 
     :param config: CommonConfig object.
     :param client: httpx.AsyncClient object.

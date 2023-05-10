@@ -22,9 +22,7 @@ logger = structlog.get_logger(__name__)
 
 @dataclass
 class File:
-    """
-    File primitive from deepset Cloud. This dataclass is used for all file related operations that dont include thea actual file content.
-    """
+    """File primitive from deepset Cloud. This dataclass is used for all file related operations that dont include thea actual file content."""
 
     file_id: UUID
     url: str
@@ -35,8 +33,8 @@ class File:
 
     @classmethod
     def from_dict(cls, env: Dict[str, Any]) -> Any:
-        """
-        Parse a dictionary into a File object.
+        """Parse a dictionary into a File object.
+
         Not existing keys will be ignored.
 
         :param env: Dictionary to parse.
