@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-WORKSPACE = os.getenv("WORKSPACE", "default")
 API_URL = os.getenv("API_URL", "https://api.cloud.deepset.ai/")
 API_KEY = os.getenv("API_KEY", "")
 
