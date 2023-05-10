@@ -82,7 +82,7 @@ class DeepsetCloudAPI:
         response = await self.client.post(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
-            data=data or {},
+            json=data or {},
             files=files,
             headers=self.headers,
             timeout=timeout,
