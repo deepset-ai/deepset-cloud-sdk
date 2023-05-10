@@ -10,14 +10,15 @@ logger = structlog.get_logger(__name__)
 
 
 class DeepsetCloudAPI:
-    """
-    Deepset cloud API client. This class takes care of all API calls to deepset Cloud and
-    handles authentication and error handling.
+    """Deepset cloud API client.
+
+    This class takes care of all API calls to deepset Cloud and handles authentication and error handling.
     """
 
     def __init__(self, config: CommonConfig, client: httpx.AsyncClient) -> None:
-        """
-        Constructor for deepset cloud api client. Add a config for authencation and a httpx client for
+        """Create a deepset cloud api client.
+
+        Add a config for authencation and a httpx client for
         sending requests.
 
         :param config: Config for authentication.
@@ -33,8 +34,8 @@ class DeepsetCloudAPI:
     async def get(
         self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout: int = 20
     ) -> Response:
-        """
-        Make a GET request to the deepset Cloud API.
+        """Make a GET request to the deepset Cloud API.
+
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
         :param params: Query parameters to pass.
@@ -66,8 +67,8 @@ class DeepsetCloudAPI:
         files: Optional[Dict[str, Any]] = None,
         timeout: int = 20,
     ) -> Response:
-        """
-        Make a POST request to the deepset Cloud API.
+        """Make a POST request to the deepset Cloud API.
+
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
         :param params: Query parameters to pass.
