@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# achive tests
+archive
+pytest_html_report.html
+output.json
+
 # Distribution / packaging
 .Python
 build/
