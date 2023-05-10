@@ -2,8 +2,12 @@ import os
 
 import pytest
 import structlog
+from dotenv import load_dotenv
 
 from deepset_cloud_sdk.api.config import CommonConfig
+
+load_dotenv()
+
 
 logger = structlog.get_logger(__name__)
 
