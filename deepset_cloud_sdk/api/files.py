@@ -1,3 +1,10 @@
+"""
+File API for deepset Cloud.
+
+This module takes care of all file related API calls to deepset Cloud, including uploading, downloading, listing and
+deleting files.
+"""
+
 import datetime
 import inspect
 import time
@@ -15,6 +22,10 @@ logger = structlog.get_logger(__name__)
 
 @dataclass
 class File:
+    """
+    File primitive from deepset Cloud.
+    """
+
     file_id: UUID
     url: str
     name: str
@@ -24,6 +35,10 @@ class File:
 
     @classmethod
     def from_dict(cls, env: Dict[str, Any]) -> Any:
+        """
+        Parse a dictionary into a File object.
+        :param env: Dictionary to parse.
+        """
         to_parse = {k: v for k, v in env.items() if k in inspect.signature(cls).parameters}
         to_parse["created_at"] = datetime.datetime.fromisoformat(to_parse["created_at"])
         to_parse["file_id"] = UUID(to_parse["file_id"])
@@ -32,13 +47,27 @@ class File:
 
 @dataclass
 class FileList:
+    """
+    List of files from deepset Cloud.
+    """
+
     total: int
     data: List[File]
     has_more: bool
 
 
 class FilesAPI:
+    """
+    File API for deepset Cloud. This module takes care of all file related API calls to deepset Cloud, including
+    uploading, downloading, listing and deleting files.
+    """
+
     def __init__(self, deepset_cloud_api: DeepsetCloudAPI) -> None:
+        """
+        Constructor for the FilesAPI.
+
+        :param deepset_cloud_api: Instance of the DeepsetCloudAPI.
+        """
         self._deepset_cloud_api = deepset_cloud_api
 
     async def list_paginated(
