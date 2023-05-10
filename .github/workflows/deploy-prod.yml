@@ -1,0 +1,12 @@
+name: Deploy to Prod PyPi
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-prod:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deployment_env: release

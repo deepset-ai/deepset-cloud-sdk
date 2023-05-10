@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      deployment_env:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+
+env:
+  HATCH_VERSION: "v1.7.0" # keep in sync with continuous-integration.yml
+
+jobs:
+  ci:
+    uses: ./.github/workflows/continuous-integration.yml
+
+  build-and-deploy:
+    needs: [ci]
+    runs-on: ubuntu-latest
+    environment: ${{inputs.deployment_env}}
+    env:
+      pypi: ${{ vars.PYPI_URL }}
+
+    steps:
+
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+         python-version: "3.10"
+      - name: Install Hatch
+        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Build
+        run: hatch build
+
+      - name: publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{env.pypi}}
