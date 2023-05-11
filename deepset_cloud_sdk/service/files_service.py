@@ -1,5 +1,5 @@
 """Module for all file related operations."""
-
+from __future__ import annotations
 
 import time
 from contextlib import asynccontextmanager
@@ -34,7 +34,7 @@ class FilesService:
 
     @classmethod
     @asynccontextmanager
-    async def factory(cls, config: CommonConfig) -> AsyncGenerator[Any, None]:
+    async def factory(cls, config: CommonConfig) -> AsyncGenerator[FilesService, None]:
         """Create a new instance of the service.
 
         :param config: CommonConfig object.
