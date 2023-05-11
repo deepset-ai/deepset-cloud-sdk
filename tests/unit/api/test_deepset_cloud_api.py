@@ -107,7 +107,7 @@ class TestCRUDForDeepsetCloudAPI:
         mocked_client.put.assert_called_once_with(
             "https://fake.dc.api/api/v1/workspaces/default/endpoint",
             params={"param_key": "param_value"},
-            data={"data_key": "data_value"},
+            json={"data_key": "data_value"},
             headers={
                 "Accept": "application/json",
                 "Authorization": f"Bearer {unit_config.api_key}",

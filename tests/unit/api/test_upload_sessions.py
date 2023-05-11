@@ -5,12 +5,13 @@ from uuid import uuid4
 import pytest
 from httpx import Response, codes
 
-from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.api.upload_sessions import (
-    FailedToCloseUploadSession,
-    FailedToCreateUploadSession,
+    FailedToSendUploadSessionRequest,
     UploadSession,
+    UploadSessionDetailList,
     UploadSessionsAPI,
+    UploadSessionStatusEnum,
+    UploadSessionWriteModeEnum,
 )
 
 
@@ -55,7 +56,7 @@ class TestCreateUploadSessions:
         self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock
     ) -> None:
         mocked_deepset_cloud_api.post.return_value = Response(status_code=codes.INTERNAL_SERVER_ERROR)
-        with pytest.raises(FailedToCreateUploadSession):
+        with pytest.raises(FailedToSendUploadSessionRequest):
             await upload_session_client.create(workspace_name="sdk")
 
 
@@ -79,5 +80,97 @@ class TestCloseUploadSessions:
         session_id = uuid4()
 
         mocked_deepset_cloud_api.put.return_value = Response(status_code=codes.INTERNAL_SERVER_ERROR)
-        with pytest.raises(FailedToCloseUploadSession):
+        with pytest.raises(FailedToSendUploadSessionRequest):
             await upload_session_client.close(workspace_name="sdk", session_id=session_id)
+
+
+@pytest.mark.asyncio
+class TestStatusUploadSessions:
+    async def test_get_session_status(
+        self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock
+    ) -> None:
+        session_id = uuid4()
+        expires_at = datetime.datetime.now()
+
+        mocked_deepset_cloud_api.get.return_value = Response(
+            status_code=codes.OK,
+            json={
+                "session_id": str(session_id),
+                "expires_at": expires_at.isoformat(),
+                "documentation_url": "https://docs.cloud.deepset.ai/docs",
+                "ingestion_status": {"failed_files": 0, "finished_files": 0},
+            },
+        )
+
+        upload_session_status = await upload_session_client.status(workspace_name="sdk", session_id=session_id)
+        assert upload_session_status.session_id == session_id
+        assert upload_session_status.expires_at == expires_at
+        assert upload_session_status.documentation_url == "https://docs.cloud.deepset.ai/docs"
+        assert upload_session_status.ingestion_status.failed_files == 0
+        assert upload_session_status.ingestion_status.finished_files == 0
+
+        mocked_deepset_cloud_api.get.assert_called_once_with(
+            workspace_name="sdk", endpoint=f"upload_sessions/{session_id}"
+        )
+
+    async def test_get_session_status_failed(
+        self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock
+    ) -> None:
+        session_id = uuid4()
+
+        mocked_deepset_cloud_api.get.return_value = Response(status_code=codes.INTERNAL_SERVER_ERROR)
+        with pytest.raises(FailedToSendUploadSessionRequest):
+            await upload_session_client.status(workspace_name="sdk", session_id=session_id)
+
+
+@pytest.mark.asyncio
+class TestListUploadSessions:
+    async def test_list_sessions(
+        self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock
+    ) -> None:
+        session_id = uuid4()
+        timestamp = datetime.datetime.now()
+        user_id = uuid4()
+
+        mocked_deepset_cloud_api.get.return_value = Response(
+            status_code=codes.OK,
+            json={
+                "data": [
+                    {
+                        "session_id": str(session_id),
+                        "created_by": {
+                            "given_name": "Kristof",
+                            "family_name": "Test",
+                            "user_id": str(user_id),
+                        },
+                        "created_at": timestamp.isoformat(),
+                        "expires_at": timestamp.isoformat(),
+                        "write_mode": "KEEP",
+                        "status": "OPEN",
+                    },
+                ],
+                "has_more": True,
+                "total": 23,
+            },
+        )
+        result: UploadSessionDetailList = await upload_session_client.list(
+            workspace_name="sdk", limit=1, page_number=10
+        )
+        assert result.has_more is True
+        assert result.total == 23
+        assert len(result.data) == 1
+        assert result.data[0].session_id == session_id
+        assert result.data[0].created_by.given_name == "Kristof"
+        assert result.data[0].created_by.family_name == "Test"
+        assert result.data[0].created_by.user_id == user_id
+        assert result.data[0].created_at == timestamp
+        assert result.data[0].expires_at == timestamp
+        assert result.data[0].write_mode == UploadSessionWriteModeEnum.KEEP
+        assert result.data[0].status == UploadSessionStatusEnum.OPEN
+
+    async def test_list_sessions_failed(
+        self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock
+    ) -> None:
+        mocked_deepset_cloud_api.get.return_value = Response(status_code=codes.INTERNAL_SERVER_ERROR)
+        with pytest.raises(FailedToSendUploadSessionRequest):
+            await upload_session_client.list(workspace_name="sdk")
