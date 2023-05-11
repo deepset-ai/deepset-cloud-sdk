@@ -12,6 +12,7 @@ permissions:
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with continuous-integration.yml
+  API_KEY: ${{secrets.API_KEY}}
 
 jobs:
   ci:
