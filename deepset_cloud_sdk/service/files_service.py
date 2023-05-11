@@ -1,13 +1,17 @@
 """Module for all file related operations."""
-
+from __future__ import annotations
 
 import time
+from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import List
-from unittest.mock import Mock
+from typing import Any, AsyncGenerator, List
+from unittest.mock import AsyncMock, Mock
 
+import httpx
 import structlog
 
+from deepset_cloud_sdk.api.config import CommonConfig
+from deepset_cloud_sdk.api.deepset_cloud_api import get_deepset_cloud_api
 from deepset_cloud_sdk.api.files import FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import UploadSessionsAPI, UploadSessionStatus
 
@@ -27,6 +31,22 @@ class FilesService:
         self._upload_sessions = upload_sessions
         self._files = files
         self._aws = aws
+
+    @classmethod
+    @asynccontextmanager
+    async def factory(cls, config: CommonConfig) -> AsyncGenerator[FilesService, None]:
+        """Create a new instance of the service.
+
+        :param config: CommonConfig object.
+        :param client: httpx client.
+        :return: New instance of the service.
+        """
+        async with httpx.AsyncClient() as client:
+            deepset_cloud_api = get_deepset_cloud_api(config, client=client)
+            files_api = FilesAPI(deepset_cloud_api)
+            upload_sessions_api = UploadSessionsAPI(deepset_cloud_api)
+
+            yield cls(upload_sessions_api, files_api, AsyncMock())
 
     async def upload_file_paths(
         self, workspace_name: str, file_paths: List[Path], blocking: bool = True, timeout_s: int = 300
