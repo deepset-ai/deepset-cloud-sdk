@@ -9,15 +9,20 @@ from deepset_cloud_sdk.api.deepset_cloud_api import get_deepset_cloud_api
 from deepset_cloud_sdk.api.files import File, FilesAPI
 
 
+@pytest.fixture
+def workspace_name() -> str:
+    return "sdk"
+
+
 @pytest.mark.asyncio
 class TestListFiles:
-    async def test_list_paginated(self, integration_config: CommonConfig) -> None:
+    async def test_list_paginated(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with httpx.AsyncClient() as client:
             deepset_cloud_api = get_deepset_cloud_api(integration_config, client=client)
             files_api = FilesAPI(deepset_cloud_api)
 
             result = await files_api.list_paginated(
-                workspace_name="sdk",
+                workspace_name=workspace_name,
                 limit=10,
                 name="Seven",
                 content="HBO's",
@@ -31,14 +36,14 @@ class TestListFiles:
             assert found_file.size == 5044
             assert found_file.meta == {}
 
-    async def test_list_all_files(self, integration_config: CommonConfig) -> None:
+    async def test_list_all_files(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with httpx.AsyncClient() as client:
             deepset_cloud_api = get_deepset_cloud_api(integration_config, client=client)
             files_api = FilesAPI(deepset_cloud_api)
 
             file_batches: List[List[File]] = []
             async for file_batch in files_api.list_all(
-                workspace_name="sdk",
+                workspace_name=workspace_name,
                 batch_size=11,
             ):
                 file_batches.append(file_batch)
