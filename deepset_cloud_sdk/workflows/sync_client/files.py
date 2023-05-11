@@ -1,3 +1,4 @@
+"""Sync client for files workflow."""
 import asyncio
 from pathlib import Path
 from typing import List, Optional
@@ -23,6 +24,15 @@ def upload_file_paths(
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
+    """Upload files to the Deepset Cloud.
+
+    :param file_paths: List of file paths to upload.
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to upload the files to.
+    :param blocking: Whether to wait for the upload to finish.
+    :param timeout_s: Timeout in seconds for the upload.
+    """
     asyncio.run(
         async_upload_file_paths(
             file_paths=file_paths,
@@ -43,6 +53,15 @@ def upload_folder(
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
+    """Upload a folder to the Deepset Cloud.
+
+    :param folder_path: Path to the folder to upload.
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to upload the files to.
+    :param blocking: Whether to wait for the upload to finish.
+    :param timeout_s: Timeout in seconds for the upload.
+    """
     asyncio.run(
         async_upload_folder(
             folder_path=folder_path,
@@ -63,6 +82,15 @@ def upload_texts(
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
+    """Upload texts to the Deepset Cloud.
+
+    :param dc_files: List of DeepsetCloudFiles to upload.
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to upload the files to.
+    :param blocking: Whether to wait for the upload to finish.
+    :param timeout_s: Timeout in seconds for the upload.
+    """
     asyncio.run(
         async_upload_texts(
             dc_files=dc_files,

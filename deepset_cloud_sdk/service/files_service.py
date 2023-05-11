@@ -129,7 +129,6 @@ class FilesService:
         :timeout_s: Timeout in seconds for the blocking ingestion.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
-
         all_files = [path for path in folder_path.glob("**/*")]
 
         file_paths = [
@@ -151,7 +150,8 @@ class FilesService:
     async def upload_texts(
         self, workspace_name: str, dc_files: List[DeepsetCloudFiles], blocking: bool = True, timeout_s: int = 300
     ) -> None:
-        """Upload a list of raw texts to a workspace.
+        """
+        Upload a list of raw texts to a workspace.
 
         Upload a list of raw texts via upload sessions to a selected workspace. This method accepts a list of DeepsetCloudFiles
         which contain the raw text, file name and optional meta data.
@@ -166,7 +166,6 @@ class FilesService:
         :timeout_s: Timeout in seconds for the blocking ingestion.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
-
         # create session to upload files to
         upload_session = await self._upload_sessions.create(workspace_name=workspace_name)
 
