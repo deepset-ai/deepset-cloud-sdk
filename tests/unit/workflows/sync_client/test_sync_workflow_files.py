@@ -11,7 +11,7 @@ from deepset_cloud_sdk.workflows.sync_client.files import (
 )
 
 
-@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_file_paths")  # , new=async_upload_file_paths)
+@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_file_paths")
 def test_upload_file_paths(async_file_upload_mock: AsyncMock) -> None:
     upload_file_paths(
         file_paths=[Path("./tests/data/example.txt")],
@@ -26,7 +26,7 @@ def test_upload_file_paths(async_file_upload_mock: AsyncMock) -> None:
     )
 
 
-@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_folder")  # , new=async_upload_file_paths)
+@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_folder")
 def test_upload_folder(async_upload_folder_mock: AsyncMock) -> None:
     upload_folder(
         folder_path=Path("./tests/data/upload_folder"),
@@ -41,7 +41,7 @@ def test_upload_folder(async_upload_folder_mock: AsyncMock) -> None:
     )
 
 
-@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_texts")  # , new=async_upload_file_paths)
+@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_texts")
 def test_upload_texts(async_upload_texts_mock: AsyncMock) -> None:
     dc_files = [
         DeepsetCloudFiles(
