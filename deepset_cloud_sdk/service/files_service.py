@@ -35,7 +35,7 @@ class FilesService:
     @classmethod
     @asynccontextmanager
     async def factory(cls, config: CommonConfig) -> AsyncGenerator[Any, None]:
-        """Factory to create a new instance of the service.
+        """Create a new instance of the service.
 
         :param config: CommonConfig object.
         :param client: httpx client.
