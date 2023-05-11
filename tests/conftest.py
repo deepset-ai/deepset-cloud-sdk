@@ -1,5 +1,7 @@
+import datetime
 import os
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -8,6 +10,12 @@ from dotenv import load_dotenv
 
 from deepset_cloud_sdk.api.config import CommonConfig
 from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
+from deepset_cloud_sdk.api.files import FilesAPI
+from deepset_cloud_sdk.api.upload_sessions import (
+    AWSPrefixedRequesetConfig,
+    UploadSession,
+    UploadSessionsAPI,
+)
 
 load_dotenv()
 
@@ -42,5 +50,31 @@ def mocked_deepset_cloud_api() -> Mock:
 
 
 @pytest.fixture
+def mocked_upload_sessions_api() -> Mock:
+    return Mock(spec=UploadSessionsAPI)
+
+
+@pytest.fixture
+def mocked_files_api() -> Mock:
+    return Mock(spec=FilesAPI)
+
+
+@pytest.fixture
+def mocked_aws() -> Mock:
+    # TODO: add aws client mock that sends files to aws
+    return AsyncMock()
+
+
+@pytest.fixture
 def deepset_cloud_api(unit_config: CommonConfig, mocked_client: Mock) -> DeepsetCloudAPI:
     return DeepsetCloudAPI(config=unit_config, client=mocked_client)
+
+
+@pytest.fixture
+def upload_session_response() -> UploadSession:
+    return UploadSession(
+        session_id=uuid4(),
+        documentation_url="Documentation URL",
+        expires_at=datetime.datetime.now(),
+        aws_prefixed_request_config=AWSPrefixedRequesetConfig(url="uploadURL", fields={"key": "value"}),
+    )
