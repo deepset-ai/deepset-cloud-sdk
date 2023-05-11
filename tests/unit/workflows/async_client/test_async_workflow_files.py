@@ -6,10 +6,11 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
-from deepset_cloud_sdk.service.files_service import FilesService
+from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles, FilesService
 from deepset_cloud_sdk.workflows.async_client.files import (
     upload_file_paths,
     upload_folder,
+    upload_texts,
 )
 
 
@@ -37,6 +38,25 @@ class TestUploadFiles:
         mocked_upload_folder.assert_called_once_with(
             workspace_name=DEFAULT_WORKSPACE_NAME,
             folder_path=Path("./tests/data/upload_folder"),
+            blocking=True,
+            timeout_s=300,
+        )
+
+    async def test_upload_texts(self, monkeypatch: MonkeyPatch) -> None:
+        mocked_upload_texts = AsyncMock(return_value=None)
+        monkeypatch.setattr(FilesService, "upload_texts", mocked_upload_texts)
+        dc_files = [
+            DeepsetCloudFiles(
+                name="test_file.txt",
+                text="test content",
+                meta={"test": "test"},
+            )
+        ]
+        await upload_texts(dc_files=dc_files)
+
+        mocked_upload_texts.assert_called_once_with(
+            workspace_name=DEFAULT_WORKSPACE_NAME,
+            dc_files=dc_files,
             blocking=True,
             timeout_s=300,
         )

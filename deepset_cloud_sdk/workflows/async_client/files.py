@@ -7,7 +7,7 @@ from deepset_cloud_sdk.api.config import (
     DEFAULT_WORKSPACE_NAME,
     CommonConfig,
 )
-from deepset_cloud_sdk.service.files_service import FilesService
+from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles, FilesService
 
 
 async def upload_file_paths(
@@ -37,4 +37,19 @@ async def upload_folder(
     async with FilesService.factory(config) as file_service:
         await file_service.upload_folder(
             workspace_name=workspace_name, folder_path=folder_path, blocking=blocking, timeout_s=timeout_s
+        )
+
+
+async def upload_texts(
+    dc_files: List[DeepsetCloudFiles],
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    blocking: bool = True,
+    timeout_s: int = 300,
+) -> None:
+    config = CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL)
+    async with FilesService.factory(config) as file_service:
+        await file_service.upload_texts(
+            workspace_name=workspace_name, dc_files=dc_files, blocking=blocking, timeout_s=timeout_s
         )

@@ -10,7 +10,7 @@ from deepset_cloud_sdk.api.upload_sessions import (
     UploadSessionIngestionStatus,
     UploadSessionStatus,
 )
-from deepset_cloud_sdk.service.files_service import FilesService
+from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles, FilesService
 
 
 @pytest.fixture
@@ -20,39 +20,129 @@ def file_service(mocked_upload_sessions_api: Mock, mocked_files_api: Mock, mocke
 
 @pytest.mark.asyncio
 class TestUploadsFileService:
-    async def test_upload_file_paths(
-        self,
-        file_service: FilesService,
-        mocked_upload_sessions_api: Mock,
-        upload_session_response: UploadSession,
-        mocked_aws: Mock,
-    ) -> None:
-        mocked_upload_sessions_api.create.return_value = upload_session_response
-        mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
-            session_id=upload_session_response.session_id,
-            expires_at=upload_session_response.expires_at,
-            documentation_url=upload_session_response.documentation_url,
-            ingestion_status=UploadSessionIngestionStatus(
-                failed_files=0,
-                finished_files=1,
-            ),
-        )
-        await file_service.upload_file_paths(
-            workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=300
-        )
+    class TestFilePathsUpload:
+        async def test_upload_file_paths(
+            self,
+            file_service: FilesService,
+            mocked_upload_sessions_api: Mock,
+            upload_session_response: UploadSession,
+            mocked_aws: Mock,
+        ) -> None:
+            mocked_upload_sessions_api.create.return_value = upload_session_response
+            mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
+                session_id=upload_session_response.session_id,
+                expires_at=upload_session_response.expires_at,
+                documentation_url=upload_session_response.documentation_url,
+                ingestion_status=UploadSessionIngestionStatus(
+                    failed_files=0,
+                    finished_files=1,
+                ),
+            )
+            await file_service.upload_file_paths(
+                workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=300
+            )
 
-        mocked_upload_sessions_api.create.assert_called_once_with(workspace_name="test_workspace")
+            mocked_upload_sessions_api.create.assert_called_once_with(workspace_name="test_workspace")
 
-        mocked_aws.upload_files.assert_called_once_with(
-            upload_session=upload_session_response, file_paths=[Path("./tmp/my-file")]
-        )
+            mocked_aws.upload_files.assert_called_once_with(
+                upload_session=upload_session_response, file_paths=[Path("./tmp/my-file")]
+            )
 
-        mocked_upload_sessions_api.close.assert_called_once_with(
-            workspace_name="test_workspace", session_id=upload_session_response.session_id
-        )
-        mocked_upload_sessions_api.status.assert_called_once_with(
-            workspace_name="test_workspace", session_id=upload_session_response.session_id
-        )
+            mocked_upload_sessions_api.close.assert_called_once_with(
+                workspace_name="test_workspace", session_id=upload_session_response.session_id
+            )
+            mocked_upload_sessions_api.status.assert_called_once_with(
+                workspace_name="test_workspace", session_id=upload_session_response.session_id
+            )
+
+        async def test_upload_file_paths_with_timeout(
+            self,
+            file_service: FilesService,
+            mocked_upload_sessions_api: Mock,
+            upload_session_response: UploadSession,
+        ) -> None:
+            mocked_upload_sessions_api.create.return_value = upload_session_response
+            mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
+                session_id=upload_session_response.session_id,
+                expires_at=upload_session_response.expires_at,
+                documentation_url=upload_session_response.documentation_url,
+                ingestion_status=UploadSessionIngestionStatus(
+                    failed_files=0,
+                    finished_files=0,
+                ),
+            )
+            with pytest.raises(TimeoutError):
+                await file_service.upload_file_paths(
+                    workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=0
+                )
+
+    class TestFolderUpload:
+        async def test_upload_folder_path(
+            self,
+            file_service: FilesService,
+            monkeypatch: MonkeyPatch,
+        ) -> None:
+            mocked_upload_file_paths = AsyncMock(return_value=None)
+            monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+            await file_service.upload_folder(
+                workspace_name="test_workspace",
+                folder_path=Path("./tests/data/upload_folder"),
+                blocking=True,
+                timeout_s=300,
+            )
+            mocked_upload_file_paths.assert_called_once_with(
+                workspace_name="test_workspace",
+                file_paths=[
+                    Path("tests/data/upload_folder/example.txt.meta.json"),
+                    Path("tests/data/upload_folder/example.txt"),
+                    Path("tests/data/upload_folder/example.pdf"),
+                ],
+                blocking=True,
+                timeout_s=300,
+            )
+
+    class TestUploadTexts:
+        async def test_upload_texts(
+            self,
+            file_service: FilesService,
+            mocked_upload_sessions_api: Mock,
+            upload_session_response: UploadSession,
+            mocked_aws: Mock,
+        ) -> None:
+            dc_files = [
+                DeepsetCloudFiles(
+                    name="test_file.txt",
+                    text="test content",
+                    meta={"test": "test"},
+                )
+            ]
+            mocked_upload_sessions_api.create.return_value = upload_session_response
+            mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
+                session_id=upload_session_response.session_id,
+                expires_at=upload_session_response.expires_at,
+                documentation_url=upload_session_response.documentation_url,
+                ingestion_status=UploadSessionIngestionStatus(
+                    failed_files=0,
+                    finished_files=1,
+                ),
+            )
+            await file_service.upload_texts(
+                workspace_name="test_workspace",
+                dc_files=dc_files,
+                blocking=True,
+                timeout_s=300,
+            )
+
+            mocked_upload_sessions_api.create.assert_called_once_with(workspace_name="test_workspace")
+
+            mocked_aws.upload_texts.assert_called_once_with(upload_session=upload_session_response, dc_files=dc_files)
+
+            mocked_upload_sessions_api.close.assert_called_once_with(
+                workspace_name="test_workspace", session_id=upload_session_response.session_id
+            )
+            mocked_upload_sessions_api.status.assert_called_once_with(
+                workspace_name="test_workspace", session_id=upload_session_response.session_id
+            )
 
     async def test_upload_file_paths_with_timeout(
         self,
@@ -74,30 +164,6 @@ class TestUploadsFileService:
             await file_service.upload_file_paths(
                 workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=0
             )
-
-    async def test_upload_folder_path(
-        self,
-        file_service: FilesService,
-        monkeypatch: MonkeyPatch,
-    ) -> None:
-        mocked_upload_file_paths = AsyncMock(return_value=None)
-        monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
-        await file_service.upload_folder(
-            workspace_name="test_workspace",
-            folder_path=Path("./tests/data/upload_folder"),
-            blocking=True,
-            timeout_s=300,
-        )
-        mocked_upload_file_paths.assert_called_once_with(
-            workspace_name="test_workspace",
-            file_paths=[
-                Path("tests/data/upload_folder/example.txt.meta.json"),
-                Path("tests/data/upload_folder/example.txt"),
-                Path("tests/data/upload_folder/example.pdf"),
-            ],
-            blocking=True,
-            timeout_s=300,
-        )
 
 
 @pytest.mark.asyncio
