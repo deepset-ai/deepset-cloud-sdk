@@ -11,8 +11,13 @@ from deepset_cloud_sdk.api.files import File, FileList, FilesAPI
 
 
 @pytest.fixture
-def files_api(mocked_deepset_cloud_api: Mock) -> FilesAPI:
-    return FilesAPI(mocked_deepset_cloud_api)
+def deepset_cloud_api() -> DeepsetCloudAPI:
+    return Mock(spec=DeepsetCloudAPI)
+
+
+@pytest.fixture
+def files_api(deepset_cloud_api: DeepsetCloudAPI) -> FilesAPI:
+    return FilesAPI(deepset_cloud_api)
 
 
 @pytest.mark.asyncio
@@ -22,8 +27,8 @@ class TestUtilitiesFilesAPI:
 
 @pytest.mark.asyncio
 class TestListFiles:
-    async def test_list_paginated(self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock) -> None:
-        mocked_deepset_cloud_api.get.return_value = httpx.Response(
+    async def test_list_paginated(self, files_api: FilesAPI, deepset_cloud_api: Mock) -> None:
+        deepset_cloud_api.get.return_value = httpx.Response(
             status_code=httpx.codes.OK,
             json={
                 "total": 1,
@@ -64,8 +69,8 @@ class TestListFiles:
             has_more=False,
         )
 
-    async def test_list_all_files_with_timeout(self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock) -> None:
-        mocked_deepset_cloud_api.get.return_value = httpx.Response(
+    async def test_list_all_files_with_timeout(self, files_api: FilesAPI, deepset_cloud_api: Mock) -> None:
+        deepset_cloud_api.get.return_value = httpx.Response(
             status_code=httpx.codes.OK,
             json={
                 "total": 11,

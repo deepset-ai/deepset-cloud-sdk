@@ -146,7 +146,7 @@ class DeepsetCloudAPI:
         response = await self.client.put(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
-            json=data or {},
+            data=data or {},
             headers=self.headers,
             timeout=timeout,
         )

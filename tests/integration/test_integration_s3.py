@@ -3,10 +3,11 @@ from unittest.mock import Mock
 
 import httpx
 import pytest
-
+import http
 from deepset_cloud_sdk.api.config import CommonConfig
 from deepset_cloud_sdk.api.deepset_cloud_api import get_deepset_cloud_api
 from deepset_cloud_sdk.api.upload_sessions import UploadSession, UploadSessionsAPI
+from deepset_cloud_sdk.s3 import S3
 
 
 @pytest.mark.asyncio
@@ -16,14 +17,11 @@ class TestCreateUploadSessions:
             deepset_cloud_api = get_deepset_cloud_api(integration_config, client=client)
             upload_session_client = UploadSessionsAPI(deepset_cloud_api)
 
-            result: UploadSession = await upload_session_client.create(workspace_name="sdk")
-
-            assert result.session_id is not None
-            assert result.documentation_url is not None
-            assert result.expires_at is not None
-
-            assert (
-                result.aws_prefixed_request_config.url
-                == "https://dc-dev-euc1-034167606153-user-files-upload.s3.amazonaws.com/"
+            session: UploadSession = await upload_session_client.create(workspace_name="sdk")
+            s3_client = S3()
+            result = await s3_client.upload_file(
+                file_name="test_sdk_file.txt",
+                aws_prefixed_request_config=session.aws_prefixed_request_config,
+                content="this is the file content",
             )
-            assert result.aws_prefixed_request_config.fields["key"] is not None
+            assert result.status == http.HTTPStatus.CREATED
