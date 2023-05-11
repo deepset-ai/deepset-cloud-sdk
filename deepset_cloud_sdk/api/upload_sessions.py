@@ -118,7 +118,7 @@ class UploadSessionsAPI:
         Each session needs to be closed to start the ingestion.
 
         :param workspace_name: Name of the workspace.
-        :raises AssertionError: If the session could not be created.
+        :raises FailedToSendUploadSessionRequest: If the session could not be created.
         :return: UploadSession object.
         """
         response = await self._deepset_cloud_api.post(
@@ -153,6 +153,8 @@ class UploadSessionsAPI:
 
         :param workspace_name: Name of the workspace.
         :param session_id: ID of the session.
+        :raises FailedToSendUploadSessionRequest: If the session could not be closed.
+        :raises FailedToSendUploadSessionRequest: If the status could not be fetched.
         """
         response = await self._deepset_cloud_api.put(
             workspace_name=workspace_name, endpoint=f"upload_sessions/{session_id}", data={"status": "CLOSED"}
@@ -168,6 +170,15 @@ class UploadSessionsAPI:
             )
 
     async def status(self, workspace_name: str, session_id: UUID) -> UploadSessionStatus:
+        """Fetch upload session status.
+
+        This method fetches the status of an upload session for a given workspace.
+
+        :param workspace_name: Name of the workspace.
+        :param session_id: ID of the session.
+        :raises FailedToSendUploadSessionRequest: If the status could not be fetched.
+        :return: UploadSessionStatus object.
+        """
         response = await self._deepset_cloud_api.get(
             workspace_name=workspace_name, endpoint=f"upload_sessions/{session_id}"
         )
@@ -192,6 +203,16 @@ class UploadSessionsAPI:
         )
 
     async def list(self, workspace_name: str, limit: int = 10, page_number: int = 1) -> UploadSessionDetailList:
+        """List upload sessions.
+
+        This method lists all upload sessions for a given workspace.
+
+        :param workspace_name: Name of the workspace.
+        :param limit: Number of upload sessions to return.
+        :param page_number: Page number of the upload sessions.
+        :raises FailedToSendUploadSessionRequest: If the list could not be fetched.
+        :return: UploadSessionDetailList object.
+        """
         response = await self._deepset_cloud_api.get(
             workspace_name=workspace_name,
             endpoint=f"upload_sessions",

@@ -1,3 +1,4 @@
+"""General Data classes for deepset cloud SDK."""
 from dataclasses import dataclass
 
 from click import UUID
