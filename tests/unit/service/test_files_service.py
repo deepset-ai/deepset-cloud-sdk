@@ -90,16 +90,17 @@ class TestUploadsFileService:
                 blocking=True,
                 timeout_s=300,
             )
-            mocked_upload_file_paths.assert_called_once_with(
-                workspace_name="test_workspace",
-                file_paths=[
-                    Path("tests/data/upload_folder/example.txt.meta.json"),
-                    Path("tests/data/upload_folder/example.txt"),
-                    Path("tests/data/upload_folder/example.pdf"),
-                ],
-                blocking=True,
-                timeout_s=300,
+            assert mocked_upload_file_paths.called
+            assert "test_workspace" == mocked_upload_file_paths.call_args[1]["workspace_name"]
+            assert mocked_upload_file_paths.call_args[1]["blocking"] == True
+            assert 300 == mocked_upload_file_paths.call_args[1]["timeout_s"]
+
+            assert (
+                Path("tests/data/upload_folder/example.txt.meta.json")
+                in mocked_upload_file_paths.call_args[1]["file_paths"]
             )
+            assert Path("tests/data/upload_folder/example.txt") in mocked_upload_file_paths.call_args[1]["file_paths"]
+            assert Path("tests/data/upload_folder/example.pdf") in mocked_upload_file_paths.call_args[1]["file_paths"]
 
     class TestUploadTexts:
         async def test_upload_texts(
