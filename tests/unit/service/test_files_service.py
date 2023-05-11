@@ -1,7 +1,8 @@
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 
 from deepset_cloud_sdk.api.config import CommonConfig
 from deepset_cloud_sdk.api.upload_sessions import (
@@ -73,6 +74,30 @@ class TestUploadsFileService:
             await file_service.upload_file_paths(
                 workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=0
             )
+
+    async def test_upload_folder_path(
+        self,
+        file_service: FilesService,
+        monkeypatch: MonkeyPatch,
+    ) -> None:
+        mocked_upload_file_paths = AsyncMock(return_value=None)
+        monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+        await file_service.upload_folder(
+            workspace_name="test_workspace",
+            folder_path=Path("./tests/data/upload_folder"),
+            blocking=True,
+            timeout_s=300,
+        )
+        mocked_upload_file_paths.assert_called_once_with(
+            workspace_name="test_workspace",
+            file_paths=[
+                Path("tests/data/upload_folder/example.txt.meta.json"),
+                Path("tests/data/upload_folder/example.txt"),
+                Path("tests/data/upload_folder/example.pdf"),
+            ],
+            blocking=True,
+            timeout_s=300,
+        )
 
 
 @pytest.mark.asyncio

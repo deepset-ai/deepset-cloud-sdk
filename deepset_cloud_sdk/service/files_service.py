@@ -94,3 +94,37 @@ class FilesService:
                     total_files=len(file_paths),
                 )
                 time.sleep(1)
+
+    async def upload_folder(
+        self, workspace_name: str, folder_path: Path, blocking: bool = True, timeout_s: int = 300
+    ) -> None:
+        """Upload a folder to a workspace.
+
+        Upload a folder via upload sessions to a selected workspace. If blocking is True, the function waits until
+        all files are uploaded and listed by deepsetCloud. If blocking is False, the function returns immediately after
+        the upload of the files is done. Note: It can take a while until the files are listed in deepsetCloud.
+
+        :param workspace_name: Name of the workspace to upload the files to.
+        :folder_path: Path to the folder to upload.
+        :blocking: If True, blocks until the ingestion is finished.
+        :timeout_s: Timeout in seconds for the blocking ingestion.
+        :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
+        """
+
+        all_files = [path for path in folder_path.glob("**/*")]
+
+        file_paths = [
+            path
+            for path in all_files
+            if path.is_file() and ((path.suffix in [".txt", ".pdf"]) or path.name.endswith("meta.json"))
+        ]
+        if len(file_paths) < len(all_files):
+            logger.warning(
+                "Skipping files with unsupported file format.",
+                folder_path=folder_path,
+                skipped_files=len(all_files) - len(file_paths),
+            )
+
+        await self.upload_file_paths(
+            workspace_name=workspace_name, file_paths=file_paths, blocking=blocking, timeout_s=timeout_s
+        )
