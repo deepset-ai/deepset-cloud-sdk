@@ -27,3 +27,5 @@ class TestCreateUploadSessions:
                 == "https://dc-dev-euc1-034167606153-user-files-upload.s3.amazonaws.com/"
             )
             assert result.aws_prefixed_request_config.fields["key"] is not None
+
+            await upload_session_client.close(workspace_name="sdk", session_id=result.session_id)

@@ -38,6 +38,10 @@ class FailedToCreateUploadSession(Exception):
     """Raised if the upload session could not be created."""
 
 
+class FailedToCloseUploadSession(Exception):
+    """Raised if the upload session could not be closed."""
+
+
 class UploadSessionsAPI:
     """Upload sessions API for deepset Cloud."""
 
@@ -81,3 +85,24 @@ class UploadSessionsAPI:
                 url=response_body["aws_prefixed_request_config"]["url"],
             ),
         )
+
+    async def close(self, workspace_name: str, session_id: UUID) -> None:
+        """Close upload session.
+
+        This method closes an upload session for a given workspace. Once the session is closed, no more files can be
+        uploaded to this session and the ingestion is automatically started.
+        This means that your files will appear in the workspace after a short while.
+
+        :param workspace_name: Name of the workspace.
+        :param session_id: ID of the session.
+        """
+        response = await self._deepset_cloud_api.put(
+            workspace_name=workspace_name, endpoint=f"upload_sessions/{session_id}", data={"status": "CLOSED"}
+        )
+        if response.status_code != codes.NO_CONTENT:
+            logger.error(
+                "Failed to close upload session.",
+                status_code=response.status_code,
+                response_body=response.text,
+            )
+            raise FailedToCloseUploadSession(f"Failed to close upload session. Status code: {response.status_code}.")
