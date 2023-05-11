@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from deepset_cloud_sdk.api.config import CommonConfig
 from deepset_cloud_sdk.api.upload_sessions import (
     UploadSession,
     UploadSessionIngestionStatus,
@@ -72,3 +73,10 @@ class TestUploadsFileService:
             await file_service.upload_file_paths(
                 workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=0
             )
+
+
+@pytest.mark.asyncio
+class TestUtilsFileService:
+    async def test_factory(self, unit_config: CommonConfig) -> None:
+        async with FilesService.factory(unit_config) as file_service:
+            assert isinstance(file_service, FilesService)
