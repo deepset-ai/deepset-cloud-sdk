@@ -1,13 +1,8 @@
 from pathlib import Path
-from unittest.mock import Mock
 
-import httpx
 import pytest
 
 from deepset_cloud_sdk.api.config import CommonConfig
-from deepset_cloud_sdk.api.deepset_cloud_api import get_deepset_cloud_api
-from deepset_cloud_sdk.api.files import FilesAPI
-from deepset_cloud_sdk.api.upload_sessions import UploadSessionsAPI
 from deepset_cloud_sdk.service.files_service import FilesService
 
 
