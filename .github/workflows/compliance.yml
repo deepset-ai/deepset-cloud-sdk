@@ -2,8 +2,8 @@ name: Compliance Checks
 
 on:
   push:
-#    paths:
-#      - 'pyproject.toml'
+    paths:
+      - 'pyproject.toml'
   schedule:
     - cron: '0 0 * * *'  # every day at midnight
 
@@ -25,7 +25,12 @@ jobs:
       - name: Install prod dependencies
         run: |
           pip install hatch==v1.7.0
-          hatch dep show requirements > requirements.txt
+          hatch run tools:requirements
+          pip install -r requirements.txt
+
+      - name: Create file with full dependency list
+        run: |
+          pip freeze > requirements-full.txt
 
       - name: Send license report to Fossa
         # This will collect all necessary information (mostly used dependencies) and send it to the Fossa API
