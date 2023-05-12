@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import os
+import asyncio
+import enum
 import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -79,7 +81,7 @@ class FilesService:
                 failed_files=upload_session_status.ingestion_status.failed_files,
                 total_files=total_files,
             )
-            time.sleep(1)
+            await asyncio.sleep(1)
 
     @asynccontextmanager
     async def _create_upload_session(

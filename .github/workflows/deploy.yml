@@ -12,11 +12,21 @@ permissions:
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with continuous-integration.yml
-  API_KEY: ${{secrets.API_KEY}}
+
 
 jobs:
   ci:
-    uses: ./.github/workflows/continuous-integration.yml
+    name: Wait for tests
+    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Test and Build
+        uses: lewagon/wait-on-check-action@e106e5c43e8ca1edea6383a39a01c5ca495fd812 # v1.31
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }} # on PR, we need head sha, see https://github.com/lewagon/wait-on-check-action/issues/25
+          check-name: 'Build package'
+          repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          wait-interval: 5
 
   build-and-deploy:
     needs: [ci]
