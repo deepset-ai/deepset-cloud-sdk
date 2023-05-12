@@ -21,7 +21,8 @@ logger = structlog.get_logger(__name__)
 
 
 @dataclass
-class DeepsetCloudFiles:
+class DeepsetCloudFile:
+
     """Dataclass for files in deepsetCloud."""
 
     text: str
@@ -148,12 +149,12 @@ class FilesService:
         )
 
     async def upload_texts(
-        self, workspace_name: str, dc_files: List[DeepsetCloudFiles], blocking: bool = True, timeout_s: int = 300
+        self, workspace_name: str, dc_files: List[DeepsetCloudFile], blocking: bool = True, timeout_s: int = 300
     ) -> None:
         """
         Upload a list of raw texts to a workspace.
-
-        Upload a list of raw texts via upload sessions to a selected workspace. This method accepts a list of DeepsetCloudFiles
+        
+        Upload a list of raw texts via upload sessions to a selected workspace. This method accepts a list of DeepsetCloudFile
         which contain the raw text, file name and optional meta data.
 
         If blocking is True, the function waits until all files are uploaded and listed by deepsetCloud.
@@ -161,7 +162,7 @@ class FilesService:
         Note: It can take a while until the files are listed in deepsetCloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
-        :dc_files: List of DeepsetCloudFiles to upload.
+        :dc_files: List of DeepsetCloudFile to upload.
         :blocking: If True, blocks until the ingestion is finished.
         :timeout_s: Timeout in seconds for the blocking ingestion.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
