@@ -1,1 +1,0 @@
-For example, a background thread cannot update the contents of a Button that is associated with the on the UI thread. In order for the background thread to access the Content property of the Button, the background thread must delegate the work to the associated with the UI thread.

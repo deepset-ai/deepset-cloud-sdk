@@ -1,1 +1,0 @@
-Triangle Angle Sum Theorem. The sum of the measures of the interior angles of a triangle is 180. The diagram above illustrates the Triangle Angle Sum Theorem. Let's do some examples involving the Triangle Sum Theorem to help us see its utility.
