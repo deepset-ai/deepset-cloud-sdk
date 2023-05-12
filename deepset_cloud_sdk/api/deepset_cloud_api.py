@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Dict, Optional
+from typing import Any, AsyncGenerator, Callable, Dict, Optional
 
 import httpx
 import structlog
@@ -11,6 +11,13 @@ from httpx import Response
 from deepset_cloud_sdk.api.config import CommonConfig
 
 logger = structlog.get_logger(__name__)
+
+
+class WorkspaceNotDefinedError(Exception):
+    """
+    Workspace not defined error. This exception is raised if a workspace_name is not defined.
+    This can happen if neither an environment variable was set, nor a workspace_name was passed as an argument.
+    """
 
 
 class DeepsetCloudAPI:
@@ -32,8 +39,23 @@ class DeepsetCloudAPI:
             "Accept": "application/json",
             "Authorization": f"Bearer {config.api_key}",
         }
-        self.base_url = lambda workspace_name: f"{config.api_url}/workspaces/{workspace_name}"
+        self.base_url = lambda workspace_name: self._get_base_url(config.api_url)(workspace_name)
         self.client = client
+
+    @staticmethod
+    def _get_base_url(api_url: str) -> Callable:
+        def func(workspace_name: str) -> str:
+            """Get the base url for the API.
+
+            :param workspace_name: Name of the workspace to use.
+            :return: Base url.
+            """
+            if not workspace_name or workspace_name == "":
+                raise WorkspaceNotDefinedError(f"Workspace name not defined. Got '{workspace_name}'")
+
+            return f"{api_url}/workspaces/{workspace_name}"
+
+        return func
 
     @classmethod
     @asynccontextmanager
