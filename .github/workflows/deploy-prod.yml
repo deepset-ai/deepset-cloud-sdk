@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+env:
+  HATCH_VERSION: "v1.7.0" # keep in sync with continuous-integration.yml
+  API_KEY: ${{secrets.API_KEY}}
+
 jobs:
   deploy-prod:
     uses: ./.github/workflows/deploy.yml
