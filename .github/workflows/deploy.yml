@@ -18,7 +18,7 @@ jobs:
   ci:
     name: Wait for tests
     timeout-minutes: 45
-    runs-on: self-hosted-dc
+    runs-on: ubuntu-latest
     steps:
       - name: Wait for Test and Build
         uses: lewagon/wait-on-check-action@e106e5c43e8ca1edea6383a39a01c5ca495fd812 # v1.31
