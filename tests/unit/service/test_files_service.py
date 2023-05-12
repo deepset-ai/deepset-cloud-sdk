@@ -9,6 +9,7 @@ from deepset_cloud_sdk.api.upload_sessions import (
     UploadSession,
     UploadSessionIngestionStatus,
     UploadSessionStatus,
+    WriteMode,
 )
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles, FilesService
 
@@ -39,10 +40,16 @@ class TestUploadsFileService:
                 ),
             )
             await file_service.upload_file_paths(
-                workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=300
+                workspace_name="test_workspace",
+                file_paths=[Path("./tmp/my-file")],
+                write_mode=WriteMode.OVERWRITE,
+                blocking=True,
+                timeout_s=300,
             )
 
-            mocked_upload_sessions_api.create.assert_called_once_with(workspace_name="test_workspace")
+            mocked_upload_sessions_api.create.assert_called_once_with(
+                workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
+            )
 
             mocked_aws.upload_files.assert_called_once_with(
                 upload_session=upload_session_response, file_paths=[Path("./tmp/my-file")]
@@ -130,11 +137,14 @@ class TestUploadsFileService:
             await file_service.upload_texts(
                 workspace_name="test_workspace",
                 dc_files=dc_files,
+                write_mode=WriteMode.OVERWRITE,
                 blocking=True,
                 timeout_s=300,
             )
 
-            mocked_upload_sessions_api.create.assert_called_once_with(workspace_name="test_workspace")
+            mocked_upload_sessions_api.create.assert_called_once_with(
+                workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
+            )
 
             mocked_aws.upload_texts.assert_called_once_with(upload_session=upload_session_response, dc_files=dc_files)
 
