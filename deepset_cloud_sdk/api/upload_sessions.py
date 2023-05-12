@@ -94,6 +94,14 @@ class UploadSessionStatus:
     ingestion_status: UploadSessionIngestionStatus
 
 
+class WriteMode(str, enum.Enum):
+    """Enum for write modes."""
+
+    OVERWRITE = "OVERWRITE"
+    KEEP = "KEEP"
+    FAIL = "FAIL"
+
+
 class FailedToSendUploadSessionRequest(Exception):
     """Raised if the upload session could not be created."""
 
@@ -109,7 +117,7 @@ class UploadSessionsAPI:
         """
         self._deepset_cloud_api = deepset_cloud_api
 
-    async def create(self, workspace_name: str) -> UploadSession:
+    async def create(self, workspace_name: str, write_mode: WriteMode = WriteMode.KEEP) -> UploadSession:
         """Create upload session.
 
         This method creates an upload session for a given workspace. The upload session
@@ -122,7 +130,7 @@ class UploadSessionsAPI:
         :return: UploadSession object.
         """
         response = await self._deepset_cloud_api.post(
-            workspace_name=workspace_name, endpoint="upload_sessions", data={}
+            workspace_name=workspace_name, endpoint="upload_sessions", data={"write_mode": write_mode.value}
         )
         if response.status_code != codes.CREATED:
             logger.error(
