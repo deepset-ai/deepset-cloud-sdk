@@ -8,7 +8,12 @@ from deepset_cloud_sdk.api.config import (
     DEFAULT_WORKSPACE_NAME,
     CommonConfig,
 )
+from deepset_cloud_sdk.api.upload_sessions import WriteMode
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles, FilesService
+
+
+def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:
+    return CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL)
 
 
 async def upload_file_paths(
@@ -16,6 +21,7 @@ async def upload_file_paths(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
@@ -28,10 +34,13 @@ async def upload_file_paths(
     :param blocking: Whether to wait for the upload to finish.
     :param timeout_s: Timeout in seconds for the upload.
     """
-    config = CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL)
-    async with FilesService.factory(config) as file_service:
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         await file_service.upload_file_paths(
-            workspace_name=workspace_name, file_paths=file_paths, blocking=blocking, timeout_s=timeout_s
+            workspace_name=workspace_name,
+            file_paths=file_paths,
+            write_mode=write_mode,
+            blocking=blocking,
+            timeout_s=timeout_s,
         )
 
 
@@ -40,6 +49,7 @@ async def upload_folder(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
@@ -52,10 +62,13 @@ async def upload_folder(
     :param blocking: Whether to wait for the upload to finish.
     :param timeout_s: Timeout in seconds for the upload.
     """
-    config = CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL)
-    async with FilesService.factory(config) as file_service:
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         await file_service.upload_folder(
-            workspace_name=workspace_name, folder_path=folder_path, blocking=blocking, timeout_s=timeout_s
+            workspace_name=workspace_name,
+            folder_path=folder_path,
+            write_mode=write_mode,
+            blocking=blocking,
+            timeout_s=timeout_s,
         )
 
 
@@ -64,6 +77,7 @@ async def upload_texts(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
@@ -76,8 +90,11 @@ async def upload_texts(
     :param blocking: Whether to wait for the upload to finish.
     :param timeout_s: Timeout in seconds for the upload.
     """
-    config = CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL)
-    async with FilesService.factory(config) as file_service:
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         await file_service.upload_texts(
-            workspace_name=workspace_name, dc_files=dc_files, blocking=blocking, timeout_s=timeout_s
+            workspace_name=workspace_name,
+            dc_files=dc_files,
+            write_mode=write_mode,
+            blocking=blocking,
+            timeout_s=timeout_s,
         )
