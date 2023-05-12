@@ -11,7 +11,7 @@ from deepset_cloud_sdk.api.upload_sessions import (
     UploadSessionStatus,
     WriteMode,
 )
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles, FilesService
+from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
 
 
 @pytest.fixture
@@ -118,7 +118,7 @@ class TestUploadsFileService:
             mocked_aws: Mock,
         ) -> None:
             dc_files = [
-                DeepsetCloudFiles(
+                DeepsetCloudFile(
                     name="test_file.txt",
                     text="test content",
                     meta={"test": "test"},

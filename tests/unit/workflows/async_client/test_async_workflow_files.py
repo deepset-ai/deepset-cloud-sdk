@@ -7,7 +7,7 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk.api.upload_sessions import WriteMode
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles, FilesService
+from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
 from deepset_cloud_sdk.workflows.async_client.files import (
     upload_file_paths,
     upload_folder,
@@ -49,7 +49,7 @@ class TestUploadFiles:
         mocked_upload_texts = AsyncMock(return_value=None)
         monkeypatch.setattr(FilesService, "upload_texts", mocked_upload_texts)
         dc_files = [
-            DeepsetCloudFiles(
+            DeepsetCloudFile(
                 name="test_file.txt",
                 text="test content",
                 meta={"test": "test"},

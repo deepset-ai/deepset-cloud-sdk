@@ -9,7 +9,7 @@ from deepset_cloud_sdk.api.config import (
     CommonConfig,
 )
 from deepset_cloud_sdk.api.upload_sessions import WriteMode
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles, FilesService
+from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
 
 
 def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:
@@ -73,7 +73,7 @@ async def upload_folder(
 
 
 async def upload_texts(
-    dc_files: List[DeepsetCloudFiles],
+    dc_files: List[DeepsetCloudFile],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,

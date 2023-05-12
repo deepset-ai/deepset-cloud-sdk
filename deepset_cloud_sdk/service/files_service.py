@@ -27,7 +27,7 @@ logger = structlog.get_logger(__name__)
 
 
 @dataclass
-class DeepsetCloudFiles:
+class DeepsetCloudFile:
     """Dataclass for files in deepsetCloud."""
 
     text: str
@@ -182,7 +182,7 @@ class FilesService:
     async def upload_texts(
         self,
         workspace_name: str,
-        dc_files: List[DeepsetCloudFiles],
+        dc_files: List[DeepsetCloudFile],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: int = 300,
