@@ -11,7 +11,6 @@ from deepset_cloud_sdk.api.config import (
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
 
 
-
 async def upload_file_paths(
     file_paths: List[Path],
     api_key: Optional[str] = None,
@@ -69,7 +68,7 @@ async def upload_texts(
     timeout_s: int = 300,
 ) -> None:
     """Upload texts to the Deepset Cloud.
-    
+
     :param dc_files: List of DeepsetCloudFile to upload.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.

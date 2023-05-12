@@ -153,7 +153,7 @@ class FilesService:
     ) -> None:
         """
         Upload a list of raw texts to a workspace.
-        
+
         Upload a list of raw texts via upload sessions to a selected workspace. This method accepts a list of DeepsetCloudFile
         which contain the raw text, file name and optional meta data.
 
