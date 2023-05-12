@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from deepset_cloud_sdk.api.config import CommonConfig
+from deepset_cloud_sdk.api.upload_sessions import WriteMode
 from deepset_cloud_sdk.service.files_service import FilesService
 
 
@@ -14,5 +15,6 @@ class TestUploadsFileService:
             await file_service.upload_file_paths(
                 workspace_name="sdk",
                 file_paths=[Path("./tmp/my-file")],
+                write_mode=WriteMode.OVERWRITE,
                 blocking=False,  # dont wait for files to be ingested
             )

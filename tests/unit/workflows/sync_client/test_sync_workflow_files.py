@@ -3,6 +3,7 @@ from typing import List, Optional
 from unittest.mock import AsyncMock, patch
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
+from deepset_cloud_sdk.api.upload_sessions import WriteMode
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_file_paths,
@@ -15,12 +16,14 @@ from deepset_cloud_sdk.workflows.sync_client.files import (
 def test_upload_file_paths(async_file_upload_mock: AsyncMock) -> None:
     upload_file_paths(
         file_paths=[Path("./tests/data/example.txt")],
+        write_mode=WriteMode.FAIL,
     )
     async_file_upload_mock.assert_called_once_with(
         file_paths=[Path("./tests/data/example.txt")],
         api_key=None,
         api_url=None,
         workspace_name=DEFAULT_WORKSPACE_NAME,
+        write_mode=WriteMode.FAIL,
         blocking=True,
         timeout_s=300,
     )
@@ -36,6 +39,7 @@ def test_upload_folder(async_upload_folder_mock: AsyncMock) -> None:
         api_key=None,
         api_url=None,
         workspace_name=DEFAULT_WORKSPACE_NAME,
+        write_mode=WriteMode.KEEP,
         blocking=True,
         timeout_s=300,
     )
@@ -56,6 +60,7 @@ def test_upload_texts(async_upload_texts_mock: AsyncMock) -> None:
         api_key=None,
         api_url=None,
         workspace_name=DEFAULT_WORKSPACE_NAME,
+        write_mode=WriteMode.KEEP,
         blocking=True,
         timeout_s=300,
     )
