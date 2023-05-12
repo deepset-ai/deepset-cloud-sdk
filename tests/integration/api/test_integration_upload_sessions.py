@@ -21,7 +21,7 @@ def workspace_name() -> str:
 
 @pytest.mark.asyncio
 class TestCreateUploadSessions:
-    async def test_create_and_close_upload_session(self, integration_config: CommonConfig) -> None:
+    async def test_create_and_close_upload_session(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with DeepsetCloudAPI.factory(integration_config) as deepset_cloud_api:
             upload_session_client = UploadSessionsAPI(deepset_cloud_api)
 
@@ -47,7 +47,7 @@ class TestCreateUploadSessions:
             assert session_status.expires_at is not None
             assert session_status.ingestion_status == UploadSessionIngestionStatus(failed_files=0, finished_files=0)
 
-    async def test_list_upload_session(self, integration_config: CommonConfig) -> None:
+    async def test_list_upload_session(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with DeepsetCloudAPI.factory(integration_config) as deepset_cloud_api:
             upload_session_client = UploadSessionsAPI(deepset_cloud_api)
 

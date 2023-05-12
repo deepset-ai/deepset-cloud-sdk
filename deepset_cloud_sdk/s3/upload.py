@@ -1,16 +1,24 @@
 import asyncio
-from dataclasses import dataclass
-from io import BufferedReader, TextIOWrapper
+import json
+import os
 import re
-from typing import Callable, List, Tuple
-from urllib.error import HTTPError
-from deepset_cloud_sdk.api.upload_sessions import AWSPrefixedRequesetConfig
-from urllib.parse import quote_plus
-import aiohttp
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
-import structlog
-from deepset_cloud_sdk.api.upload_sessions import UploadSession
+from dataclasses import dataclass
 from http import HTTPStatus
+from io import BufferedReader, BytesIO, TextIOWrapper
+from pathlib import Path
+from typing import Any, Callable, Coroutine, List, Tuple
+from urllib.error import HTTPError
+from urllib.parse import quote_plus
+
+import aiohttp
+import structlog
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+
+from deepset_cloud_sdk.api.upload_sessions import (
+    AWSPrefixedRequesetConfig,
+    UploadSession,
+)
+from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
 
@@ -38,13 +46,14 @@ def make_safe_file_name(file_name: str) -> str:
 class S3:
     def __init__(self, concurrency: int = 120):
         self.connector = aiohttp.TCPConnector(limit=concurrency)
+        self.semaphore = asyncio.BoundedSemaphore(concurrency)
 
     @retry(retry=retry_if_exception_type(HTTPError), stop=stop_after_attempt(3), wait=wait_fixed(0.5))  # type: ignore
     async def _upload_file_with_retries(
         self,
         file_name: str,
         upload_session: UploadSession,
-        buffered_reader: BufferedReader,
+        content: Any,
         client_session: aiohttp.ClientSession,
     ) -> aiohttp.ClientResponse:
         aws_safe_name = make_safe_file_name(file_name)
@@ -53,7 +62,7 @@ class S3:
         file_data = aiohttp.FormData()
         for key in aws_config.fields:
             file_data.add_field(key, aws_config.fields[key])
-        file_data.add_field("file", buffered_reader, filename=aws_safe_name, content_type="text/plain")
+        file_data.add_field("file", content, filename=aws_safe_name, content_type="text/plain")
         async with client_session.post(
             aws_config.url,
             data=file_data,
@@ -62,35 +71,41 @@ class S3:
 
         return response
 
-    async def upload_file(
+    async def upload_from_file(
+        self,
+        file_path: Path,
+        upload_session: UploadSession,
+        client_session: aiohttp.ClientSession,
+    ) -> S3UploadResult:
+        async with self.semaphore:
+            with open(file_path, "rb") as file:
+                file_name = os.path.basename(file_path)
+                try:
+                    response = await self._upload_file_with_retries(file_name, upload_session, file, client_session)
+                    return S3UploadResult(file_name=file_name, success=True)
+                except Exception as ue:
+                    logger.warn(
+                        "Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id
+                    )
+                    return S3UploadResult(file_name=file_name, success=False)
+
+    async def upload_from_string(
         self,
         file_name: str,
         upload_session: UploadSession,
-        buffered_reader: BufferedReader,
+        content: str,
         client_session: aiohttp.ClientSession,
     ) -> S3UploadResult:
         try:
-            response = await self._upload_file_with_retries(file_name, upload_session, buffered_reader, client_session)
+            response = await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
         except Exception as ue:
             logger.warn("Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id)
             return S3UploadResult(file_name=file_name, success=False)
-        finally:
-            buffered_reader.close()
 
-    async def upload_files(
-        self, upload_session: UploadSession, get_files: List[Callable[[], Tuple[str, BufferedReader]]]
-    ) -> S3UploadSummary:
-        client_session = aiohttp.ClientSession(connector=self.connector)
-        tasks = []
-
-        for get_file in get_files:
-            file_name, buffered_reader = get_file()
-            tasks.append(self.upload_file(file_name, upload_session, buffered_reader, client_session))
-
+    async def _process_results(self, tasks: List[Coroutine[Any, Any, S3UploadResult]]) -> S3UploadSummary:
         results: List[S3UploadResult] = await asyncio.gather(*tasks)
         logger.info("Finished uploading files", results=results)
-        await client_session.close()
 
         failed: List[str] = []
         successfully_uploaded = 0
@@ -98,13 +113,40 @@ class S3:
             if result.success:
                 successfully_uploaded += 1
             else:
-                failed.append(result.file_path)
+                failed.append(result.file_name)
 
         result_summary = S3UploadSummary(
             successful_upload_count=successfully_uploaded,
             failed_upload_count=len(failed),
             failed=failed,
-            total_files=len(get_files),
+            total_files=len(tasks),
         )
 
         return result_summary
+
+    async def upload_files_from_path(self, upload_session: UploadSession, file_paths: List[Path]) -> S3UploadSummary:
+        async with aiohttp.ClientSession(connector=self.connector) as client_session:
+            tasks = []
+
+            for file_path in file_paths:
+                tasks.append(self.upload_from_file(file_path, upload_session, client_session))
+
+            result_summary = await self._process_results(tasks)
+            return result_summary
+
+    async def upload_texts(self, upload_session: UploadSession, dc_files: List[DeepsetCloudFile]) -> S3UploadSummary:
+        async with aiohttp.ClientSession(connector=self.connector) as client_session:
+            tasks = []
+
+            for file in dc_files:
+                # raw data
+                file_name = file.name
+                tasks.append(self.upload_from_string(file_name, upload_session, file.text, client_session))
+
+                # meta
+                meta_name = f"{file_name}.meta.json"
+                metadata = json.dumps(file.meta)
+                tasks.append(self.upload_from_string(meta_name, upload_session, metadata, client_session))
+
+            result_summary = await self._process_results(tasks)
+            return result_summary

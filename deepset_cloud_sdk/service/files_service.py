@@ -1,13 +1,12 @@
 """Module for all file related operations."""
 from __future__ import annotations
-from functools import partial
 
-
-from io import BufferedReader
 import os
 import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from functools import partial
+from io import BufferedReader
 from pathlib import Path
 from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Tuple
 from unittest.mock import AsyncMock
@@ -25,18 +24,10 @@ from deepset_cloud_sdk.api.upload_sessions import (
     UploadSessionStatus,
     WriteMode,
 )
+from deepset_cloud_sdk.models import DeepsetCloudFile
 from deepset_cloud_sdk.s3.upload import S3
 
 logger = structlog.get_logger(__name__)
-
-
-@dataclass
-class DeepsetCloudFile:
-    """Dataclass for files in deepsetCloud."""
-
-    text: str
-    name: str
-    meta: Optional[Dict[str, Any]] = None
 
 
 class FilesService:
@@ -130,16 +121,8 @@ class FilesService:
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
             # upload file paths to session
-            def get_file(file_path: str) -> Tuple[str, BufferedReader]:
-                file = open(file_path, "rb")
-                file_name = os.path.basename(file_path)
-                return (file_name, file)
 
-            get_files: List[Callable[[], Tuple[str, str]]] = []
-
-            get_files = [partial(get_file, path) for path in file_paths]
-
-            upload_summary = await self._s3.upload_files(upload_session=upload_session, get_files=get_files)
+            upload_summary = await self._s3.upload_files_from_path(upload_session=upload_session, file_paths=file_paths)
             logger.info(
                 "Summary of S3 Uploads",
                 successful_uploads=upload_summary.successful_upload_count,
@@ -149,10 +132,11 @@ class FilesService:
 
         # wait for ingestion to finish
         if blocking:
+            total_files = len(list(filter(lambda x: not os.path.basename(x).endswith(".meta.json"), file_paths)))
             await self._wait_for_finished(
                 workspace_name=workspace_name,
                 session_id=upload_session.session_id,
-                total_files=len(list(filter(lambda x: not x.endswith(".meta.json"), file_paths))),
+                total_files=total_files,
                 timeout_s=timeout_s,
             )
 
@@ -224,7 +208,7 @@ class FilesService:
         """
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
-            await self._aws.upload_texts(upload_session=upload_session, dc_files=dc_files)
+            await self._s3.upload_texts(upload_session=upload_session, dc_files=dc_files)
 
         if blocking:
             await self._wait_for_finished(
