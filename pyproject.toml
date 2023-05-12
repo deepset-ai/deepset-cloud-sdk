@@ -44,6 +44,13 @@ tests-integration = "pytest --cov-report=term-missing --cov-config=pyproject.tom
 [[tool.hatch.envs.all.matrix]]
 python = ["3.10"]
 
+[tool.hatch.envs.default]
+dependencies = [
+  "pytest-cov==4.0.0",
+  "pytest==7.3.1",
+  "pytest-asyncio==0.21.0",
+]
+
 [tool.hatch.envs.code-quality]
 detached = true
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
@@ -54,9 +61,6 @@ dependencies = [
   "isort==5.12.0",
   "mypy==1.1.1",
   "pre-commit==2.20.0",
-  "pytest-cov==4.0.0",
-  "pytest==7.3.1",
-  "pytest-asyncio==0.21.0",
 ]
 
 [tool.hatch.envs.code-quality.scripts]
