@@ -12,11 +12,14 @@ permissions:
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with continuous-integration.yml
+  API_KEY: ${{ secrets.API_KEY }}
 
 
 jobs:
   ci:
     uses: ./.github/workflows/continuous-integration.yml
+    with:
+      API_KEY: ${{ secrets.API_KEY }}
 
   build-and-deploy:
     needs: [ci]
