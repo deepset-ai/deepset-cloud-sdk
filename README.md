@@ -9,15 +9,13 @@
 The deepset Cloud SDK is an open-source software development kit that provides convenient access and integration with deepset Cloud, a powerful cloud offering for various natural language processing (NLP) tasks.
 This README provides an overview of the SDK and its features, as well as information on contributing to the project and exploring related resources.
 
-## Supported Features
+# Supported Features
 The current version of the deepset Cloud SDK focuses on enabling file uploads to deepset Cloud.
 You can find detailed instructions and examples in the file_uploads/README.md file. This feature allows you to easily upload files to deepset Cloud for further processing and analysis.
 
-### Examples
-The following examples demonstrate how to use the deepset Cloud SDK to upload files to deepset Cloud.
-
-
-
+## Examples
+The following examples demonstrate how to use the deepset Cloud SDK to interact with deepset Cloud.
+- [Upload datasets to deepset Cloud](/examples/upload_folder.py)
 
 ## Contributing
 We welcome contributions from the open-source community to enhance the deepset Cloud SDK. I
