@@ -8,7 +8,7 @@ from deepset_cloud_sdk.api.config import (
     DEFAULT_WORKSPACE_NAME,
     CommonConfig,
 )
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles, FilesService
+from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
 
 
 async def upload_file_paths(
@@ -60,7 +60,7 @@ async def upload_folder(
 
 
 async def upload_texts(
-    dc_files: List[DeepsetCloudFiles],
+    dc_files: List[DeepsetCloudFile],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
@@ -69,7 +69,7 @@ async def upload_texts(
 ) -> None:
     """Upload texts to the Deepset Cloud.
 
-    :param dc_files: List of DeepsetCloudFiles to upload.
+    :param dc_files: List of DeepsetCloudFile to upload.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
