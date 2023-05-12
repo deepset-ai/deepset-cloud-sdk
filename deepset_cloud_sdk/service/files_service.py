@@ -22,7 +22,6 @@ logger = structlog.get_logger(__name__)
 
 @dataclass
 class DeepsetCloudFile:
-
     """Dataclass for files in deepsetCloud."""
 
     text: str
