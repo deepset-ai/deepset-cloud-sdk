@@ -5,7 +5,10 @@ import pytest
 from httpx import codes
 
 from deepset_cloud_sdk.api.config import CommonConfig
-from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
+from deepset_cloud_sdk.api.deepset_cloud_api import (
+    DeepsetCloudAPI,
+    WorkspaceNotDefinedError,
+)
 
 
 @pytest.mark.asyncio
@@ -19,6 +22,12 @@ class TestUtilitiesForDeepsetCloudAPI:
                 "Accept": "application/json",
                 "Authorization": f"Bearer {unit_config.api_key}",
             }
+
+    async def test_deepset_cloud_api_raises_exception_if_no_workspace_is_defined(
+        self, deepset_cloud_api: DeepsetCloudAPI
+    ) -> None:
+        with pytest.raises(WorkspaceNotDefinedError):
+            await deepset_cloud_api.get("", "endpoint")
 
 
 @pytest.mark.asyncio
