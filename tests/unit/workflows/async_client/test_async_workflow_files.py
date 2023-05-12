@@ -1,14 +1,18 @@
+import datetime
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock
+from uuid import UUID
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
+from deepset_cloud_sdk.api.files import File
 from deepset_cloud_sdk.api.upload_sessions import WriteMode
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
 from deepset_cloud_sdk.workflows.async_client.files import (
+    list_files,
     upload_file_paths,
     upload_folder,
     upload_texts,
@@ -63,4 +67,46 @@ class TestUploadFiles:
             write_mode=WriteMode.KEEP,
             blocking=True,
             timeout_s=300,
+        )
+
+    async def test_list_files(self, monkeypatch: MonkeyPatch) -> None:
+        mocked_list_files = AsyncMock(
+            return_value=[
+                File(
+                    file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                    name="silly_things_1.txt",
+                    size=611,
+                    meta={},
+                    created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                )
+            ]
+        )
+        monkeypatch.setattr(FilesService, "list_all", mocked_list_files)
+        async for file_batch in list_files(
+            workspace_name="my_workspace",
+            name="test_file.txt",
+            content="test content",
+            filter="test",
+            batch_size=100,
+            timeout_s=100,
+        ):
+            assert file_batch == [
+                File(
+                    file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                    name="silly_things_1.txt",
+                    size=611,
+                    meta={},
+                    created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                )
+            ]
+
+        mocked_list_files.assert_called_once_with(
+            workspace_name="my_workspace",
+            name="test_file.txt",
+            content="test content",
+            filter="test",
+            batch_size=100,
+            timeout_s=100,
         )
