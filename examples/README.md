@@ -1,24 +1,22 @@
 # Examples
 
-## Upload datasets to deepset Cloud
+## Upload files to deepset Cloud
 
-We provide three different ways to upload datasets:
-1. Upload multiple files via explicit file paths
-2. Upload all files from a folder
-3. Upload raw texts
+You can upload files in three different ways:
+1. Upload multiple files by providing explicit file paths.
+2. Upload all files from a folder.
+3. Upload raw text.
 
 All three methods have the same parameters:
-- workspace_name: str = None
-- blocking: bool = True
-- timeout_s: int = 300
+- `workspace_name`: str = None 
+    Optional. Specifies the deepset Cloud workspace where you want to upload the files. You can set it through environment variable. If you don't provide any value, the files are uploaded to the `default` workspace.
+- `blocking`: bool = True
+    Optional. Specifies if you want to wait until your files are listed in deepset Cloud. This can take up to one hour, depending on the size and number of files. 
+- `timeout_s`: int = 300
+    Optional. A custom timeout for file upload in seconds. 
+- `api_key`: str = None
+    Optional. The API key to deepset Cloud. You can configure it through an environment variable.
+- `api_url`: str = None
+    Optional. The production URL. It's useful for running tests against a dev environment or your own domain. You can configure it through an environment variable. For other cases, you can just ignore it.
 
-The parameters api_key and api_url are optional and can be set via environment variables.
 
-The parameter workspace_name is optional and can be set via environment variable.
-If no workspace_name is provided, the default workspace is used.
-
-The parameter blocking is optional and can be set to False if you want to upload files and not wait for
-deepset Cloud to list the files in the workspace. This can take up to 1 Hour, depending on the size and number
-the files.
-
-The parameter timeout_s is optional and can be set to a custom timeout in seconds. The default is 300 seconds.
