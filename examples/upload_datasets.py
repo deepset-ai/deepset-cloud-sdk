@@ -7,7 +7,7 @@ from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_texts,
 )
 
-## Example 1: Upload multiple files via explicit file paths
+## Example 1: Upload multiple files by providing explicit file paths
 ## --------------------------------------------------------
 ## Uploads a list of files to the default workspace.
 upload_file_paths(
