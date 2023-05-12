@@ -14,8 +14,8 @@ logger = structlog.get_logger(__name__)
 
 
 class WorkspaceNotDefinedError(Exception):
-    """
-    Workspace not defined error. This exception is raised if a workspace_name is not defined.
+    """Workspace not defined error. This exception is raised if a workspace_name is not defined.
+
     This can happen if neither an environment variable was set, nor a workspace_name was passed as an argument.
     """
 
