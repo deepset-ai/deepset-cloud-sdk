@@ -49,18 +49,17 @@ class S3:
     ) -> aiohttp.ClientResponse:
         aws_safe_name = make_safe_file_name(file_name)
         aws_config = upload_session.aws_prefixed_request_config
-        try:
-            file_data = aiohttp.FormData()
-            for key in aws_config.fields:
-                file_data.add_field(key, aws_config.fields[key])
-            file_data.add_field("file", buffered_reader, filename=aws_safe_name, content_type="text/plain")
-            async with client_session.post(
-                aws_config.url,
-                data=file_data,
-            ) as response:
-                response.raise_for_status()
-        except Exception as e:
-            raise e
+
+        file_data = aiohttp.FormData()
+        for key in aws_config.fields:
+            file_data.add_field(key, aws_config.fields[key])
+        file_data.add_field("file", buffered_reader, filename=aws_safe_name, content_type="text/plain")
+        async with client_session.post(
+            aws_config.url,
+            data=file_data,
+        ) as response:
+            response.raise_for_status()
+
         return response
 
     async def upload_file(
@@ -71,7 +70,7 @@ class S3:
         client_session: aiohttp.ClientSession,
     ) -> S3UploadResult:
         try:
-            self._upload_file_with_retries(file_name, upload_session, buffered_reader, client_session)
+            response = await self._upload_file_with_retries(file_name, upload_session, buffered_reader, client_session)
             return S3UploadResult(file_name=file_name, success=True)
         except Exception as ue:
             logger.warn("Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id)

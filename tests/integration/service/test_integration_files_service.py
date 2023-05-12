@@ -40,5 +40,5 @@ class TestUploadsFileService:
                 workspace_name=workspace_name,
                 file_paths=filepaths,
                 blocking=True,  # wait for files to be ingested
-                timeout_s=30,
+                timeout_s=120,
             )
