@@ -13,6 +13,7 @@ from deepset_cloud_sdk.api.files import FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import UploadSessionsAPI, UploadSessionStatus
 from deepset_cloud_sdk.s3.upload import S3
 import os
+from functools import partial
 
 logger = structlog.get_logger(__name__)
 
@@ -58,19 +59,24 @@ class FilesService:
 
         get_files: List[Callable[[], Tuple[str, str]]] = []
 
-        for path in file_paths:
-            get_files.append(lambda: get_file(path))
+        get_files = [partial(get_file, path) for path in file_paths]
 
-        await self._s3.upload_files(upload_session=upload_session, get_files=get_files)
-
+        upload_summary = await self._s3.upload_files(upload_session=upload_session, get_files=get_files)
+        logger.info(
+            "Summary of S3 Uploads",
+            successful_uploads=upload_summary.successful_upload_count,
+            failed_uploads=upload_summary.failed_upload_count,
+            failed=upload_summary.failed,
+        )
         # finalize session
         await self._upload_sessions.close(workspace_name=workspace_name, session_id=upload_session.session_id)
 
         # wait for ingestion to finish
         if blocking:
+            total_files = len(list(filter(lambda x: not x.endswith(".meta.json"), file_paths)))
             start = time.time()
             ingested_files = 0
-            while ingested_files < len(file_paths):
+            while ingested_files < total_files:
                 if time.time() - start > timeout_s:
                     raise TimeoutError("Ingestion timed out.")
 
@@ -85,6 +91,6 @@ class FilesService:
                     "Waiting for ingestion to finish.",
                     finished_files=upload_session_status.ingestion_status.finished_files,
                     failed_files=upload_session_status.ingestion_status.failed_files,
-                    total_files=len(file_paths),
+                    total_files=total_files,
                 )
                 time.sleep(1)

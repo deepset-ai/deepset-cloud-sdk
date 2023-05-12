@@ -20,9 +20,6 @@ def workspace_name() -> str:
     return "sdk_write"
 
 
-import pdb
-
-
 @pytest.mark.asyncio
 class TestUploadsFileService:
     async def test_upload_file_paths(self, integration_config: CommonConfig, workspace_name: str) -> None:
@@ -43,4 +40,5 @@ class TestUploadsFileService:
                 workspace_name=workspace_name,
                 file_paths=filepaths,
                 blocking=True,  # wait for files to be ingested
+                timeout_s=30,
             )
