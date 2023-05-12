@@ -16,7 +16,7 @@ import structlog
 
 from deepset_cloud_sdk.api.config import CommonConfig
 from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk.api.files import FilesAPI
+from deepset_cloud_sdk.api.files import File, FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import (
     UploadSession,
     UploadSessionsAPI,
@@ -214,3 +214,47 @@ class FilesService:
                 total_files=len(dc_files),
                 timeout_s=timeout_s,
             )
+
+    async def list_all(
+        self,
+        workspace_name: str,
+        name: Optional[str] = None,
+        content: Optional[str] = None,
+        filter: Optional[str] = None,
+        batch_size: int = 100,
+        timeout_s: int = 20,
+    ) -> AsyncGenerator[List[File], None]:
+        """List all files in a workspace.
+
+        Returns an async generator that yields lists of files. The generator is finished when all files are listed.
+        The batch size per number of returned files can be specified with batch_size.
+
+        :param workspace_name: Name of the workspace to use.
+        :param name: Filter by file name.
+        :param content: Filter by file content.
+        :param filter: Filter by file meta data.
+        :param batch_size: Number of files to return per request.
+        :param timeout_s: Timeout in seconds for the listing.
+        :raises TimeoutError: If the listing takes longer than timeout_s.
+        """
+        start = time.time()
+        has_more = True
+
+        after_value = None
+        after_file_id = None
+        while has_more:
+            if time.time() - start > timeout_s:
+                raise TimeoutError(f"Listing all files in workspace {workspace_name} timed out.")
+            response = await self._files.list_paginated(
+                workspace_name,
+                name=name,
+                content=content,
+                filter=filter,
+                limit=batch_size,
+                after_file_id=after_file_id,
+                after_value=after_value,
+            )
+            has_more = response.has_more
+            after_value = response.data[-1].created_at
+            after_file_id = response.data[-1].file_id
+            yield response.data

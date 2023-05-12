@@ -118,32 +118,3 @@ class FilesAPI:
         data = response_body["data"]
         has_more = response_body["has_more"]
         return FileList(total=total, data=[File.from_dict(d) for d in data], has_more=has_more)
-
-    async def list_all(
-        self, workspace_name: str, batch_size: int = 100, timeout: int = 20
-    ) -> AsyncGenerator[List[File], None]:
-        """
-        List all files in a workspace.
-
-        TODO: move this one level up to deepset_cloud_api since this is
-        logic on top of the raw API.
-        TODO: Take care of raising a timeout exception if the timeout is reached.
-
-        :param workspace_name: Name of the workspace to use.
-        """
-        start = time.time()
-        has_more = True
-
-        after_value = None
-        after_file_id = None
-        while time.time() - start < timeout and has_more:
-            response = await self.list_paginated(
-                workspace_name,
-                limit=batch_size,
-                after_file_id=after_file_id,
-                after_value=after_value,
-            )
-            has_more = response.has_more
-            after_value = response.data[-1].created_at
-            after_file_id = response.data[-1].file_id
-            yield response.data

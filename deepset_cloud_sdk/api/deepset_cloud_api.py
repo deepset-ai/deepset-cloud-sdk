@@ -68,21 +68,21 @@ class DeepsetCloudAPI:
             yield cls(config, client)
 
     async def get(
-        self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout: int = 20
+        self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
     ) -> Response:
         """Make a GET request to the deepset Cloud API.
 
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
         :param params: Query parameters to pass.
-        :param timeout: Timeout in seconds.
+        :param timeout_s: Timeout in seconds.
         :return: Response object.
         """
         response = await self.client.get(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
             headers=self.headers,
-            timeout=timeout,
+            timeout=timeout_s,
         )
         logger.debug(
             "Called deepset Cloud API",
@@ -101,7 +101,7 @@ class DeepsetCloudAPI:
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
         files: Optional[Dict[str, Any]] = None,
-        timeout: int = 20,
+        timeout_s: int = 20,
     ) -> Response:
         """Make a POST request to the deepset Cloud API.
 
@@ -110,7 +110,7 @@ class DeepsetCloudAPI:
         :param params: Query parameters to pass.
         :param data: Data to pass.
         :param files: Files to pass.
-        :param timeout: Timeout in seconds.
+        :param timeout_s: Timeout in seconds.
         :return: Response object.
         """
         response = await self.client.post(
@@ -119,7 +119,7 @@ class DeepsetCloudAPI:
             json=data or {},
             files=files,
             headers=self.headers,
-            timeout=timeout,
+            timeout=timeout_s,
         )
         logger.debug(
             "Called deepset Cloud API",
@@ -133,7 +133,7 @@ class DeepsetCloudAPI:
         return response
 
     async def delete(
-        self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout: int = 20
+        self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
     ) -> Response:
         """
         Make a DELETE request to the deepset Cloud API.
@@ -141,14 +141,14 @@ class DeepsetCloudAPI:
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
         :param params: Query parameters to pass.
-        :param timeout: Timeout in seconds.
+        :param timeout_s: Timeout in seconds.
         :return: Response object.
         """
         response = await self.client.delete(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
             headers=self.headers,
-            timeout=timeout,
+            timeout=timeout_s,
         )
         logger.debug(
             "Called deepset Cloud API",
@@ -166,7 +166,7 @@ class DeepsetCloudAPI:
         endpoint: str,
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
-        timeout: int = 20,
+        timeout_s: int = 20,
     ) -> Response:
         """Make a PUT request to the deepset Cloud API.
 
@@ -174,7 +174,7 @@ class DeepsetCloudAPI:
         :param endpoint: Endpoint to call.
         :param params: Query parameters to pass.
         :param data: Data to pass.
-        :param timeout: Timeout in seconds.
+        :param timeout_s: Timeout in seconds.
         :return: Response object.
         """
         response = await self.client.put(
@@ -182,7 +182,7 @@ class DeepsetCloudAPI:
             params=params or {},
             json=data or {},
             headers=self.headers,
-            timeout=timeout,
+            timeout=timeout_s,
         )
         logger.debug(
             "Called deepset Cloud API",
