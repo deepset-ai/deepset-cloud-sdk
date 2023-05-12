@@ -5,7 +5,6 @@ from typing import List, Optional
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
-
 from deepset_cloud_sdk.workflows.async_client.files import (
     upload_file_paths as async_upload_file_paths,
 )

@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, patch
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
-
 from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_file_paths,
     upload_folder,

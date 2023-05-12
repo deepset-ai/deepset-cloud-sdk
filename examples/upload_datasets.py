@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFiles
+from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_file_paths,
     upload_folder,
@@ -39,7 +39,7 @@ upload_folder(
 upload_texts(
     workspace_name="my_workspace",  # optional, by default the environment variable "DEFAULT_WORKSPACE_NAME" is used
     dc_files=[
-        DeepsetCloudFiles(
+        DeepsetCloudFile(
             name="example.txt",
             text="this is text",
             meta={"key": "value"},  # optional
