@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
+from deepset_cloud_sdk.api.upload_sessions import WriteMode
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.workflows.async_client.files import (
     upload_file_paths as async_upload_file_paths,
@@ -21,6 +22,7 @@ def upload_file_paths(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
@@ -39,6 +41,7 @@ def upload_file_paths(
             api_key=api_key,
             api_url=api_url,
             workspace_name=workspace_name,
+            write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
         )
@@ -50,6 +53,7 @@ def upload_folder(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
@@ -68,6 +72,7 @@ def upload_folder(
             api_key=api_key,
             api_url=api_url,
             workspace_name=workspace_name,
+            write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
         )
@@ -79,12 +84,13 @@ def upload_texts(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
     """Upload texts to the Deepset Cloud.
 
-    :param dc_files: List of DeepsetCloudFile to upload.
+    :param dc_files: List of DeepsetCloudFiles to upload.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
@@ -97,6 +103,7 @@ def upload_texts(
             api_key=api_key,
             api_url=api_url,
             workspace_name=workspace_name,
+            write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
         )
