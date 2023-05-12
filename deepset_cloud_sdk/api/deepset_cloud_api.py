@@ -1,6 +1,8 @@
 """DeepsetCloudAPI class."""
+from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from contextlib import asynccontextmanager
+from typing import Any, AsyncGenerator, Dict, Optional
 
 import httpx
 import structlog
@@ -32,6 +34,16 @@ class DeepsetCloudAPI:
         }
         self.base_url = lambda workspace_name: f"{config.api_url}/workspaces/{workspace_name}"
         self.client = client
+
+    @classmethod
+    @asynccontextmanager
+    async def factory(cls, config: CommonConfig) -> AsyncGenerator[DeepsetCloudAPI, None]:
+        """Create a new instance of the API client.
+
+        :param config: CommonConfig object.
+        """
+        async with httpx.AsyncClient() as client:
+            yield cls(config, client)
 
     async def get(
         self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout: int = 20

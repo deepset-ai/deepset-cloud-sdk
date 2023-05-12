@@ -5,17 +5,13 @@ import pytest
 from httpx import codes
 
 from deepset_cloud_sdk.api.config import CommonConfig
-from deepset_cloud_sdk.api.deepset_cloud_api import (
-    DeepsetCloudAPI,
-    get_deepset_cloud_api,
-)
+from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
 
 
 @pytest.mark.asyncio
 class TestUtilitiesForDeepsetCloudAPI:
-    async def test_get_deepset_cloud_api(self, unit_config: CommonConfig) -> None:
-        async with httpx.AsyncClient() as client:
-            deepset_cloud_api = get_deepset_cloud_api(unit_config, client=client)
+    async def test_deepset_cloud_api_factory(self, unit_config: CommonConfig) -> None:
+        async with DeepsetCloudAPI.factory(unit_config) as deepset_cloud_api:
             assert (
                 deepset_cloud_api.base_url("test_workspace") == "https://fake.dc.api/api/v1/workspaces/test_workspace"
             )
