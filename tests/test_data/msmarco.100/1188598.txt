@@ -1,0 +1,1 @@
+This parameter is useful if you want to have several local shared-objects with a same name. You can differentiate the objects by using the path. Note that this may only be set to the actual path (or part of the path) of where the swf file is stored.

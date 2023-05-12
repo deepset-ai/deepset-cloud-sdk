@@ -1,0 +1,1 @@
+Pascal's law. Pascal's law (also Pascal's principle or the principle of transmission of fluid-pressure) is a principle in fluid mechanics that states that a pressure change occurring anywhere in a confined incompressible fluid is transmitted throughout the fluid such that the same change occurs everywhere.

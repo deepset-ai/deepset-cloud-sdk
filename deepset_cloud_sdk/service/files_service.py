@@ -1,15 +1,18 @@
 """Module for all file related operations."""
 
 
+from io import BufferedReader
 import time
 from pathlib import Path
-from typing import List
+from typing import Callable, List, Tuple
 from unittest.mock import Mock
 
 import structlog
 
 from deepset_cloud_sdk.api.files import FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import UploadSessionsAPI, UploadSessionStatus
+from deepset_cloud_sdk.s3.upload import S3
+import os
 
 logger = structlog.get_logger(__name__)
 
@@ -17,7 +20,7 @@ logger = structlog.get_logger(__name__)
 class FilesService:
     """Service for all file related operations."""
 
-    def __init__(self, upload_sessions: UploadSessionsAPI, files: FilesAPI, aws: Mock):
+    def __init__(self, upload_sessions: UploadSessionsAPI, files: FilesAPI, s3: S3):
         """Initialize the service.
 
         :param upload_sessions: API for upload sessions.
@@ -26,7 +29,7 @@ class FilesService:
         """
         self._upload_sessions = upload_sessions
         self._files = files
-        self._aws = aws
+        self._s3 = s3
 
     async def upload_file_paths(
         self, workspace_name: str, file_paths: List[Path], blocking: bool = True, timeout_s: int = 300
@@ -47,7 +50,18 @@ class FilesService:
         upload_session = await self._upload_sessions.create(workspace_name=workspace_name)
 
         # upload file paths to session
-        await self._aws.upload_files(upload_session=upload_session, file_paths=file_paths)
+
+        def get_file(file_path: str) -> Tuple[str, BufferedReader]:
+            file = open(file_path, "rb")
+            file_name = os.path.basename(file_path)
+            return (file_name, file)
+
+        get_files: List[Callable[[], Tuple[str, str]]] = []
+
+        for path in file_paths:
+            get_files.append(lambda: get_file(path))
+
+        await self._s3.upload_files(upload_session=upload_session, get_files=get_files)
 
         # finalize session
         await self._upload_sessions.close(workspace_name=workspace_name, session_id=upload_session.session_id)

@@ -1,0 +1,1 @@
+Interface control document. An interface control document (ICD) in systems engineering and software engineering, provides a record of all interface information (such as drawings, diagrams, tables, and textual information) generated for a project.

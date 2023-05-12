@@ -1,12 +1,14 @@
 import asyncio
+from io import BufferedReader, TextIOWrapper
 import re
-from typing import List
+from typing import Callable, List, Tuple
 from urllib.error import HTTPError
 from deepset_cloud_sdk.api.upload_sessions import AWSPrefixedRequesetConfig
 import urllib
 import aiohttp
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 import structlog
+from deepset_cloud_sdk.api.upload_sessions import UploadSession
 
 logger = structlog.get_logger(__name__)
 
@@ -19,40 +21,43 @@ def make_safe_file_name(file_name: str) -> str:
 
 class S3:
     def __init__(self, concurrency: int = 120):
-        self.semaphore = asyncio.Semaphore(concurrency)
-        self.client_session = aiohttp.ClientSession()
+        self.connector = aiohttp.TCPConnector(limit=concurrency)
 
     @retry(retry=retry_if_exception_type(HTTPError), stop=stop_after_attempt(3), wait=wait_fixed(0.5))  # type: ignore
     async def upload_file(
         self,
         file_name: str,
-        aws_prefixed_request_config: AWSPrefixedRequesetConfig,
-        content: str,
+        upload_session: UploadSession,
+        buffered_reader: BufferedReader,
+        client_session: aiohttp.ClientSession,
     ) -> aiohttp.ClientResponse:
         aws_safe_name = make_safe_file_name(file_name)
-
+        aws_config = upload_session.aws_prefixed_request_config
         try:
-            async with self.client_session.post(
-                aws_prefixed_request_config.url,
-                data=aws_prefixed_request_config.fields,
-                files={"file": (aws_safe_name, content)},
+            file_data = aiohttp.FormData()
+            for key in aws_config.fields:
+                file_data.add_field(key, aws_config.fields[key])
+            file_data.add_field("file", buffered_reader, filename=aws_safe_name, content_type="text/plain")
+            async with client_session.post(
+                aws_config.url,
+                data=file_data,
             ) as response:
                 response.raise_for_status()
-                logger.info(response.content)
         except Exception as e:
             raise e
-
+        finally:
+            buffered_reader.close()
         return response
 
     async def upload_files(
-        self,
-        file_names: List[str],
-        aws_prefixed_request_config: AWSPrefixedRequesetConfig,
-        contents: List[str],
+        self, upload_session: UploadSession, get_files: List[Callable[[], Tuple[str, BufferedReader]]]
     ):
+        client_session = aiohttp.ClientSession(connector=self.connector)
         tasks = []
-        for file_name, content in zip(file_names, contents):
-            async with self.semaphore:
-                tasks.append(self.upload_file(file_name, aws_prefixed_request_config, content))
+
+        for get_file in get_files:
+            file_name, buffered_reader = get_file()
+            tasks.append(self.upload_file(file_name, upload_session, buffered_reader, client_session))
         results = await asyncio.gather(*tasks)
         logger.info("Finished uploading files", results=results)
+        await client_session.close()

@@ -22,7 +22,7 @@ class AWSPrefixedRequesetConfig:
     This prefixed request config can be used to send authenticated requests to AWS S3.
     """
 
-    fields: Dict[str, Any]
+    fields: Dict[str, str]
     url: str
 
 
