@@ -24,11 +24,8 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "pytest-cov==4.0.0",
-  "pytest==7.3.1",
   "structlog==23.1.0",
   "httpx==0.24.0",
-  "pytest-asyncio==0.21.0",
   "python-dotenv==1.0.0",
 ]
 
@@ -57,6 +54,9 @@ dependencies = [
   "isort==5.12.0",
   "mypy==1.1.1",
   "pre-commit==2.20.0",
+  "pytest-cov==4.0.0",
+  "pytest==7.3.1",
+  "pytest-asyncio==0.21.0",
 ]
 
 [tool.hatch.envs.code-quality.scripts]
