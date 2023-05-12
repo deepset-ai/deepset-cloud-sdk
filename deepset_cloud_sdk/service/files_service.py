@@ -14,7 +14,7 @@ import httpx
 import structlog
 
 from deepset_cloud_sdk.api.config import CommonConfig
-from deepset_cloud_sdk.api.deepset_cloud_api import get_deepset_cloud_api
+from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.api.files import FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import (
     UploadSession,
@@ -58,8 +58,7 @@ class FilesService:
         :param client: httpx client.
         :return: New instance of the service.
         """
-        async with httpx.AsyncClient() as client:
-            deepset_cloud_api = get_deepset_cloud_api(config, client=client)
+        async with DeepsetCloudAPI.factory(config) as deepset_cloud_api:
             files_api = FilesAPI(deepset_cloud_api)
             upload_sessions_api = UploadSessionsAPI(deepset_cloud_api)
 

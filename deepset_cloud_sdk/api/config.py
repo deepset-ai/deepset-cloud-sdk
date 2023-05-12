@@ -8,11 +8,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # connection to deepset Cloud
-API_URL = os.getenv("API_URL", "https://api.cloud.deepset.ai/")
-API_KEY = os.getenv("API_KEY", "")
+API_URL: str = os.getenv("API_URL", "https://api.cloud.deepset.ai/")
+API_KEY: str = os.getenv("API_KEY", "")
 
 # configuration to use a selectd workspace
-DEFAULT_WORKSPACE_NAME = os.getenv("DEFAULT_WORKSPACE_NAME", "default")
+DEFAULT_WORKSPACE_NAME: str = os.getenv("DEFAULT_WORKSPACE_NAME", "")
 
 
 @dataclass
