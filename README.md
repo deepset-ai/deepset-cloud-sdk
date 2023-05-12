@@ -1,9 +1,35 @@
-# deepset Cloud SDK
+<p align="center">
+  <a href="https://cloud.deepset.ai/"><img src="/assets/logo.png"  alt="deepset Cloud SDK"></a>
+</p>
 
-## SDK
+[![Tests](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/continuous-integration.yml)
+[![Deploy PyPi](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/deploy-prod.yml/badge.svg)](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/deploy-prod.yml)
+[![Compliance Checks](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/compliance.yml/badge.svg)](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/compliance.yml)
 
-*Add details on how to use the API here*
+The deepset Cloud SDK is an open source software development kit that provides convenient access and integration with deepset Cloud, a powerful cloud offering for various natural language processing (NLP) tasks.
+This README provides an overview of the SDK and its features, and information on contributing to the project and exploring related resources.
 
-## CLI
+# Supported Features
+The current version of the SDK focuses on providing an easy way to upload files to deepset Cloud for further processing and analysis. For detailed instructions and examples, see file_uploads/README.md. 
 
-*Add details on how to use the CLI here*
+## Examples
+The following examples demonstrate how to use the deepset Cloud SDK to interact with deepset Cloud.
+- [Upload datasets to deepset Cloud](/examples/upload_folder.py)
+
+## Contributing
+We welcome contributions from the open source community to enhance the deepset Cloud SDK. I
+f you would like to contribute, refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines and instructions on how to get started.
+We appreciate your contributions, whether they're bug fixes, new features, or documentation improvements.
+
+
+---
+
+## Interested in deepset Cloud?
+If you are interested in exploring deepset Cloud, visit cloud.deepset.ai.
+deepset Cloud provides a range of NLP capabilities and services to help you build and deploy powerful
+natural language processing applications.
+
+## Interested in Haystack?
+deepset Cloud is powered by Haystack, an open source framework for building end-to-end NLP pipelines.
+ - [Project website](https://haystack.deepset.ai/)
+ - [GitHub repository](https://github.com/deepset-ai/haystack)

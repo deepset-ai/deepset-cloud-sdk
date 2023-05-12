@@ -7,15 +7,14 @@ from httpx import codes
 from deepset_cloud_sdk.api.config import CommonConfig
 from deepset_cloud_sdk.api.deepset_cloud_api import (
     DeepsetCloudAPI,
-    get_deepset_cloud_api,
+    WorkspaceNotDefinedError,
 )
 
 
 @pytest.mark.asyncio
 class TestUtilitiesForDeepsetCloudAPI:
-    async def test_get_deepset_cloud_api(self, unit_config: CommonConfig) -> None:
-        async with httpx.AsyncClient() as client:
-            deepset_cloud_api = get_deepset_cloud_api(unit_config, client=client)
+    async def test_deepset_cloud_api_factory(self, unit_config: CommonConfig) -> None:
+        async with DeepsetCloudAPI.factory(unit_config) as deepset_cloud_api:
             assert (
                 deepset_cloud_api.base_url("test_workspace") == "https://fake.dc.api/api/v1/workspaces/test_workspace"
             )
@@ -23,6 +22,12 @@ class TestUtilitiesForDeepsetCloudAPI:
                 "Accept": "application/json",
                 "Authorization": f"Bearer {unit_config.api_key}",
             }
+
+    async def test_deepset_cloud_api_raises_exception_if_no_workspace_is_defined(
+        self, deepset_cloud_api: DeepsetCloudAPI
+    ) -> None:
+        with pytest.raises(WorkspaceNotDefinedError):
+            await deepset_cloud_api.get("", "endpoint")
 
 
 @pytest.mark.asyncio

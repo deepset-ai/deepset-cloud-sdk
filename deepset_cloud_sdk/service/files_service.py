@@ -1,21 +1,42 @@
 """Module for all file related operations."""
+from __future__ import annotations
+from functools import partial
 
 
 from io import BufferedReader
+import os
 import time
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, List, Tuple
-from unittest.mock import Mock
+from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Tuple
+from unittest.mock import AsyncMock
+from uuid import UUID
 
+import httpx
 import structlog
 
+from deepset_cloud_sdk.api.config import CommonConfig
+from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.api.files import FilesAPI
-from deepset_cloud_sdk.api.upload_sessions import UploadSessionsAPI, UploadSessionStatus
+from deepset_cloud_sdk.api.upload_sessions import (
+    UploadSession,
+    UploadSessionsAPI,
+    UploadSessionStatus,
+    WriteMode,
+)
 from deepset_cloud_sdk.s3.upload import S3
-import os
-from functools import partial
 
 logger = structlog.get_logger(__name__)
+
+
+@dataclass
+class DeepsetCloudFile:
+    """Dataclass for files in deepsetCloud."""
+
+    text: str
+    name: str
+    meta: Optional[Dict[str, Any]] = None
 
 
 class FilesService:
@@ -32,8 +53,67 @@ class FilesService:
         self._files = files
         self._s3 = s3
 
+    @classmethod
+    @asynccontextmanager
+    async def factory(cls, config: CommonConfig) -> AsyncGenerator[FilesService, None]:
+        """Create a new instance of the service.
+
+        :param config: CommonConfig object.
+        :param client: httpx client.
+        :return: New instance of the service.
+        """
+        async with DeepsetCloudAPI.factory(config) as deepset_cloud_api:
+            files_api = FilesAPI(deepset_cloud_api)
+            upload_sessions_api = UploadSessionsAPI(deepset_cloud_api)
+
+            yield cls(upload_sessions_api, files_api, S3(concurrency=30))
+
+    async def _wait_for_finished(self, workspace_name: str, session_id: UUID, total_files: int, timeout_s: int) -> None:
+        start = time.time()
+        ingested_files = 0
+        while ingested_files < total_files:
+            if time.time() - start > timeout_s:
+                raise TimeoutError("Ingestion timed out.")
+
+            upload_session_status: UploadSessionStatus = await self._upload_sessions.status(
+                workspace_name=workspace_name, session_id=session_id
+            )
+            ingested_files = (
+                upload_session_status.ingestion_status.finished_files
+                + upload_session_status.ingestion_status.failed_files
+            )
+            logger.info(
+                "Waiting for ingestion to finish.",
+                finished_files=upload_session_status.ingestion_status.finished_files,
+                failed_files=upload_session_status.ingestion_status.failed_files,
+                total_files=total_files,
+            )
+            time.sleep(1)
+
+    @asynccontextmanager
+    async def _create_upload_session(
+        self,
+        workspace_name: str,
+        write_mode: WriteMode = WriteMode.KEEP,
+    ) -> AsyncGenerator[UploadSession, None]:
+        """Create a new upload session.
+
+        :param workspace_name: Name of the workspace to create the upload session for.
+        :return: Upload session id.
+        """
+        upload_session = await self._upload_sessions.create(workspace_name=workspace_name, write_mode=write_mode)
+        try:
+            yield upload_session
+        finally:
+            await self._upload_sessions.close(workspace_name=workspace_name, session_id=upload_session.session_id)
+
     async def upload_file_paths(
-        self, workspace_name: str, file_paths: List[Path], blocking: bool = True, timeout_s: int = 300
+        self,
+        workspace_name: str,
+        file_paths: List[Path],
+        write_mode: WriteMode = WriteMode.KEEP,
+        blocking: bool = True,
+        timeout_s: int = 300,
     ) -> None:
         """Upload a list of files to a workspace.
 
@@ -48,49 +128,108 @@ class FilesService:
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         # create session to upload files to
-        upload_session = await self._upload_sessions.create(workspace_name=workspace_name)
+        async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
+            # upload file paths to session
+            def get_file(file_path: str) -> Tuple[str, BufferedReader]:
+                file = open(file_path, "rb")
+                file_name = os.path.basename(file_path)
+                return (file_name, file)
 
-        # upload file paths to session
+            get_files: List[Callable[[], Tuple[str, str]]] = []
 
-        def get_file(file_path: str) -> Tuple[str, BufferedReader]:
-            file = open(file_path, "rb")
-            file_name = os.path.basename(file_path)
-            return (file_name, file)
+            get_files = [partial(get_file, path) for path in file_paths]
 
-        get_files: List[Callable[[], Tuple[str, str]]] = []
-
-        get_files = [partial(get_file, path) for path in file_paths]
-
-        upload_summary = await self._s3.upload_files(upload_session=upload_session, get_files=get_files)
-        logger.info(
-            "Summary of S3 Uploads",
-            successful_uploads=upload_summary.successful_upload_count,
-            failed_uploads=upload_summary.failed_upload_count,
-            failed=upload_summary.failed,
-        )
-        # finalize session
-        await self._upload_sessions.close(workspace_name=workspace_name, session_id=upload_session.session_id)
+            upload_summary = await self._s3.upload_files(upload_session=upload_session, get_files=get_files)
+            logger.info(
+                "Summary of S3 Uploads",
+                successful_uploads=upload_summary.successful_upload_count,
+                failed_uploads=upload_summary.failed_upload_count,
+                failed=upload_summary.failed,
+            )
 
         # wait for ingestion to finish
         if blocking:
-            total_files = len(list(filter(lambda x: not x.endswith(".meta.json"), file_paths)))
-            start = time.time()
-            ingested_files = 0
-            while ingested_files < total_files:
-                if time.time() - start > timeout_s:
-                    raise TimeoutError("Ingestion timed out.")
+            await self._wait_for_finished(
+                workspace_name=workspace_name,
+                session_id=upload_session.session_id,
+                total_files=len(list(filter(lambda x: not x.endswith(".meta.json"), file_paths))),
+                timeout_s=timeout_s,
+            )
 
-                upload_session_status: UploadSessionStatus = await self._upload_sessions.status(
-                    workspace_name=workspace_name, session_id=upload_session.session_id
-                )
-                ingested_files = (
-                    upload_session_status.ingestion_status.finished_files
-                    + upload_session_status.ingestion_status.failed_files
-                )
-                logger.info(
-                    "Waiting for ingestion to finish.",
-                    finished_files=upload_session_status.ingestion_status.finished_files,
-                    failed_files=upload_session_status.ingestion_status.failed_files,
-                    total_files=total_files,
-                )
-                time.sleep(1)
+    async def upload_folder(
+        self,
+        workspace_name: str,
+        folder_path: Path,
+        write_mode: WriteMode = WriteMode.KEEP,
+        blocking: bool = True,
+        timeout_s: int = 300,
+    ) -> None:
+        """Upload a folder to a workspace.
+
+        Upload a folder via upload sessions to a selected workspace. If blocking is True, the function waits until
+        all files are uploaded and listed by deepsetCloud. If blocking is False, the function returns immediately after
+        the upload of the files is done. Note: It can take a while until the files are listed in deepsetCloud.
+
+        :param workspace_name: Name of the workspace to upload the files to.
+        :folder_path: Path to the folder to upload.
+        :blocking: If True, blocks until the ingestion is finished.
+        :timeout_s: Timeout in seconds for the blocking ingestion.
+        :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
+        """
+        all_files = [path for path in folder_path.glob("**/*")]
+
+        file_paths = [
+            path
+            for path in all_files
+            if path.is_file() and ((path.suffix in [".txt", ".pdf"]) or path.name.endswith("meta.json"))
+        ]
+        if len(file_paths) < len(all_files):
+            logger.warning(
+                "Skipping files with unsupported file format.",
+                folder_path=folder_path,
+                skipped_files=len(all_files) - len(file_paths),
+            )
+
+        await self.upload_file_paths(
+            workspace_name=workspace_name,
+            file_paths=file_paths,
+            write_mode=write_mode,
+            blocking=blocking,
+            timeout_s=timeout_s,
+        )
+
+    async def upload_texts(
+        self,
+        workspace_name: str,
+        dc_files: List[DeepsetCloudFile],
+        write_mode: WriteMode = WriteMode.KEEP,
+        blocking: bool = True,
+        timeout_s: int = 300,
+    ) -> None:
+        """
+        Upload a list of raw texts to a workspace.
+
+        Upload a list of raw texts via upload sessions to a selected workspace. This method accepts a list of DeepsetCloudFiles
+        which contain the raw text, file name and optional meta data.
+
+        If blocking is True, the function waits until all files are uploaded and listed by deepsetCloud.
+        If blocking is False, the function returns immediately after the upload of the files is done.
+        Note: It can take a while until the files are listed in deepsetCloud.
+
+        :param workspace_name: Name of the workspace to upload the files to.
+        :dc_files: List of DeepsetCloudFiles to upload.
+        :blocking: If True, blocks until the ingestion is finished.
+        :timeout_s: Timeout in seconds for the blocking ingestion.
+        :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
+        """
+        # create session to upload files to
+        async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
+            await self._aws.upload_texts(upload_session=upload_session, dc_files=dc_files)
+
+        if blocking:
+            await self._wait_for_finished(
+                workspace_name=workspace_name,
+                session_id=upload_session.session_id,
+                total_files=len(dc_files),
+                timeout_s=timeout_s,
+            )
