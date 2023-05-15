@@ -11,7 +11,7 @@ from deepset_cloud_sdk.api.files import File, FilesAPI
 
 @pytest.fixture
 def workspace_name() -> str:
-    return "sdk"
+    return "sdk_read"
 
 
 @pytest.mark.asyncio
