@@ -24,5 +24,7 @@ class CommonConfig:
 
     def __post_init__(self) -> None:
         """Validate config."""
-        assert self.api_key != "", "API_KEY environment variable must be set"
+        assert (
+            self.api_key != ""
+        ), "API_KEY environment variable must be set. Please visit https://cloud.deepset.ai/settings/connections to get an API key."
         assert self.api_url != "", "API_URL environment variable must be set"
