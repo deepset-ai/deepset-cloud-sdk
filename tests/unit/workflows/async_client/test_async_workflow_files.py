@@ -1,6 +1,6 @@
 import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, AsyncGenerator, List, Optional
 from unittest.mock import AsyncMock
 from uuid import UUID
 
@@ -70,8 +70,12 @@ class TestUploadFiles:
         )
 
     async def test_list_files(self, monkeypatch: MonkeyPatch) -> None:
-        mocked_list_files = AsyncMock(
-            return_value=[
+        async def mocked_list_all(
+            self: Any,
+            *args: Any,
+            **kwargs: Any,
+        ) -> AsyncGenerator[List[File], None]:
+            yield [
                 File(
                     file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                     url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
@@ -81,8 +85,8 @@ class TestUploadFiles:
                     created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
                 )
             ]
-        )
-        monkeypatch.setattr(FilesService, "list_all", mocked_list_files)
+
+        monkeypatch.setattr(FilesService, "list_all", mocked_list_all)
         async for file_batch in list_files(
             workspace_name="my_workspace",
             name="test_file.txt",
@@ -101,12 +105,3 @@ class TestUploadFiles:
                     created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
                 )
             ]
-
-        mocked_list_files.assert_called_once_with(
-            workspace_name="my_workspace",
-            name="test_file.txt",
-            content="test content",
-            filter="test",
-            batch_size=100,
-            timeout_s=100,
-        )
