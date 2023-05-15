@@ -21,7 +21,7 @@ def login() -> None:
     """Login to the deepset cloud."""
     typer.echo("Login to the deepset cloud")
     passed_api_key = typer.prompt("Your API_KEY", hide_input=True)
-    passed_api_url = typer.prompt("Your API_URL", default="https://api.cloud.deepset.ai/")
+    passed_api_url = typer.prompt("Your API_URL", default="https://api.cloud.deepset.ai/api/v1/")
     passed_default_workspace_name = typer.prompt("Your DEFAULT_WORKSPACE_NAME", default="default")
 
     env_content = (
