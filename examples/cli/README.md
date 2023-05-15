@@ -24,7 +24,7 @@ Additionally, you have the flexibility to provide the credentials directly as co
 Once you have installed the deepset Cloud CLI and configured the necessary environment variables, you can run it from the console using the following command:
 
 ```shell
-deepset_cloud_cli <command>
+deepset-cloud-cli <command>
 ```
 Replace <command> with one of the supported commands. Currently, the supported commands are:
 
@@ -33,12 +33,12 @@ Example Commands
 Here are a couple of example commands that demonstrate how to use the deepset Cloud CLI:
 
 ```shell
-deepset_cloud_cli upload-folder ./examples/data/example.txt
+deepset-cloud-cli upload-folder ./examples/data/example.txt
 ```
 This command uploads the file example.txt to your deepset Cloud workspace.
 
 ```shell
-deepset_cloud_cli upload-folder "./examples/data"
+deepset-cloud-cli upload-folder "./examples/data"
 ```
 This command uploads the entire data folder, located in the examples directory, to your deepset Cloud workspace.
 
