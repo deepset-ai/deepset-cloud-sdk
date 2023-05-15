@@ -50,6 +50,8 @@ def list_files(
 ) -> None:
     """List files in the Deepset Cloud.
 
+    CLI method to list files in the Deepset Cloud.
+
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from.
