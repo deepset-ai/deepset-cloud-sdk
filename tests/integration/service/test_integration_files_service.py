@@ -15,7 +15,7 @@ class TestUploadsFileService:
         # TODO: replace aws with actual aws client
         async with FilesService.factory(integration_config) as file_service:
             await file_service.upload_file_paths(
-                workspace_name="sdk",
+                workspace_name="sdk_read",
                 file_paths=[Path("./tmp/my-file")],
                 write_mode=WriteMode.OVERWRITE,
                 blocking=False,  # dont wait for files to be ingested
@@ -28,7 +28,7 @@ class TestListFilesService:
         async with FilesService.factory(integration_config) as file_service:
             file_batches: List[List[File]] = []
             async for file_batch in file_service.list_all(
-                workspace_name="sdk",
+                workspace_name="sdk_read",
                 batch_size=11,
             ):
                 file_batches.append(file_batch)

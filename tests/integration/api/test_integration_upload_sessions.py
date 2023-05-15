@@ -20,7 +20,7 @@ class TestCreateUploadSessions:
         async with DeepsetCloudAPI.factory(integration_config) as deepset_cloud_api:
             upload_session_client = UploadSessionsAPI(deepset_cloud_api)
 
-            result: UploadSession = await upload_session_client.create(workspace_name="sdk")
+            result: UploadSession = await upload_session_client.create(workspace_name="sdk_read")
 
             assert result.session_id is not None
             assert result.documentation_url is not None
@@ -32,9 +32,9 @@ class TestCreateUploadSessions:
             )
             assert result.aws_prefixed_request_config.fields["key"] is not None
 
-            await upload_session_client.close(workspace_name="sdk", session_id=result.session_id)
+            await upload_session_client.close(workspace_name="sdk_read", session_id=result.session_id)
 
-            session_status = await upload_session_client.status(workspace_name="sdk", session_id=result.session_id)
+            session_status = await upload_session_client.status(workspace_name="sdk_read", session_id=result.session_id)
             assert session_status.session_id is not None
             assert session_status.documentation_url is not None
             assert session_status.expires_at is not None
@@ -45,7 +45,7 @@ class TestCreateUploadSessions:
             upload_session_client = UploadSessionsAPI(deepset_cloud_api)
 
             result: UploadSessionDetailList = await upload_session_client.list(
-                workspace_name="sdk", limit=3, page_number=3
+                workspace_name="sdk_read", limit=3, page_number=3
             )
 
             assert result.total > 0
