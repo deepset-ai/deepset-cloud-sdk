@@ -1,10 +1,14 @@
+import datetime
 from pathlib import Path
+from typing import List
 from unittest.mock import AsyncMock, Mock
+from uuid import UUID
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from deepset_cloud_sdk.api.config import CommonConfig
+from deepset_cloud_sdk.api.files import File, FileList, FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import (
     UploadSession,
     UploadSessionIngestionStatus,
@@ -182,3 +186,88 @@ class TestUtilsFileService:
     async def test_factory(self, unit_config: CommonConfig) -> None:
         async with FilesService.factory(unit_config) as file_service:
             assert isinstance(file_service, FilesService)
+
+
+@pytest.mark.asyncio
+class TestListFilesService:
+    async def test_list_all_files(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                FileList(
+                    total=11,
+                    data=[
+                        File(
+                            file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                            name="silly_things_1.txt",
+                            size=611,
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            meta={},
+                        )
+                    ],
+                    has_more=True,
+                ),
+                FileList(
+                    total=11,
+                    data=[
+                        File(
+                            file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                            name="silly_things_2.txt",
+                            size=611,
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            meta={},
+                        )
+                    ],
+                    has_more=False,
+                ),
+            ]
+        )
+
+        monkeypatch.setattr(file_service._files, "list_paginated", mocked_list_paginated)
+
+        file_batches: List[List[File]] = []
+        async for file_batch in file_service.list_all(workspace_name="test_workspace", batch_size=10, timeout_s=2):
+            file_batches.append(file_batch)
+
+        assert len(file_batches) > 0
+        assert len(file_batches[0]) == 1
+        assert file_batches[0][0] == File(
+            file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+            url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+            name="silly_things_1.txt",
+            size=611,
+            meta={},
+            created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+        )
+        assert len(file_batches[1]) == 1
+        assert file_batches[1][0] == File(
+            file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+            url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+            name="silly_things_2.txt",
+            size=611,
+            meta={},
+            created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+        )
+
+    async def test_list_all_files_with_timeout(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
+        mocked_list_paginated = AsyncMock(
+            return_value=FileList(
+                total=11,
+                data=[
+                    File(
+                        file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                        url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                        name="silly_things_1.txt",
+                        size=611,
+                        created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                        meta={},
+                    )
+                ],
+                has_more=True,
+            )
+        )
+        monkeypatch.setattr(file_service._files, "list_paginated", mocked_list_paginated)
+        with pytest.raises(TimeoutError):
+            async for _ in file_service.list_all(workspace_name="test_workspace", batch_size=10, timeout_s=0):
+                pass

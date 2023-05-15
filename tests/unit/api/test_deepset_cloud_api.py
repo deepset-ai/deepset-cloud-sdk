@@ -37,7 +37,7 @@ class TestCRUDForDeepsetCloudAPI:
     ) -> None:
         mocked_client.get.return_value = httpx.Response(status_code=codes.OK, json={"test": "test"})
 
-        result = await deepset_cloud_api.get("default", "endpoint", params={"param_key": "param_value"}, timeout=123)
+        result = await deepset_cloud_api.get("default", "endpoint", params={"param_key": "param_value"}, timeout_s=123)
         assert result.status_code == codes.OK
         assert result.json() == {"test": "test"}
         mocked_client.get.assert_called_once_with(
@@ -61,7 +61,7 @@ class TestCRUDForDeepsetCloudAPI:
             params={"param_key": "param_value"},
             data={"data_key": "data_value"},
             files={"file": ("my_file", "fake-file-binary", "text/csv")},
-            timeout=123,
+            timeout_s=123,
         )
         assert result.status_code == codes.OK
         assert result.json() == {"test": "test"}
@@ -82,7 +82,9 @@ class TestCRUDForDeepsetCloudAPI:
     ) -> None:
         mocked_client.delete.return_value = httpx.Response(status_code=codes.OK, json={"test": "test"})
 
-        result = await deepset_cloud_api.delete("default", "endpoint", params={"param_key": "param_value"}, timeout=123)
+        result = await deepset_cloud_api.delete(
+            "default", "endpoint", params={"param_key": "param_value"}, timeout_s=123
+        )
         assert result.status_code == codes.OK
         assert result.json() == {"test": "test"}
         mocked_client.delete.assert_called_once_with(
@@ -105,7 +107,7 @@ class TestCRUDForDeepsetCloudAPI:
             "endpoint",
             params={"param_key": "param_value"},
             data={"data_key": "data_value"},
-            timeout=123,
+            timeout_s=123,
         )
         assert result.status_code == codes.OK
         assert result.json() == {"test": "test"}

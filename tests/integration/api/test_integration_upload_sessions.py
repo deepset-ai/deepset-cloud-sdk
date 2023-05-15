@@ -26,7 +26,6 @@ class TestCreateUploadSessions:
             upload_session_client = UploadSessionsAPI(deepset_cloud_api)
 
             result: UploadSession = await upload_session_client.create(workspace_name=workspace_name)
-
             assert result.session_id is not None
             assert result.documentation_url is not None
             assert result.expires_at is not None

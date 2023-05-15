@@ -33,18 +33,3 @@ class TestListFiles:
             assert found_file.name == "20_Light_of_the_Seven.txt"
             assert found_file.size == 5044
             assert found_file.meta == {}
-
-    async def test_list_all_files(self, integration_config: CommonConfig, workspace_name: str) -> None:
-        async with DeepsetCloudAPI.factory(integration_config) as deepset_cloud_api:
-            files_api = FilesAPI(deepset_cloud_api)
-
-            file_batches: List[List[File]] = []
-            async for file_batch in files_api.list_all(
-                workspace_name=workspace_name,
-                batch_size=11,
-            ):
-                file_batches.append(file_batch)
-
-            assert len(file_batches) == 2
-            assert len(file_batches[0]) == 11
-            assert len(file_batches[1]) == 9

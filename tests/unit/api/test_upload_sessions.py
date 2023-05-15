@@ -40,7 +40,7 @@ class TestCreateUploadSessions:
             },
         )
 
-        result: UploadSession = await upload_session_client.create(workspace_name="sdk")
+        result: UploadSession = await upload_session_client.create(workspace_name="sdk_read")
 
         assert result.session_id == session_id
 
@@ -57,7 +57,7 @@ class TestCreateUploadSessions:
     ) -> None:
         mocked_deepset_cloud_api.post.return_value = Response(status_code=codes.INTERNAL_SERVER_ERROR)
         with pytest.raises(FailedToSendUploadSessionRequest):
-            await upload_session_client.create(workspace_name="sdk")
+            await upload_session_client.create(workspace_name="sdk_read")
 
 
 @pytest.mark.asyncio
@@ -69,9 +69,9 @@ class TestCloseUploadSessions:
 
         mocked_deepset_cloud_api.put.return_value = Response(status_code=codes.NO_CONTENT)
 
-        await upload_session_client.close(workspace_name="sdk", session_id=session_id)
+        await upload_session_client.close(workspace_name="sdk_read", session_id=session_id)
         mocked_deepset_cloud_api.put.assert_called_once_with(
-            workspace_name="sdk", endpoint=f"upload_sessions/{session_id}", data={"status": "CLOSED"}
+            workspace_name="sdk_read", endpoint=f"upload_sessions/{session_id}", data={"status": "CLOSED"}
         )
 
     async def test_close_session_failed(
@@ -81,7 +81,7 @@ class TestCloseUploadSessions:
 
         mocked_deepset_cloud_api.put.return_value = Response(status_code=codes.INTERNAL_SERVER_ERROR)
         with pytest.raises(FailedToSendUploadSessionRequest):
-            await upload_session_client.close(workspace_name="sdk", session_id=session_id)
+            await upload_session_client.close(workspace_name="sdk_read", session_id=session_id)
 
 
 @pytest.mark.asyncio
@@ -102,7 +102,7 @@ class TestStatusUploadSessions:
             },
         )
 
-        upload_session_status = await upload_session_client.status(workspace_name="sdk", session_id=session_id)
+        upload_session_status = await upload_session_client.status(workspace_name="sdk_read", session_id=session_id)
         assert upload_session_status.session_id == session_id
         assert upload_session_status.expires_at == expires_at
         assert upload_session_status.documentation_url == "https://docs.cloud.deepset.ai/docs"
@@ -110,7 +110,7 @@ class TestStatusUploadSessions:
         assert upload_session_status.ingestion_status.finished_files == 0
 
         mocked_deepset_cloud_api.get.assert_called_once_with(
-            workspace_name="sdk", endpoint=f"upload_sessions/{session_id}"
+            workspace_name="sdk_read", endpoint=f"upload_sessions/{session_id}"
         )
 
     async def test_get_session_status_failed(
@@ -120,7 +120,7 @@ class TestStatusUploadSessions:
 
         mocked_deepset_cloud_api.get.return_value = Response(status_code=codes.INTERNAL_SERVER_ERROR)
         with pytest.raises(FailedToSendUploadSessionRequest):
-            await upload_session_client.status(workspace_name="sdk", session_id=session_id)
+            await upload_session_client.status(workspace_name="sdk_read", session_id=session_id)
 
 
 @pytest.mark.asyncio
@@ -154,7 +154,7 @@ class TestListUploadSessions:
             },
         )
         result: UploadSessionDetailList = await upload_session_client.list(
-            workspace_name="sdk", limit=1, page_number=10
+            workspace_name="sdk_read", limit=1, page_number=10
         )
         assert result.has_more is True
         assert result.total == 23
@@ -173,4 +173,4 @@ class TestListUploadSessions:
     ) -> None:
         mocked_deepset_cloud_api.get.return_value = Response(status_code=codes.INTERNAL_SERVER_ERROR)
         with pytest.raises(FailedToSendUploadSessionRequest):
-            await upload_session_client.list(workspace_name="sdk")
+            await upload_session_client.list(workspace_name="sdk_read")

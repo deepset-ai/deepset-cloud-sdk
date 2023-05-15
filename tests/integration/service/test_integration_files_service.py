@@ -2,10 +2,12 @@ import os
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
+from typing import List
 
 import pytest
 
 from deepset_cloud_sdk.api.config import CommonConfig
+from deepset_cloud_sdk.api.files import File
 from deepset_cloud_sdk.api.upload_sessions import WriteMode
 from deepset_cloud_sdk.s3.upload import S3
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
@@ -50,3 +52,19 @@ class TestUploadsFileService:
                 write_mode=WriteMode.KEEP,
                 timeout_s=120,
             )
+
+
+@pytest.mark.asyncio
+class TestListFilesService:
+    async def test_list_all_files(self, integration_config: CommonConfig) -> None:
+        async with FilesService.factory(integration_config) as file_service:
+            file_batches: List[List[File]] = []
+            async for file_batch in file_service.list_all(
+                workspace_name="sdk_read",
+                batch_size=11,
+            ):
+                file_batches.append(file_batch)
+
+            assert len(file_batches) == 2
+            assert len(file_batches[0]) == 11
+            assert len(file_batches[1]) == 9
