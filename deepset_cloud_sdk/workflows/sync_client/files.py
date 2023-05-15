@@ -1,7 +1,8 @@
+# pylint: disable=too-many-arguments
 """Sync client for files workflow."""
 import asyncio
 from pathlib import Path
-from typing import Generator, List, Optional
+from typing import List, Optional
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk.api.files import File
