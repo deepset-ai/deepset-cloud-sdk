@@ -1,3 +1,4 @@
+"""CLI app for the deepset cloud SDK."""
 import typer
 
 from deepset_cloud_sdk.workflows.sync_client.files import (
