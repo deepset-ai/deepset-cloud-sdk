@@ -25,7 +25,6 @@ class TestCreateUploadSessions:
         async with DeepsetCloudAPI.factory(integration_config) as deepset_cloud_api:
             upload_session_client = UploadSessionsAPI(deepset_cloud_api)
 
-
             result: UploadSession = await upload_session_client.create(workspace_name=workspace_name)
             assert result.session_id is not None
             assert result.documentation_url is not None
@@ -36,7 +35,6 @@ class TestCreateUploadSessions:
                 == "https://dc-dev-euc1-034167606153-user-files-upload.s3.amazonaws.com/"
             )
             assert result.aws_prefixed_request_config.fields["key"] is not None
-
 
             await upload_session_client.close(workspace_name=workspace_name, session_id=result.session_id)
 
