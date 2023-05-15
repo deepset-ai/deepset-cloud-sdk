@@ -37,8 +37,9 @@ Documentation = "https://github.com/deepset-ai/deepset-cloud-sdk#readme"
 Issues = "https://github.com/deepset-ai/deepset-cloud-sdk/issues"
 Source = "https://github.com/deepset-ai/deepset-cloud-sdk"
 
-[project.scripts]
-deepset_cloud_cli = "deepset_cloud_sdk:cli"
+
+[tool.hatch.scripts]
+deepset-cloud-cli = "deepset_cloud_sdk.cli:run_packaged"
 
 [tool.hatch.version]
 path = "deepset_cloud_sdk/__about__.py"
