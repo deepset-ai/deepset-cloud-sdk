@@ -100,6 +100,7 @@ detached = true
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
 dependencies = [
   "pip-tools==6.13.0",
+  "typer==0.9.0",
 ]
 
 [tool.hatch.envs.tools.scripts]
