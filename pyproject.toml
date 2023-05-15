@@ -144,7 +144,7 @@ disable = [
   "missing-module-docstring"
   ]
 [tool.pylint.'DESIGN']
-max-args=7
+max-args=9
 
 [tool.pylint.'SIMILARITIES']
 min-similarity-lines=6
