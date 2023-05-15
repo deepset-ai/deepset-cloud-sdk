@@ -4,8 +4,8 @@ import os
 from typing import List, Optional, Union
 
 import typer
-
 from tabulate import tabulate
+
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
 from deepset_cloud_sdk.api.files import File
 from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
@@ -72,7 +72,7 @@ def list_files(
     if len(files) != len(to_print_files):
         to_print_files.append(["...", "...", "...", "...", "...", "..."])  # type: ignore
 
-    table = tabulate(to_print_files, headers, tablefmt="grid")
+    table = tabulate(to_print_files, headers, tablefmt="grid")  # type: ignore
     typer.echo(table)
 
 
