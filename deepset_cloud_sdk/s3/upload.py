@@ -1,4 +1,4 @@
-"""Module for Upload related S3 Operations"""
+"""Module for Upload related S3 Operations."""
 import asyncio
 import json
 import os
@@ -40,9 +40,12 @@ class S3UploadResult:
 def make_safe_file_name(file_name: str) -> str:
     """
     Transform a given string to a representation that can be accepted by S3.
-    See: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
-    """
 
+    :param str: The file name
+    :return str: The transformed string
+    See for details of character exclusions:
+    https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
+    """
     transformed = re.sub(r"[\\\\#%\"'\|<>\{\}`\^\[\]~\x00-\x1F]", "_", file_name)
     return quote(transformed)
 
