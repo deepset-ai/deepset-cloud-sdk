@@ -20,6 +20,10 @@ logger = structlog.get_logger(__name__)
 
 @dataclass
 class S3UploadSummary:
+    """
+    A summary of the S3 upload results
+    """
+
     total_files: int
     successful_upload_count: int
     failed_upload_count: int
@@ -28,18 +32,36 @@ class S3UploadSummary:
 
 @dataclass
 class S3UploadResult:
+    """
+    Stores the result of an upload to S3
+    """
+
     file_name: str
     success: bool
 
 
 def make_safe_file_name(file_name: str) -> str:
-    # characters to avoid: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
+    """
+    Transforms a given string to a representation that can be accepted by S3
+    See: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
+    """
+
     transformed = re.sub(r"[\\\\#%\"'\|<>\{\}`\^\[\]~\x00-\x1F]", "_", file_name)
     return quote(transformed)
 
 
 class S3:
+    """
+    Client for S3 operations related to deepset Cloud uploads
+    """
+
     def __init__(self, concurrency: int = 120):
+        """
+        Initialize the client
+
+        :param concurrency: The number of concurrent upload requests
+        """
+
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
 
@@ -94,7 +116,7 @@ class S3:
                 try:
                     await self._upload_file_with_retries(file_name, upload_session, file, client_session)
                     return S3UploadResult(file_name=file_name, success=True)
-                except Exception as ue:
+                except Exception:
                     logger.warn(
                         "Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id
                     )
@@ -116,7 +138,7 @@ class S3:
         """
 
         try:
-            response = await self._upload_file_with_retries(file_name, upload_session, content, client_session)
+            await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
         except Exception:
             logger.warn("Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id)

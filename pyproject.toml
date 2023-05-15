@@ -27,7 +27,8 @@ dependencies = [
   "structlog==23.1.0",
   "httpx==0.24.0",
   "python-dotenv==1.0.0",
-  "tenacity==8.2.2"
+  "tenacity==8.2.2",
+  "aiohttp==3.8.4"
 ]
 
 [project.urls]
