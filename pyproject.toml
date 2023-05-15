@@ -30,7 +30,8 @@ dependencies = [
   "typer==0.9.0",
   "tenacity==8.2.2",
   "aiohttp==3.8.4",
-  "progress==1.6"
+  "aiofiles==23.1.0",
+  "progress==1.6",
 ]
 
 [project.urls]
@@ -85,6 +86,7 @@ dependencies = [
   "isort==5.12.0",
   "mypy==1.1.1",
   "pre-commit==2.20.0",
+  "types-aiofiles==23.1.0.2",
 ]
 
 [tool.hatch.envs.code-quality.scripts]
