@@ -1,13 +1,13 @@
 from pathlib import Path
 from typing import Any, Optional
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import structlog
 from typer.testing import CliRunner
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk.api.upload_sessions import WriteMode
-from deepset_cloud_sdk.cli import cli_app
+from deepset_cloud_sdk.cli import cli_app, run_packaged
 
 logger = structlog.get_logger(__name__)
 runner = CliRunner()
@@ -26,6 +26,14 @@ class TestCLIMethods:
         result = runner.invoke(cli_app, ["upload-file-paths", "./test/data/upload_folder/example.txt"])
         assert result.exit_code == 0
         assert "Fake log line" in result.stdout
+
+    def test_run_packaged(
+        self,
+    ) -> None:
+        mocked_cli_app = Mock()
+        with patch("deepset_cloud_sdk.cli.cli_app", mocked_cli_app):
+            run_packaged()
+            assert mocked_cli_app.called
 
     @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_folder")
     def test_uploading_folder(self, async_upload_folder_mock: AsyncMock) -> None:
@@ -51,7 +59,7 @@ class TestCLIMethods:
 
 class TestCLIUtils:
     def test_login_with_minimal(self) -> None:
-        fake_env_path = Path("./test/tmp/.env")
+        fake_env_path = Path("./tests/tmp/.env")
         with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
             result = runner.invoke(cli_app, ["login"], input="test_api_key\n\n\n")
             assert result.exit_code == 0
@@ -63,7 +71,7 @@ class TestCLIUtils:
                 )
 
     def test_login_with_all_filled(self) -> None:
-        fake_env_path = Path("./test/tmp/.env")
+        fake_env_path = Path("./tests/tmp/.env")
         with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
             result = runner.invoke(cli_app, ["login"], input="test_api_key_2\nhttps://endpoint.com/api\ndefault\n")
             assert result.exit_code == 0
