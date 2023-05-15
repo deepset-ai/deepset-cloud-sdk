@@ -44,4 +44,5 @@ def run_packaged() -> None:
 
 
 if __name__ == "__main__":
+    """Run the CLI app."""
     cli_app()
