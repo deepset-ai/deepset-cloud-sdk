@@ -8,7 +8,7 @@ from io import BufferedReader, BytesIO, TextIOWrapper
 from pathlib import Path
 from typing import Any, Callable, Coroutine, List, Tuple
 from urllib.error import HTTPError
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 import aiohttp
 import structlog
@@ -39,8 +39,8 @@ class S3UploadResult:
 
 def make_safe_file_name(file_name: str) -> str:
     # characters to avoid: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
-    transformed = re.sub('[#%"\|<>\{\}`\^\[\]~ \x00\x08\x0B\x0C\x0E-\x1F]', "_", file_name)
-    return quote_plus(transformed)
+    transformed = re.sub("[\\\\#%\"'\|<>\{\}`\^\[\]~\x00-\x1F]", "_", file_name)
+    return quote(transformed)
 
 
 class S3:
@@ -124,7 +124,7 @@ class S3:
 
         return result_summary
 
-    async def upload_files_from_path(self, upload_session: UploadSession, file_paths: List[Path]) -> S3UploadSummary:
+    async def upload_files_from_paths(self, upload_session: UploadSession, file_paths: List[Path]) -> S3UploadSummary:
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
             tasks = []
 

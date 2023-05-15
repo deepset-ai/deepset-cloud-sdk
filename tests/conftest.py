@@ -16,6 +16,7 @@ from deepset_cloud_sdk.api.upload_sessions import (
     UploadSession,
     UploadSessionsAPI,
 )
+from deepset_cloud_sdk.s3.upload import S3
 
 load_dotenv()
 
@@ -60,9 +61,9 @@ def mocked_files_api() -> Mock:
 
 
 @pytest.fixture
-def mocked_aws() -> Mock:
+def mocked_s3() -> Mock:
     # TODO: add aws client mock that sends files to aws
-    return AsyncMock()
+    return AsyncMock(spec=S3)
 
 
 @pytest.fixture

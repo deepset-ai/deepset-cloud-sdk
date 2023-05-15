@@ -15,8 +15,8 @@ from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesServi
 
 
 @pytest.fixture
-def file_service(mocked_upload_sessions_api: Mock, mocked_files_api: Mock, mocked_aws: Mock) -> FilesService:
-    return FilesService(upload_sessions=mocked_upload_sessions_api, files=mocked_files_api, aws=mocked_aws)
+def file_service(mocked_upload_sessions_api: Mock, mocked_files_api: Mock, mocked_s3: Mock) -> FilesService:
+    return FilesService(upload_sessions=mocked_upload_sessions_api, files=mocked_files_api, s3=mocked_s3)
 
 
 @pytest.mark.asyncio
@@ -27,7 +27,7 @@ class TestUploadsFileService:
             file_service: FilesService,
             mocked_upload_sessions_api: Mock,
             upload_session_response: UploadSession,
-            mocked_aws: Mock,
+            mocked_s3: Mock,
         ) -> None:
             mocked_upload_sessions_api.create.return_value = upload_session_response
             mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
@@ -51,7 +51,7 @@ class TestUploadsFileService:
                 workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
             )
 
-            mocked_aws.upload_files.assert_called_once_with(
+            mocked_s3.upload_files_from_path.assert_called_once_with(
                 upload_session=upload_session_response, file_paths=[Path("./tmp/my-file")]
             )
 
@@ -115,7 +115,7 @@ class TestUploadsFileService:
             file_service: FilesService,
             mocked_upload_sessions_api: Mock,
             upload_session_response: UploadSession,
-            mocked_aws: Mock,
+            mocked_s3: Mock,
         ) -> None:
             dc_files = [
                 DeepsetCloudFile(
@@ -146,7 +146,7 @@ class TestUploadsFileService:
                 workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
             )
 
-            mocked_aws.upload_texts.assert_called_once_with(upload_session=upload_session_response, dc_files=dc_files)
+            mocked_s3.upload_texts.assert_called_once_with(upload_session=upload_session_response, dc_files=dc_files)
 
             mocked_upload_sessions_api.close.assert_called_once_with(
                 workspace_name="test_workspace", session_id=upload_session_response.session_id

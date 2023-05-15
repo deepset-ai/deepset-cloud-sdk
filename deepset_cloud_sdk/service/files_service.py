@@ -1,9 +1,9 @@
 """Module for all file related operations."""
 from __future__ import annotations
 
-import os
 import asyncio
 import enum
+import os
 import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -124,7 +124,9 @@ class FilesService:
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
             # upload file paths to session
 
-            upload_summary = await self._s3.upload_files_from_path(upload_session=upload_session, file_paths=file_paths)
+            upload_summary = await self._s3.upload_files_from_paths(
+                upload_session=upload_session, file_paths=file_paths
+            )
             logger.info(
                 "Summary of S3 Uploads",
                 successful_uploads=upload_summary.successful_upload_count,
