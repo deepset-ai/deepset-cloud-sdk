@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 """CLI app for the deepset cloud SDK."""
 import os
 from typing import Optional
