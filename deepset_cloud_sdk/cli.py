@@ -64,7 +64,6 @@ def list_files(
     :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     """
-
     headers = ["file_id", "url", "name", "size", "created_at", "meta"]  # Assuming the first row contains the headers
 
     files = sync_list_files(api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s)
