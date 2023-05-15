@@ -3,6 +3,7 @@ import os
 from typing import Optional
 
 import typer
+from typing_extensions import Annotated
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
 from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
@@ -39,12 +40,12 @@ def login() -> None:
 
 @cli_app.command()
 def list_files(
-    api_key: Optional[str] = None,
-    api_url: Optional[str] = None,
-    workspace_name: str = DEFAULT_WORKSPACE_NAME,
-    name: Optional[str] = None,
-    content: Optional[str] = None,
+    api_key: Annotated[Optional[str], typer.Option()],
+    api_url: Annotated[Optional[str], typer.Option()],
+    name: Annotated[Optional[str], typer.Option()],
+    content: Annotated[Optional[str], typer.Option()],
     odata_filter: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
     batch_size: int = 100,
     timeout_s: int = 300,
 ) -> None:
