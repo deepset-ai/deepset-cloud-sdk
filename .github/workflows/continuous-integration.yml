@@ -54,7 +54,7 @@ jobs:
           python-version: "3.10"
       - name: Install Hatch
         run: pip install hatch==${{ env.HATCH_VERSION }}
-      - name: Run mypy
+      - name: Run pylint
         run: hatch run code-quality:lint
 
   isort:
@@ -108,7 +108,7 @@ jobs:
       - name: Install Hatch
         run: pip install hatch==${{ env.HATCH_VERSION }}
       - name: Run unit tests
-        run: hatch run tests-with-cov
+        run: hatch run test:unit-with-cov
       - name: Coverage comment
         id: coverage_comment
         uses: py-cov-action/python-coverage-comment-action@48708266a6e77ebf564b50d9cff2b7df9a25b458
@@ -118,7 +118,7 @@ jobs:
       # the API_KEY is stored as a secret in the repository
       # we are using the "automated-tests" organization with predefined users and workspaces
       - name: Run integration tests
-        run: API_KEY=${{secrets.API_KEY}} API_URL=https://api.dev.cloud.dpst.dev/api/v1  hatch run tests-integration
+        run: API_KEY=${{secrets.API_KEY}} API_URL=https://api.dev.cloud.dpst.dev/api/v1  hatch run test:integration
 
   build:
     name: Build package

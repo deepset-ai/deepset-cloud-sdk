@@ -108,7 +108,7 @@ class S3:
                 try:
                     await self._upload_file_with_retries(file_name, upload_session, file, client_session)
                     return S3UploadResult(file_name=file_name, success=True)
-                except Exception:
+                except HTTPError:
                     logger.warn(
                         "Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id
                     )
@@ -131,7 +131,7 @@ class S3:
         try:
             await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
-        except Exception:
+        except HTTPError:
             logger.warn("Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id)
             return S3UploadResult(file_name=file_name, success=False)
 

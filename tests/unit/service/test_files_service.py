@@ -51,7 +51,7 @@ class TestUploadsFileService:
                 workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
             )
 
-            mocked_s3.upload_files_from_path.assert_called_once_with(
+            mocked_s3.upload_files_from_paths.assert_called_once_with(
                 upload_session=upload_session_response, file_paths=[Path("./tmp/my-file")]
             )
 
