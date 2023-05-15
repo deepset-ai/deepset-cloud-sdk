@@ -70,7 +70,7 @@ def list_files(
         batch_size=batch_size,
         timeout_s=timeout_s,
     )
-    typer.echo(f" created_at  \t size \t name ")
+    typer.echo(" created_at  \t size \t name ")
     for file in files:
         typer.echo(f" {file.created_at}  \t {file.size} \t {file.name} ")
 
