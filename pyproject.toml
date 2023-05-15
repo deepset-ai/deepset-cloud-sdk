@@ -27,6 +27,7 @@ dependencies = [
   "structlog==23.1.0",
   "httpx==0.24.0",
   "python-dotenv==1.0.0",
+  "typer==0.9.0",
   "tenacity==8.2.2",
   "aiohttp==3.8.4"
 ]
@@ -35,6 +36,10 @@ dependencies = [
 Documentation = "https://github.com/deepset-ai/deepset-cloud-sdk#readme"
 Issues = "https://github.com/deepset-ai/deepset-cloud-sdk/issues"
 Source = "https://github.com/deepset-ai/deepset-cloud-sdk"
+
+
+[project.scripts]
+deepset-cloud-cli  = "deepset_cloud_sdk.cli:run_packaged"
 
 [tool.hatch.version]
 path = "deepset_cloud_sdk/__about__.py"
@@ -70,7 +75,7 @@ dependencies = [
 
 [tool.hatch.envs.code-quality]
 template='default'
-detached = true
+detached = false
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
 dependencies = [
   "pylint==2.15.2",
@@ -91,7 +96,7 @@ hooks = "pre-commit install"
 docstrings = "pydocstyle deepset_cloud_sdk"
 
 [tool.hatch.envs.tools]
-detached = true
+detached = false
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
 dependencies = [
   "pip-tools==6.13.0",
