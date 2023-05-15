@@ -74,7 +74,6 @@ dependencies = [
   "pytest==7.3.1",
   "pytest-asyncio==0.21.0",
   "tabulate==0.9.0",
-  "types-tabulate==0.9.0.2"
 ]
 
 
@@ -89,6 +88,7 @@ dependencies = [
   "isort==5.12.0",
   "mypy==1.1.1",
   "pre-commit==2.20.0"
+  "types-tabulate==0.9.0.2"
 ]
 
 [tool.hatch.envs.code-quality.scripts]
