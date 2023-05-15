@@ -1,9 +1,11 @@
 """CLI app for the deepset cloud SDK."""
 import os
+from typing import Optional
 
 import typer
 
-from deepset_cloud_sdk.api.config import ENV_FILE_PATH
+from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
+from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
 from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_file_paths,
     upload_folder,
@@ -33,6 +35,42 @@ def login() -> None:
         env_file.write(env_content)
 
     typer.echo(f"{ENV_FILE_PATH} created successfully!")
+
+
+@cli_app.command()
+def list_files(
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    name: Optional[str] = None,
+    content: Optional[str] = None,
+    odata_filter: Optional[str] = None,
+    batch_size: int = 100,
+    timeout_s: int = 300,
+) -> None:
+    """List files in the Deepset Cloud.
+
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to list the files from.
+    :param name: Name of the file to odata_filter for.
+    :param content: Content of the file to odata_filter for.
+    :param odata_filter: odata_filter to apply to the file list.
+    :param batch_size: Batch size to use for the file list.
+    """
+    files = sync_list_files(
+        api_key=api_key,
+        api_url=api_url,
+        workspace_name=workspace_name,
+        name=name,
+        content=content,
+        odata_filter=odata_filter,
+        batch_size=batch_size,
+        timeout_s=timeout_s,
+    )
+    typer.echo(f" created_at  \t size \t name ")
+    for file in files:
+        typer.echo(f" {file.created_at}  \t {file.size} \t {file.name} ")
 
 
 def run_packaged() -> None:
