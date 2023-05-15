@@ -1,3 +1,4 @@
+"""Module for Upload related S3 Operations"""
 import asyncio
 import json
 import os
@@ -20,9 +21,7 @@ logger = structlog.get_logger(__name__)
 
 @dataclass
 class S3UploadSummary:
-    """
-    A summary of the S3 upload results
-    """
+    """A summary of the S3 upload results."""
 
     total_files: int
     successful_upload_count: int
@@ -32,9 +31,7 @@ class S3UploadSummary:
 
 @dataclass
 class S3UploadResult:
-    """
-    Stores the result of an upload to S3
-    """
+    """Stores the result of an upload to S3."""
 
     file_name: str
     success: bool
@@ -42,7 +39,7 @@ class S3UploadResult:
 
 def make_safe_file_name(file_name: str) -> str:
     """
-    Transforms a given string to a representation that can be accepted by S3
+    Transform a given string to a representation that can be accepted by S3.
     See: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
     """
 
@@ -51,17 +48,14 @@ def make_safe_file_name(file_name: str) -> str:
 
 
 class S3:
-    """
-    Client for S3 operations related to deepset Cloud uploads
-    """
+    """Client for S3 operations related to deepset Cloud uploads."""
 
     def __init__(self, concurrency: int = 120):
         """
-        Initialize the client
+        Initialize the client.
 
         :param concurrency: The number of concurrent upload requests
         """
-
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
 
@@ -73,14 +67,13 @@ class S3:
         content: Any,
         client_session: aiohttp.ClientSession,
     ) -> aiohttp.ClientResponse:
-        """Upload a file to the prefixed S3 namespace
+        """Upload a file to the prefixed S3 namespace.
 
         :param file_path: The Path to upload from.
         :param upload_session: UploadSession to associate the upload with.
         :param client_session: The aiohttp ClientSession to use for this request.
         :return: ClientResponse object.
         """
-
         aws_safe_name = make_safe_file_name(file_name)
         aws_config = upload_session.aws_prefixed_request_config
 
@@ -102,14 +95,13 @@ class S3:
         upload_session: UploadSession,
         client_session: aiohttp.ClientSession,
     ) -> S3UploadResult:
-        """Upload a file to the prefixed S3 namespace given a path
+        """Upload a file to the prefixed S3 namespace given a path.
 
         :param file_path: The Path to upload from.
         :param upload_session: UploadSession to associate the upload with.
         :param client_session: The aiohttp ClientSession to use for this request.
         :return: S3UploadResult object.
         """
-
         async with self.semaphore:
             with open(file_path, "rb") as file:
                 file_name = os.path.basename(file_path)
@@ -129,14 +121,13 @@ class S3:
         content: str,
         client_session: aiohttp.ClientSession,
     ) -> S3UploadResult:
-        """Upload text to the prefixed S3 namespace
+        """Upload text to the prefixed S3 namespace.
 
         :param file_name: Name of the file.
         :param upload_session: UploadSession to associate the upload with.
         :param client_session: The aiohttp ClientSession to use for this request.
         :return: S3UploadResult object.
         """
-
         try:
             await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
@@ -145,12 +136,11 @@ class S3:
             return S3UploadResult(file_name=file_name, success=False)
 
     async def _process_results(self, tasks: List[Coroutine[Any, Any, S3UploadResult]]) -> S3UploadSummary:
-        """Summarise the results of the Uploads to S3
+        """Summarise the results of the Uploads to S3.
 
         :param tasks: List of upload tasks.
         :return: S3UploadResult object.
         """
-
         results: List[S3UploadResult] = await asyncio.gather(*tasks)
         logger.info("Finished uploading files", results=results)
 
@@ -172,13 +162,12 @@ class S3:
         return result_summary
 
     async def upload_files_from_paths(self, upload_session: UploadSession, file_paths: List[Path]) -> S3UploadSummary:
-        """Upload a set of files to the prefixed S3 namespace given a list of paths
+        """Upload a set of files to the prefixed S3 namespace given a list of paths.
 
         :param upload_session: UploadSession to associate the upload with.
         :param file_paths: A list of Paths to upload.
         :return: S3UploadSummary object.
         """
-
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
             tasks = []
 
@@ -189,13 +178,12 @@ class S3:
             return result_summary
 
     async def upload_texts(self, upload_session: UploadSession, dc_files: List[DeepsetCloudFile]) -> S3UploadSummary:
-        """Upload a set of texts to the prefixed S3 namespace given a list of paths
+        """Upload a set of texts to the prefixed S3 namespace given a list of paths.
 
         :param upload_session: UploadSession to associate the upload with.
         :param dc_files: A list of DeepsetCloudFiles to upload.
         :return: S3UploadSummary object.
         """
-
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
             tasks = []
 
