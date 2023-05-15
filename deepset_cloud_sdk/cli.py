@@ -29,7 +29,7 @@ def login() -> None:
     )
 
     os.makedirs(os.path.dirname(ENV_FILE_PATH), exist_ok=True)
-    with open(ENV_FILE_PATH, "w") as env_file:
+    with open(ENV_FILE_PATH, "w", encoding="utf-8") as env_file:
         env_file.write(env_content)
 
     typer.echo(f"{ENV_FILE_PATH} created successfully!")
