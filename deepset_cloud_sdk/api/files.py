@@ -77,7 +77,7 @@ class FilesAPI:
         limit: int = 100,
         name: Optional[str] = None,
         content: Optional[str] = None,
-        filter: Optional[str] = None,
+        odata_filter: Optional[str] = None,
         after_value: Optional[Any] = None,
         after_file_id: Optional[UUID] = None,
     ) -> FileList:
@@ -86,9 +86,9 @@ class FilesAPI:
 
         :param workspace_name: Name of the workspace to use.
         :param limit: Number of files to return per page.
-        :param name: Name of the file to filter by.
-        :param content: Content of the file to filter by.
-        :param filter: Odata Filter to apply.
+        :param name: Name of the file to odata_filter by.
+        :param content: Content of the file to odata_filter by.
+        :param odata_filter: Odata odata_filter to apply.
         :param after_value: Value to start after.
         :param after_file_id: File ID to start after.
         """
@@ -107,9 +107,9 @@ class FilesAPI:
         if content:
             params["content"] = content
 
-        # odata filter for file meta
-        if filter:
-            params["filter"] = filter
+        # odata odata_filter for file meta
+        if odata_filter:
+            params["odata_filter"] = odata_filter
 
         response = await self._deepset_cloud_api.get(workspace_name, "files", params=params)
         assert response.status_code == codes.OK, f"Failed to list files: {response.text}"

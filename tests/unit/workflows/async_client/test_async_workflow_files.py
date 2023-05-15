@@ -91,7 +91,7 @@ class TestUploadFiles:
             workspace_name="my_workspace",
             name="test_file.txt",
             content="test content",
-            filter="test",
+            odata_filter="test",
             batch_size=100,
             timeout_s=100,
         ):

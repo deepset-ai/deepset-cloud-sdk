@@ -220,7 +220,7 @@ class FilesService:
         workspace_name: str,
         name: Optional[str] = None,
         content: Optional[str] = None,
-        filter: Optional[str] = None,
+        odata_filter: Optional[str] = None,
         batch_size: int = 100,
         timeout_s: int = 20,
     ) -> AsyncGenerator[List[File], None]:
@@ -230,9 +230,9 @@ class FilesService:
         The batch size per number of returned files can be specified with batch_size.
 
         :param workspace_name: Name of the workspace to use.
-        :param name: Filter by file name.
-        :param content: Filter by file content.
-        :param filter: Filter by file meta data.
+        :param name: odata_filter by file name.
+        :param content: odata_filter by file content.
+        :param odata_filter: odata_filter by file meta data.
         :param batch_size: Number of files to return per request.
         :param timeout_s: Timeout in seconds for the listing.
         :raises TimeoutError: If the listing takes longer than timeout_s.
@@ -249,7 +249,7 @@ class FilesService:
                 workspace_name,
                 name=name,
                 content=content,
-                filter=filter,
+                odata_filter=odata_filter,
                 limit=batch_size,
                 after_file_id=after_file_id,
                 after_value=after_value,

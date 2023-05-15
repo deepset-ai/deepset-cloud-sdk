@@ -47,7 +47,7 @@ class TestListFiles:
             limit=10,
             name="things_1",
             content="silly",
-            filter="created_at eq '2022-06-21T16:40:00.634653+00:00' ",
+            odata_filter="created_at eq '2022-06-21T16:40:00.634653+00:00' ",
         )
         assert result == FileList(
             total=1,

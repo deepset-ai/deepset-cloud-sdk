@@ -120,7 +120,7 @@ def list_files(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     name: Optional[str] = None,
     content: Optional[str] = None,
-    filter: Optional[str] = None,
+    odata_filter: Optional[str] = None,
     batch_size: int = 100,
     timeout_s: int = 300,
 ) -> List[File]:
@@ -132,9 +132,9 @@ def list_files(
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from.
-    :param name: Name of the file to filter for.
-    :param content: Content of the file to filter for.
-    :param filter: Filter to apply to the file list.
+    :param name: Name of the file to odata_filter for.
+    :param content: Content of the file to odata_filter for.
+    :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     """
 
@@ -146,7 +146,7 @@ def list_files(
             workspace_name=workspace_name,
             name=name,
             content=content,
-            filter=filter,
+            odata_filter=odata_filter,
             batch_size=batch_size,
             timeout_s=timeout_s,
         ):

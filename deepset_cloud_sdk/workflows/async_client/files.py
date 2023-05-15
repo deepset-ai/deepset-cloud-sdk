@@ -23,7 +23,7 @@ async def list_files(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     name: Optional[str] = None,
     content: Optional[str] = None,
-    filter: Optional[str] = None,
+    odata_filter: Optional[str] = None,
     batch_size: int = 100,
     timeout_s: int = 300,
 ) -> AsyncGenerator[List[File], None]:
@@ -40,7 +40,7 @@ async def list_files(
             workspace_name=workspace_name,
             name=name,
             content=content,
-            filter=filter,
+            odata_filter=odata_filter,
             batch_size=batch_size,
             timeout_s=timeout_s,
         ):
