@@ -10,11 +10,18 @@ The deepset Cloud SDK is an open source software development kit that provides c
 This README provides an overview of the SDK and its features, and information on contributing to the project and exploring related resources.
 
 # Supported Features
-The current version of the SDK focuses on providing an easy way to upload files to deepset Cloud for further processing and analysis. For detailed instructions and examples, see file_uploads/README.md. 
+The current version of the SDK focuses on providing an easy way to upload files to deepset Cloud for further processing and analysis. For detailed instructions and examples, see file_uploads/README.md.
 
 ## Examples
 The following examples demonstrate how to use the deepset Cloud SDK to interact with deepset Cloud.
-- [Upload datasets to deepset Cloud](/examples/upload_folder.py)
+- [Upload datasets to deepset Cloud](/examples/upload.py)
+
+## Installation
+The deepset Cloud SDK is available on PyPI and can be installed using pip:
+```bash
+pip install deepset-cloud-sdk
+```
+
 
 ## Contributing
 We welcome contributions from the open source community to enhance the deepset Cloud SDK. I

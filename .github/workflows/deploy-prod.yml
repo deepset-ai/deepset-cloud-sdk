@@ -14,3 +14,5 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       deployment_env: release
+    secrets:
+      API_KEY: ${{ secrets.API_KEY }}
