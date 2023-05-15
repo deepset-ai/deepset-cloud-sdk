@@ -1,12 +1,13 @@
 # pylint: disable=duplicate-code
 """CLI app for the deepset cloud SDK."""
 import os
-from typing import Optional
+from typing import List, Optional, Union
 
 import typer
-from typing_extensions import Annotated
 
+from tabulate import tabulate
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
+from deepset_cloud_sdk.api.files import File
 from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
 from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_file_paths,
@@ -41,14 +42,15 @@ def login() -> None:
 
 @cli_app.command()
 def list_files(
-    api_key: Annotated[Optional[str], typer.Option()],
-    api_url: Annotated[Optional[str], typer.Option()],
-    name: Annotated[Optional[str], typer.Option()],
-    content: Annotated[Optional[str], typer.Option()],
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    content: Optional[str] = None,
+    name: Optional[str] = None,
     odata_filter: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     batch_size: int = 100,
     timeout_s: int = 300,
+    limit: Optional[int] = 100,
 ) -> None:
     """List files in the Deepset Cloud.
 
@@ -62,19 +64,16 @@ def list_files(
     :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     """
-    files = sync_list_files(
-        api_key=api_key,
-        api_url=api_url,
-        workspace_name=workspace_name,
-        name=name,
-        content=content,
-        odata_filter=odata_filter,
-        batch_size=batch_size,
-        timeout_s=timeout_s,
-    )
-    typer.echo(" created_at  \t size \t name ")
-    for file in files:
-        typer.echo(f" {file.created_at}  \t {file.size} \t {file.name} ")
+
+    headers = ["file_id", "url", "name", "size", "created_at", "meta"]  # Assuming the first row contains the headers
+
+    files = sync_list_files(api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s)
+    to_print_files: List[Union[File, str]] = files[:limit]  # type: ignore
+    if len(files) != len(to_print_files):
+        to_print_files.append(["...", "...", "...", "...", "...", "..."])  # type: ignore
+
+    table = tabulate(to_print_files, headers, tablefmt="grid")
+    typer.echo(table)
 
 
 def run_packaged() -> None:
