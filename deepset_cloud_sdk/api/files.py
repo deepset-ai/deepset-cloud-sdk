@@ -77,7 +77,7 @@ class FilesAPI:
         limit: int = 100,
         name: Optional[str] = None,
         content: Optional[str] = None,
-        filter: Optional[str] = None,
+        odata_filter: Optional[str] = None,
         after_value: Optional[Any] = None,
         after_file_id: Optional[UUID] = None,
     ) -> FileList:
@@ -86,9 +86,9 @@ class FilesAPI:
 
         :param workspace_name: Name of the workspace to use.
         :param limit: Number of files to return per page.
-        :param name: Name of the file to filter by.
-        :param content: Content of the file to filter by.
-        :param filter: Odata Filter to apply.
+        :param name: Name of the file to odata_filter by.
+        :param content: Content of the file to odata_filter by.
+        :param odata_filter: Odata odata_filter to apply.
         :param after_value: Value to start after.
         :param after_file_id: File ID to start after.
         """
@@ -107,9 +107,9 @@ class FilesAPI:
         if content:
             params["content"] = content
 
-        # odata filter for file meta
-        if filter:
-            params["filter"] = filter
+        # odata odata_filter for file meta
+        if odata_filter:
+            params["odata_filter"] = odata_filter
 
         response = await self._deepset_cloud_api.get(workspace_name, "files", params=params)
         assert response.status_code == codes.OK, f"Failed to list files: {response.text}"
@@ -118,32 +118,3 @@ class FilesAPI:
         data = response_body["data"]
         has_more = response_body["has_more"]
         return FileList(total=total, data=[File.from_dict(d) for d in data], has_more=has_more)
-
-    async def list_all(
-        self, workspace_name: str, batch_size: int = 100, timeout: int = 20
-    ) -> AsyncGenerator[List[File], None]:
-        """
-        List all files in a workspace.
-
-        TODO: move this one level up to deepset_cloud_api since this is
-        logic on top of the raw API.
-        TODO: Take care of raising a timeout exception if the timeout is reached.
-
-        :param workspace_name: Name of the workspace to use.
-        """
-        start = time.time()
-        has_more = True
-
-        after_value = None
-        after_file_id = None
-        while time.time() - start < timeout and has_more:
-            response = await self.list_paginated(
-                workspace_name,
-                limit=batch_size,
-                after_file_id=after_file_id,
-                after_value=after_value,
-            )
-            has_more = response.has_more
-            after_value = response.data[-1].created_at
-            after_file_id = response.data[-1].file_id
-            yield response.data

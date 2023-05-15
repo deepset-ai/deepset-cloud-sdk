@@ -1,6 +1,7 @@
+# pylint:disable=too-many-arguments
 """This module contains async functions for uploading files and folders to the Deepset Cloud."""
 from pathlib import Path
-from typing import List, Optional
+from typing import AsyncGenerator, List, Optional
 
 from deepset_cloud_sdk.api.config import (
     API_KEY,
@@ -8,12 +9,43 @@ from deepset_cloud_sdk.api.config import (
     DEFAULT_WORKSPACE_NAME,
     CommonConfig,
 )
+from deepset_cloud_sdk.api.files import File
 from deepset_cloud_sdk.api.upload_sessions import WriteMode
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
 
 
 def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:
     return CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL)
+
+
+async def list_files(
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    name: Optional[str] = None,
+    content: Optional[str] = None,
+    odata_filter: Optional[str] = None,
+    batch_size: int = 100,
+    timeout_s: int = 300,
+) -> AsyncGenerator[List[File], None]:
+    """List all files in a workspace.
+
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to list the files from.
+    :param batch_size: Batch size for the listing.
+    :return: List of files.
+    """
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+        async for file_batch in file_service.list_all(
+            workspace_name=workspace_name,
+            name=name,
+            content=content,
+            odata_filter=odata_filter,
+            batch_size=batch_size,
+            timeout_s=timeout_s,
+        ):
+            yield file_batch
 
 
 async def upload_file_paths(
