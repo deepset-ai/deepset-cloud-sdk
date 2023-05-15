@@ -39,7 +39,7 @@ class S3UploadResult:
 
 def make_safe_file_name(file_name: str) -> str:
     # characters to avoid: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
-    transformed = re.sub("[\\\\#%\"'\|<>\{\}`\^\[\]~\x00-\x1F]", "_", file_name)
+    transformed = re.sub(r"[\\\\#%\"'\|<>\{\}`\^\[\]~\x00-\x1F]", "_", file_name)
     return quote(transformed)
 
 

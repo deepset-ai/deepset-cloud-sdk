@@ -40,7 +40,6 @@ path = "deepset_cloud_sdk/__about__.py"
 
 [tool.hatch.envs.default.scripts]
 tests-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
-abc = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit -k make_safe"
 tests-integration = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/integration"
 
 [[tool.hatch.envs.all.matrix]]
