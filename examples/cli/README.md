@@ -7,16 +7,18 @@ To install the deepset Cloud CLI, you can use `pip`:
 ```shell
 pip3 install deepset-cloud-sdk
 ```
-
 ## Configuration
-The deepset Cloud CLI requires certain environment variables to be set in order to function properly. These environment variables can be defined in an .env file in the root directory of your project. The required variables are as follows:
+Before using the deepset Cloud CLI, you need to log in and provide your credentials. You can do this by running the following command:
 
 ```shell
-# .env file
-API_KEY=<your-api-key>
-DEFAULT_WORKSPACE_NAME=<your-workspace>
+deepset-cloud-cli login
 ```
-Alternatively, you can provide these variables in different ways, such as passing them as command-line arguments or setting them directly in your code.
+
+This command will prompt you to enter your API key and default workspace name. Once you provide these details, the CLI will store your credentials securely in the ~/.deepset-cloud-cli/.env file. This file will be used as the default configuration for subsequent CLI commands.
+
+Alternatively, if you want to use a different environment file for your configuration, you can create an `.env` file in the local directory.
+Additionally, you have the flexibility to provide the credentials directly as command-line arguments or set them programmatically in your code, instead of using the environment file. This can be useful in certain scenarios or for automation purposes.
+
 
 ## Usage
 Once you have installed the deepset Cloud CLI and configured the necessary environment variables, you can run it from the console using the following command:
