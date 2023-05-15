@@ -75,7 +75,7 @@ dependencies = [
 
 [tool.hatch.envs.code-quality]
 template='default'
-detached = true
+detached = false
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
 dependencies = [
   "pylint==2.15.2",
@@ -96,11 +96,10 @@ hooks = "pre-commit install"
 docstrings = "pydocstyle deepset_cloud_sdk"
 
 [tool.hatch.envs.tools]
-detached = true
+detached = false
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
 dependencies = [
   "pip-tools==6.13.0",
-  "typer==0.9.0",
 ]
 
 [tool.hatch.envs.tools.scripts]
