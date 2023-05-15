@@ -16,6 +16,13 @@ The current version of the SDK focuses on providing an easy way to upload files 
 The following examples demonstrate how to use the deepset Cloud SDK to interact with deepset Cloud.
 - [Upload datasets to deepset Cloud](/examples/upload.py)
 
+## Installation
+The deepset Cloud SDK is available on PyPI and can be installed using pip:
+```bash
+pip install deepset-cloud-sdk
+```
+
+
 ## Contributing
 We welcome contributions from the open source community to enhance the deepset Cloud SDK. I
 f you would like to contribute, refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines and instructions on how to get started.
