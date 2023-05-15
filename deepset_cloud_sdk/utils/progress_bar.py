@@ -3,7 +3,7 @@ from progress.bar import PixelBar
 
 
 class ProgressBar(PixelBar):
-    """Progress Bar Class"""
+    """Progress Bar Class."""
 
     suffix = "%(index)d/%(max)d elapsed: %(elapsed_minutes)s"
 
