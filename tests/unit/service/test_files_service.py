@@ -144,13 +144,16 @@ class TestUploadsFileService:
                 write_mode=WriteMode.OVERWRITE,
                 blocking=True,
                 timeout_s=300,
+                show_progress=False,
             )
 
             mocked_upload_sessions_api.create.assert_called_once_with(
                 workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
             )
 
-            mocked_s3.upload_texts.assert_called_once_with(upload_session=upload_session_response, dc_files=dc_files)
+            mocked_s3.upload_texts.assert_called_once_with(
+                upload_session=upload_session_response, dc_files=dc_files, show_progress=False
+            )
 
             mocked_upload_sessions_api.close.assert_called_once_with(
                 workspace_name="test_workspace", session_id=upload_session_response.session_id
