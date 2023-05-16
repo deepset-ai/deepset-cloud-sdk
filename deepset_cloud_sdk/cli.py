@@ -5,6 +5,7 @@ from typing import Optional
 import typer
 from tabulate import tabulate
 
+from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
 from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
 from deepset_cloud_sdk.workflows.sync_client.files import (
@@ -39,6 +40,18 @@ def login() -> None:
 
 
 @cli_app.command()
+def logout() -> None:
+    """Log out from deepset cloud."""
+    typer.echo("Log out from deepset cloud")
+    config_file_exists = os.path.exists(ENV_FILE_PATH)
+    if not config_file_exists:
+        typer.echo(f"You are not logged in. Nothing to do!")
+        return
+    os.remove(ENV_FILE_PATH)
+    typer.echo(f"{ENV_FILE_PATH} removed successfully!")
+
+
+@cli_app.command()
 def list_files(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
@@ -69,6 +82,21 @@ def list_files(
             prompt_input = typer.prompt("Print more results ?", default="y")
             if prompt_input != "y":
                 break
+
+
+def version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"Deepset Cloud SDK version: {__version__}")
+        raise typer.Exit()
+
+
+@cli_app.callback()
+def main(
+    version: Optional[bool] = typer.Option(
+        None, "--version", callback=version_callback, is_eager=True, help="Show the version and exit."
+    )
+) -> None:
+    pass
 
 
 def run_packaged() -> None:
