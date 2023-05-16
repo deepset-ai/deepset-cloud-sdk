@@ -45,7 +45,7 @@ def logout() -> None:
     typer.echo("Log out from deepset cloud")
     config_file_exists = os.path.exists(ENV_FILE_PATH)
     if not config_file_exists:
-        typer.echo(f"You are not logged in. Nothing to do!")
+        typer.echo("You are not logged in. Nothing to do!")
         return
     os.remove(ENV_FILE_PATH)
     typer.echo(f"{ENV_FILE_PATH} removed successfully!")
@@ -85,6 +85,10 @@ def list_files(
 
 
 def version_callback(value: bool) -> None:
+    """Show the version and exit.
+
+    :param value: Value of the version option.
+    """
     if value:
         typer.echo(f"Deepset Cloud SDK version: {__version__}")
         raise typer.Exit()
@@ -92,10 +96,11 @@ def version_callback(value: bool) -> None:
 
 @cli_app.callback()
 def main(
-    version: Optional[bool] = typer.Option(
+    _: Optional[bool] = typer.Option(
         None, "--version", callback=version_callback, is_eager=True, help="Show the version and exit."
     )
 ) -> None:
+    """CLI app for the deepset Cloud SDK."""
     pass
 
 
