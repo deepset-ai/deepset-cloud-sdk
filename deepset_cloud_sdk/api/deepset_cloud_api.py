@@ -14,8 +14,7 @@ logger = structlog.get_logger(__name__)
 
 
 class WorkspaceNotDefinedError(Exception):
-    """The workspace_name is not defined. Set an environment variable or pass the `workspace_name` argument.
-    """
+    """The workspace_name is not defined. Set an environment variable or pass the `workspace_name` argument."""
 
 
 class DeepsetCloudAPI:
@@ -194,7 +193,7 @@ class DeepsetCloudAPI:
 
 
 def get_deepset_cloud_api(config: CommonConfig, client: httpx.AsyncClient) -> DeepsetCloudAPI:
-    """deepset Cloud API factory. Returns an instance of DeepsetCloudAPI.
+    """Deepset Cloud API factory. Return an instance of DeepsetCloudAPI.
 
     :param config: CommonConfig object.
     :param client: httpx.AsyncClient object.
