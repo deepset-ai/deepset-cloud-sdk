@@ -101,6 +101,7 @@ class FilesService:
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: int = 300,
+        show_progress: bool = True,
     ) -> None:
         """Upload a list of files to a workspace.
 
@@ -112,6 +113,7 @@ class FilesService:
         :file_paths: List of file paths to upload.
         :blocking: If True, blocks until the ingestion is finished.
         :timeout_s: Timeout in seconds for the blocking ingestion.
+        :show_progress If True, shows a progress bar for S3 uploads
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         # create session to upload files to
@@ -145,6 +147,7 @@ class FilesService:
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: int = 300,
+        show_progress: bool = True,
     ) -> None:
         """Upload a folder to a workspace.
 
@@ -156,6 +159,7 @@ class FilesService:
         :folder_path: Path to the folder to upload.
         :blocking: If True, blocks until the ingestion is finished.
         :timeout_s: Timeout in seconds for the blocking ingestion.
+        :show_progress If True, shows a progress bar for S3 uploads
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         all_files = [path for path in folder_path.glob("**/*")]
@@ -178,6 +182,7 @@ class FilesService:
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
+            show_progress=show_progress,
         )
 
     async def upload_texts(
@@ -187,6 +192,7 @@ class FilesService:
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: int = 300,
+        show_progress: bool = True,
     ) -> None:
         """
         Upload a list of raw texts to a workspace.
@@ -201,12 +207,13 @@ class FilesService:
         :param workspace_name: Name of the workspace to upload the files to.
         :dc_files: List of DeepsetCloudFiles to upload.
         :blocking: If True, blocks until the ingestion is finished.
-        :timeout_s: Timeout in seconds for blocking.
+        :timeout_s: Timeout in seconds for the blocking ingestion.
+        :show_progress If True, shows a progress bar for S3 uploads
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
-            await self._s3.upload_texts(upload_session=upload_session, dc_files=dc_files)
+            await self._s3.upload_texts(upload_session=upload_session, dc_files=dc_files, show_progress=show_progress)
 
         if blocking:
             await self._wait_for_finished(

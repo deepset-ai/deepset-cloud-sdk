@@ -26,7 +26,9 @@ class TestUploadFiles:
         mocked_upload_file_paths = AsyncMock(return_value=None)
 
         monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
-        await upload_file_paths(file_paths=[Path("./tests/data/example.txt")], write_mode=WriteMode.OVERWRITE)
+        await upload_file_paths(
+            file_paths=[Path("./tests/data/example.txt")], write_mode=WriteMode.OVERWRITE, show_progress=False
+        )
 
         mocked_upload_file_paths.assert_called_once_with(
             workspace_name=DEFAULT_WORKSPACE_NAME,
@@ -34,6 +36,7 @@ class TestUploadFiles:
             write_mode=WriteMode.OVERWRITE,
             blocking=True,
             timeout_s=300,
+            show_progress=False,
         )
 
     async def test_upload_folder(self, monkeypatch: MonkeyPatch) -> None:
@@ -48,6 +51,7 @@ class TestUploadFiles:
             write_mode=WriteMode.KEEP,
             blocking=True,
             timeout_s=300,
+            show_progress=True,
         )
 
     async def test_upload_texts(self, monkeypatch: MonkeyPatch) -> None:
@@ -68,6 +72,7 @@ class TestUploadFiles:
             write_mode=WriteMode.KEEP,
             blocking=True,
             timeout_s=300,
+            show_progress=True,
         )
 
     async def test_list_files(self, monkeypatch: MonkeyPatch) -> None:

@@ -5,17 +5,23 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Coroutine, List
+from typing import Any, Coroutine, List, Optional
 from urllib.error import HTTPError
 from urllib.parse import quote
 
 import aiohttp
 import structlog
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+from tenacity import (
+    RetryError,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
+from tqdm.asyncio import tqdm
 
 from deepset_cloud_sdk.api.upload_sessions import UploadSession
 from deepset_cloud_sdk.models import DeepsetCloudFile
-from deepset_cloud_sdk.utils.progress_bar import ProgressBar
 
 logger = structlog.get_logger(__name__)
 
@@ -130,14 +136,12 @@ class S3:
         file_path: Path,
         upload_session: UploadSession,
         client_session: aiohttp.ClientSession,
-        progress: ProgressBar,
     ) -> S3UploadResult:
         """Upload a file to the prefixed S3 namespace given a path.
 
         :param file_path: The path to upload from.
         :param upload_session: UploadSession to associate the upload with.
         :param client_session: The aiohttp ClientSession to use for this request.
-        :param progress: A progress bar.
         :return: S3UploadResult object.
         """
         async with self.semaphore:
@@ -145,13 +149,11 @@ class S3:
                 file_name = os.path.basename(file_path)
                 try:
                     await self._upload_file_with_retries(file_name, upload_session, file, client_session)
-                    progress.next()
                     return S3UploadResult(file_name=file_name, success=True)
-                except HTTPError:
+                except RetryError:
                     logger.warn(
                         "Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id
                     )
-                    progress.next()
                     return S3UploadResult(file_name=file_name, success=False)
 
     async def upload_from_string(
@@ -160,7 +162,6 @@ class S3:
         upload_session: UploadSession,
         content: str,
         client_session: aiohttp.ClientSession,
-        progress: ProgressBar,
     ) -> S3UploadResult:
         """Upload text to the prefixed S3 namespace.
 
@@ -172,20 +173,26 @@ class S3:
         """
         try:
             await self._upload_file_with_retries(file_name, upload_session, content, client_session)
-            progress.next()
             return S3UploadResult(file_name=file_name, success=True)
-        except HTTPError:
+        except RetryError:
             logger.warn("Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id)
-            progress.next()
             return S3UploadResult(file_name=file_name, success=False)
 
-    async def _process_results(self, tasks: List[Coroutine[Any, Any, S3UploadResult]]) -> S3UploadSummary:
-        """Summarize the results of the uploads to S3.
+    async def _process_results(
+        self, tasks: List[Coroutine[Any, Any, S3UploadResult]], show_progress: bool = True
+    ) -> S3UploadSummary:
+        """Summarise the results of the Uploads to S3.
 
         :param tasks: List of upload tasks.
         :return: S3UploadResult object.
         """
-        results: List[S3UploadResult] = await asyncio.gather(*tasks)
+        results: List[S3UploadResult] = []
+
+        if show_progress:
+            results = await tqdm.gather(*tasks, desc="Upload to S3")
+        else:
+            results = await asyncio.gather(*tasks)
+
         logger.info(
             "Finished uploading files",
             number_of_successful_files=len(results),
@@ -209,7 +216,9 @@ class S3:
 
         return result_summary
 
-    async def upload_files_from_paths(self, upload_session: UploadSession, file_paths: List[Path]) -> S3UploadSummary:
+    async def upload_files_from_paths(
+        self, upload_session: UploadSession, file_paths: List[Path], show_progress: bool = True
+    ) -> S3UploadSummary:
         """Upload a set of files to the prefixed S3 namespace given a list of paths.
 
         :param upload_session: UploadSession to associate the upload with.
@@ -219,22 +228,18 @@ class S3:
         # validate file paths
         await self.validate_file_paths(file_paths)
 
-        # upload files
-        with ProgressBar(
-            f"Uploading to S3",
-            max=len(file_paths),
-        ) as bar:
-            async with aiohttp.ClientSession(connector=self.connector) as client_session:
-                tasks = []
+        async with aiohttp.ClientSession(connector=self.connector) as client_session:
+            tasks = []
 
-                for file_path in file_paths:
-                    tasks.append(self.upload_from_file(file_path, upload_session, client_session, bar))
+            for file_path in file_paths:
+                tasks.append(self.upload_from_file(file_path, upload_session, client_session))
 
-                result_summary = await self._process_results(tasks)
-                bar.finish()
-                return result_summary
+            result_summary = await self._process_results(tasks, show_progress=show_progress)
+            return result_summary
 
-    async def upload_texts(self, upload_session: UploadSession, dc_files: List[DeepsetCloudFile]) -> S3UploadSummary:
+    async def upload_texts(
+        self, upload_session: UploadSession, dc_files: List[DeepsetCloudFile], show_progress: bool = True
+    ) -> S3UploadSummary:
         """Upload a set of texts to the prefixed S3 namespace given a list of paths.
 
         :param upload_session: UploadSession to associate the upload with.
@@ -243,20 +248,18 @@ class S3:
         """
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
             tasks = []
-            with ProgressBar(
-                f"Uploading to S3",
-                max=len(dc_files),
-            ) as bar:
-                for file in dc_files:
-                    # raw data
-                    file_name = file.name
-                    tasks.append(self.upload_from_string(file_name, upload_session, file.text, client_session, bar))
 
-                    # meta
+            for file in dc_files:
+                # raw data
+                file_name = file.name
+                tasks.append(self.upload_from_string(file_name, upload_session, file.text, client_session))
+
+                # meta
+                if file.meta is not None:
                     meta_name = f"{file_name}.meta.json"
                     metadata = json.dumps(file.meta)
-                    tasks.append(self.upload_from_string(meta_name, upload_session, metadata, client_session, bar))
+                    tasks.append(self.upload_from_string(meta_name, upload_session, metadata, client_session))
 
-                result_summary = await self._process_results(tasks)
-                bar.finish()
-                return result_summary
+            result_summary = await self._process_results(tasks, show_progress=show_progress)
+
+            return result_summary

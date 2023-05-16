@@ -1,4 +1,5 @@
 import os
+from unittest import mock
 from unittest.mock import Mock, patch
 
 from deepset_cloud_sdk.api.config import ENV_FILE_PATH, load_environment

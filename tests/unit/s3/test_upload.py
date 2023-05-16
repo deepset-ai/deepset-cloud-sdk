@@ -1,8 +1,15 @@
+import asyncio
 from pathlib import Path
 from typing import List
+from unittest.mock import Mock, mock_open, patch
+from urllib.error import HTTPError
 
+import aiohttp
 import pytest
+from tqdm.asyncio import tqdm
 
+from deepset_cloud_sdk.api.upload_sessions import UploadSession, UploadSessionDetail
+from deepset_cloud_sdk.models import DeepsetCloudFile
 from deepset_cloud_sdk.s3.upload import S3, make_safe_file_name
 
 
@@ -25,6 +32,148 @@ class TestUploadsS3:
         def test_make_safe_file_name(self, input_file_name: str, expected_file_name: str) -> None:
             safe_name = make_safe_file_name(input_file_name)
             assert safe_name == expected_file_name
+
+    @patch.object(aiohttp.ClientSession, "post")
+    @pytest.mark.asyncio
+    class TestS3:
+        @patch.object(tqdm, "gather")
+        async def test_upload_texts_with_progress(
+            self, tqdm_gather: Mock, post: Mock, upload_session_response: UploadSession
+        ) -> None:
+            s3 = S3()
+            files = [
+                DeepsetCloudFile("one.txt", "one"),
+                DeepsetCloudFile("two.txt", "two"),
+                DeepsetCloudFile("three.txt", "three"),
+            ]
+            await s3.upload_texts(upload_session=upload_session_response, dc_files=files, show_progress=True)
+
+            assert tqdm_gather.call_count == 1
+
+        async def test_upload_texts_with_progress_check_http_calls(
+            self, post: Mock, upload_session_response: UploadSession
+        ) -> None:
+            s3 = S3()
+            files = [
+                DeepsetCloudFile("one.txt", "one"),
+                DeepsetCloudFile("two.txt", "two"),
+                DeepsetCloudFile("three.txt", "three"),
+            ]
+            await s3.upload_texts(upload_session=upload_session_response, dc_files=files, show_progress=True)
+
+            assert post.call_count == 3
+
+        @patch.object(tqdm, "gather")
+        async def test_upload_texts_without_progress(
+            self, tqdm_gather: Mock, post: Mock, upload_session_response: UploadSession
+        ) -> None:
+            s3 = S3()
+            files = [
+                DeepsetCloudFile("one.txt", "one"),
+                DeepsetCloudFile("two.txt", "two"),
+                DeepsetCloudFile("three.txt", "three"),
+            ]
+            await s3.upload_texts(upload_session=upload_session_response, dc_files=files, show_progress=False)
+
+            assert tqdm_gather.call_count == 0
+
+            assert post.call_count == 3
+
+        async def test_upload_files_without_progress(self, post: Mock, upload_session_response: UploadSession) -> None:
+            s3 = S3()
+
+            files = [
+                Path("./tests/test_data/msmarco.10/16675.txt"),
+                Path("./tests/test_data/msmarco.10/16675.txt.meta.json"),
+                Path("./tests/test_data/msmarco.10/22297.txt"),
+                Path("./tests/test_data/msmarco.10/22297.txt.meta.json"),
+                Path("./tests/test_data/msmarco.10/35887.txt"),
+                Path("./tests/test_data/msmarco.10/35887.txt.meta.json"),
+            ]
+
+            results = await s3.upload_files_from_paths(upload_session_response, files)
+            assert results.total_files == 6
+            assert results.successful_upload_count == 6
+            assert results.failed_upload_count == 0
+            assert len(results.failed) == 0
+
+        async def test_upload_files_from_path_http_error(self, upload_session_response: UploadSession) -> None:
+            with patch.object(
+                aiohttp.ClientSession, "post", side_effect=HTTPError("https://error.com", 503, "test error", "", None)  # type: ignore
+            ):
+                s3 = S3()
+
+                files = [
+                    Path("./tests/test_data/msmarco.10/16675.txt"),
+                    Path("./tests/test_data/msmarco.10/16675.txt.meta.json"),
+                    Path("./tests/test_data/msmarco.10/22297.txt"),
+                    Path("./tests/test_data/msmarco.10/22297.txt.meta.json"),
+                    Path("./tests/test_data/msmarco.10/35887.txt"),
+                    Path("./tests/test_data/msmarco.10/35887.txt.meta.json"),
+                ]
+
+                results = await s3.upload_files_from_paths(upload_session_response, files)
+                assert results.total_files == 6
+                assert results.successful_upload_count == 0
+                assert results.failed_upload_count == 6
+                assert len(results.failed) == 6
+                assert results.failed == [
+                    "16675.txt",
+                    "16675.txt.meta.json",
+                    "22297.txt",
+                    "22297.txt.meta.json",
+                    "35887.txt",
+                    "35887.txt.meta.json",
+                ]
+
+        async def test_upload_texts_http_error(self, upload_session_response: UploadSession) -> None:
+            with patch.object(
+                aiohttp.ClientSession, "post", side_effect=HTTPError("https://error.com", 503, "test error", "", None)  # type: ignore
+            ):
+                s3 = S3()
+
+                files = [
+                    DeepsetCloudFile(name="one.txt", text="1"),
+                    DeepsetCloudFile(name="two.txt", text="2"),
+                    DeepsetCloudFile(name="three.txt", text="3"),
+                ]
+
+                results = await s3.upload_texts(upload_session_response, files)
+                assert results.total_files == 3
+                assert results.successful_upload_count == 0
+                assert results.failed_upload_count == 3
+                assert len(results.failed) == 3
+                assert results.failed == [
+                    "one.txt",
+                    "two.txt",
+                    "three.txt",
+                ]
+
+        async def test_upload_texts_with_metadata_http_error(self, upload_session_response: UploadSession) -> None:
+            with patch.object(
+                aiohttp.ClientSession, "post", side_effect=HTTPError("https://error.com", 503, "test error", "", None)  # type: ignore
+            ):
+                s3 = S3()
+
+                files = [
+                    DeepsetCloudFile(name="one.txt", text="1", meta={"something": 1}),
+                    DeepsetCloudFile(name="two.txt", text="2", meta={"something": 2}),
+                    DeepsetCloudFile(name="three.txt", text="3", meta={"something": 3}),
+                ]
+
+                results = await s3.upload_texts(upload_session_response, files)
+                assert results.total_files == 6
+                assert results.successful_upload_count == 0
+                assert results.failed_upload_count == 6
+                assert len(results.failed) == 6
+                assert results.failed == [
+                    "one.txt",
+                    "one.txt.meta.json",
+                    "two.txt",
+                    "two.txt.meta.json",
+                    "three.txt",
+                    "three.txt.meta.json",
+                ]
 
 
 @pytest.mark.asyncio

@@ -62,6 +62,7 @@ async def upload_file_paths(
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
+    show_progress: bool = True,
 ) -> None:
     """Upload files to deepset Cloud.
 
@@ -79,6 +80,7 @@ async def upload_file_paths(
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
+            show_progress=show_progress,
         )
 
 
@@ -90,6 +92,7 @@ async def upload_folder(
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
+    show_progress: bool = True,
 ) -> None:
     """Upload a folder to deepset Cloud.
 
@@ -107,6 +110,7 @@ async def upload_folder(
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
+            show_progress=show_progress,
         )
 
 
@@ -118,6 +122,7 @@ async def upload_texts(
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
+    show_progress: bool = True,
 ) -> None:
     """Upload texts to deepset Cloud.
 
@@ -135,4 +140,5 @@ async def upload_texts(
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
+            show_progress=show_progress,
         )
