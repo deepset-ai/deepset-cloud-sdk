@@ -141,8 +141,7 @@ def list_files(
     :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     """
-
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
 
     async_list_files_generator = async_list_files(
         api_key=api_key,
@@ -159,3 +158,5 @@ def list_files(
             yield loop.run_until_complete(async_list_files_generator.__anext__())
     except StopAsyncIteration:
         pass
+    finally:
+        loop.close()
