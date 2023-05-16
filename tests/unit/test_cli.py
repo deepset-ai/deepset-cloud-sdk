@@ -201,12 +201,12 @@ class TestCLIUtils:
                     == f.read()
                 )
 
-    def test_logout_if_not_logged_in(self) -> None:
-        fake_env_path = Path("./tests/tmp/.env")
-        with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
-            result = runner.invoke(cli_app, ["logout"])
-            assert result.exit_code == 0
-            assert "You are not logged in. Nothing to do!" in result.stdout
+    @patch("deepset_cloud_sdk.cli.os")
+    def test_logout_if_not_logged_in(self, mocked_os: Mock) -> None:
+        mocked_os.path.exists.return_value = False
+        result = runner.invoke(cli_app, ["logout"])
+        assert result.exit_code == 0
+        assert "You are not logged in. Nothing to do!" in result.stdout
 
     @patch("deepset_cloud_sdk.cli.os")
     def test_logout(self, mocked_os: Mock) -> None:
