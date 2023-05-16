@@ -1,13 +1,12 @@
 # pylint: disable=duplicate-code
 """CLI app for the deepset cloud SDK."""
 import os
-from typing import List, Optional, Union
+from typing import Optional
 
 import typer
 from tabulate import tabulate
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
-from deepset_cloud_sdk.api.files import File
 from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
 from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_file_paths,
@@ -48,9 +47,8 @@ def list_files(
     name: Optional[str] = None,
     odata_filter: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
-    batch_size: int = 100,
+    batch_size: int = 10,
     timeout_s: int = 300,
-    limit: Optional[int] = 100,
 ) -> None:
     """List files in the Deepset Cloud.
 
@@ -65,14 +63,13 @@ def list_files(
     :param batch_size: Batch size to use for the file list.
     """
     headers = ["file_id", "url", "name", "size", "created_at", "meta"]  # Assuming the first row contains the headers
-
-    files = sync_list_files(api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s)
-    to_print_files: List[Union[File, str]] = files[:limit]  # type: ignore
-    if len(files) != len(to_print_files):
-        to_print_files.append(["...", "...", "...", "...", "...", "..."])  # type: ignore
-
-    table = tabulate(to_print_files, headers, tablefmt="grid")  # type: ignore
-    typer.echo(table)
+    for files in sync_list_files(api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s):
+        table = tabulate(files, headers, tablefmt="grid")  # type: ignore
+        typer.echo(table)
+        if len(files) > 0:
+            prompt_input = typer.prompt("Print more results ?", default="y")
+            if prompt_input != "y":
+                break
 
 
 def run_packaged() -> None:

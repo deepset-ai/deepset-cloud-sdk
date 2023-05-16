@@ -2,6 +2,8 @@
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional
 
+from sniffio import AsyncLibraryNotFoundError
+
 from deepset_cloud_sdk.api.config import (
     API_KEY,
     API_URL,
@@ -35,16 +37,20 @@ async def list_files(
     :param batch_size: Batch size for the listing.
     :return: List of files.
     """
-    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        async for file_batch in file_service.list_all(
-            workspace_name=workspace_name,
-            name=name,
-            content=content,
-            odata_filter=odata_filter,
-            batch_size=batch_size,
-            timeout_s=timeout_s,
-        ):
-            yield file_batch
+    try:
+        async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+            async for file_batch in file_service.list_all(
+                workspace_name=workspace_name,
+                name=name,
+                content=content,
+                odata_filter=odata_filter,
+                batch_size=batch_size,
+                timeout_s=timeout_s,
+            ):
+                yield file_batch
+    except AsyncLibraryNotFoundError:
+        # since we are using asyncio.run() in the sync wrapper, we need to catch this error
+        pass
 
 
 async def upload_file_paths(

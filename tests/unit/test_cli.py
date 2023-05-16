@@ -1,6 +1,6 @@
 import datetime
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Generator, List
 from unittest.mock import AsyncMock, Mock, patch
 from uuid import UUID
 
@@ -65,8 +65,8 @@ class TestCLIMethods:
         def mocked_list_files(
             *args: Any,
             **kwargs: Any,
-        ) -> List[File]:
-            return [
+        ) -> Generator[List[File], None, None]:
+            yield [
                 File(
                     file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                     url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
@@ -86,12 +86,38 @@ class TestCLIMethods:
         )
 
     @patch("deepset_cloud_sdk.cli.sync_list_files")
+    def test_listing_files_with_no_found_files(self, sync_list_files_mock: AsyncMock) -> None:
+        def mocked_list_files(
+            *args: Any,
+            **kwargs: Any,
+        ) -> Generator[List[File], None, None]:
+            yield []
+
+        sync_list_files_mock.side_effect = mocked_list_files
+        result = runner.invoke(cli_app, ["list-files"])
+        assert result.exit_code == 0
+        assert (
+            "+-----------+-------+--------+--------+--------------+--------+\n| file_id   | url   | name   | size   | created_at   | meta   |\n+===========+=======+========+========+==============+========+\n+-----------+-------+--------+--------+--------------+--------+\n"
+            in result.stdout
+        )
+
+    @patch("deepset_cloud_sdk.cli.sync_list_files")
     def test_listing_files_with_cut_off(self, sync_list_files_mock: AsyncMock) -> None:
         def mocked_list_files(
             *args: Any,
             **kwargs: Any,
-        ) -> List[File]:
-            return [
+        ) -> Generator[List[File], None, None]:
+            yield [
+                File(
+                    file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                    name="silly_things_1.txt",
+                    size=611,
+                    meta={},
+                    created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                )
+            ]
+            yield [
                 File(
                     file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                     url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
@@ -103,11 +129,47 @@ class TestCLIMethods:
             ]
 
         sync_list_files_mock.side_effect = mocked_list_files
-        result = runner.invoke(cli_app, ["list-files", "--limit", "0"])
+        result = runner.invoke(cli_app, ["list-files", "--batch-size", "1"], input="y")
         assert result.exit_code == 0
-        # check that the table is empty
+        # check that two batches are printed
         assert (
-            "+-----------+-------+--------+--------+--------------+--------+\n| file_id   | url   | name   | size   | created_at   | meta   |\n+===========+=======+========+========+==============+========+\n| ...       | ...   | ...    | ...    | ...          | ...    |\n+-----------+-------+--------+--------+--------------+--------+\n"
+            "+--------------------------------------+----------------------------------------------------------------------------+--------------------+--------+----------------------------------+--------+\n| file_id                              | url                                                                        | name               |   size | created_at                       | meta   |\n+======================================+============================================================================+====================+========+==================================+========+\n| cd16435f-f6eb-423f-bf6f-994dc8a36a10 | /api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10 | silly_things_1.txt |    611 | 2022-06-21 16:40:00.634653+00:00 | {}     |\n+--------------------------------------+----------------------------------------------------------------------------+--------------------+--------+----------------------------------+--------+\nPrint more results ? [y]: y\n+--------------------------------------+----------------------------------------------------------------------------+--------------------+--------+----------------------------------+--------+\n| file_id                              | url                                                                        | name               |   size | created_at                       | meta   |\n+======================================+============================================================================+====================+========+==================================+========+\n| cd16435f-f6eb-423f-bf6f-994dc8a36a10 | /api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10 | silly_things_1.txt |    611 | 2022-06-21 16:40:00.634653+00:00 | {}     |\n+--------------------------------------+----------------------------------------------------------------------------+--------------------+--------+----------------------------------+--------+\nPrint more results ? [y]: \n"
+            == result.stdout
+        )
+
+    @patch("deepset_cloud_sdk.cli.sync_list_files")
+    def test_listing_files_with_break_showing_more_results(self, sync_list_files_mock: AsyncMock) -> None:
+        def mocked_list_files(
+            *args: Any,
+            **kwargs: Any,
+        ) -> Generator[List[File], None, None]:
+            yield [
+                File(
+                    file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                    name="silly_things_1.txt",
+                    size=611,
+                    meta={},
+                    created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                )
+            ]
+            yield [
+                File(
+                    file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                    name="silly_things_1.txt",
+                    size=611,
+                    meta={},
+                    created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                )
+            ]
+
+        sync_list_files_mock.side_effect = mocked_list_files
+        result = runner.invoke(cli_app, ["list-files", "--batch-size", "1"], input="n")
+        assert result.exit_code == 0
+        # check that two batches are printed
+        assert (
+            "+--------------------------------------+----------------------------------------------------------------------------+--------------------+--------+----------------------------------+--------+\n| file_id                              | url                                                                        | name               |   size | created_at                       | meta   |\n+======================================+============================================================================+====================+========+==================================+========+\n| cd16435f-f6eb-423f-bf6f-994dc8a36a10 | /api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10 | silly_things_1.txt |    611 | 2022-06-21 16:40:00.634653+00:00 | {}     |\n+--------------------------------------+----------------------------------------------------------------------------+--------------------+--------+----------------------------------+--------+\nPrint more results ? [y]: n\n"
             == result.stdout
         )
 
