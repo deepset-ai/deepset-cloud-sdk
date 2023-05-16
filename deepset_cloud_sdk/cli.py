@@ -1,14 +1,12 @@
 # pylint: disable=duplicate-code
 """CLI app for the deepset cloud SDK."""
 import os
-import sys
-from typing import List, Optional, Union
+from typing import Optional
 
 import typer
 from tabulate import tabulate
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
-from deepset_cloud_sdk.api.files import File
 from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
 from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_file_paths,
@@ -69,8 +67,8 @@ def list_files(
         table = tabulate(files, headers, tablefmt="grid")  # type: ignore
         typer.echo(table)
         if len(files) > 0:
-            input = typer.prompt("Print more results ?", default="y")
-            if input != "y":
+            prompt_input = typer.prompt("Print more results ?", default="y")
+            if prompt_input != "y":
                 break
 
 

@@ -2,7 +2,7 @@
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional
 
-import sniffio
+from sniffio import AsyncLibraryNotFoundError
 
 from deepset_cloud_sdk.api.config import (
     API_KEY,
@@ -48,7 +48,7 @@ async def list_files(
                 timeout_s=timeout_s,
             ):
                 yield file_batch
-    except sniffio._impl.AsyncLibraryNotFoundError:
+    except AsyncLibraryNotFoundError:
         # since we are using asyncio.run() in the sync wrapper, we need to catch this error
         pass
 
