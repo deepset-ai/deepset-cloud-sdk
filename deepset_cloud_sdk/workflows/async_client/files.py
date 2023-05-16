@@ -1,4 +1,3 @@
-
 # pylint:disable=too-many-arguments
 """This module contains async functions for uploading files and folders to deepset Cloud."""
 from pathlib import Path
