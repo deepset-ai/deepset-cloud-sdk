@@ -101,7 +101,6 @@ def main(
     )
 ) -> None:
     """CLI app for the deepset Cloud SDK."""
-    pass
 
 
 def run_packaged() -> None:
