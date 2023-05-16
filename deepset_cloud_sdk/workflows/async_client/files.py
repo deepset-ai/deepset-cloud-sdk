@@ -1,5 +1,5 @@
 # pylint:disable=too-many-arguments
-"""This module contains async functions for uploading files and folders to the Deepset Cloud."""
+"""This module contains async functions for uploading files and folders to deepset Cloud."""
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional
 
@@ -57,7 +57,7 @@ async def upload_file_paths(
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
-    """Upload files to the Deepset Cloud.
+    """Upload files to deepset Cloud.
 
     :param file_paths: List of file paths to upload.
     :param api_key: API key to use for authentication.
@@ -85,7 +85,7 @@ async def upload_folder(
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
-    """Upload a folder to the Deepset Cloud.
+    """Upload a folder to deepset Cloud.
 
     :param folder_path: Path to the folder to upload.
     :param api_key: API key to use for authentication.
@@ -113,7 +113,7 @@ async def upload_texts(
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
-    """Upload texts to the Deepset Cloud.
+    """Upload texts to deepset Cloud.
 
     :param dc_files: List of DeepsetCloudFiles to upload.
     :param api_key: API key to use for authentication.

@@ -14,22 +14,20 @@ logger = structlog.get_logger(__name__)
 
 
 class WorkspaceNotDefinedError(Exception):
-    """Workspace not defined error. This exception is raised if a workspace_name is not defined.
-
-    This can happen if neither an environment variable was set, nor a workspace_name was passed as an argument.
+    """The workspace_name is not defined. Set an environment variable or pass the `workspace_name` argument.
     """
 
 
 class DeepsetCloudAPI:
-    """Deepset cloud API client.
+    """deepset Cloud API client.
 
-    This class takes care of all API calls to deepset Cloud and handles authentication and error handling.
+    This class takes care of all API calls to deepset Cloud and handles authentication and errors.
     """
 
     def __init__(self, config: CommonConfig, client: httpx.AsyncClient) -> None:
-        """Create a deepset cloud api client.
+        """Create a deepset Cloud API client.
 
-        Add a config for authencation and a httpx client for
+        Add a config for authencation and a HTTPX client for
         sending requests.
 
         :param config: Config for authentication.
@@ -45,13 +43,13 @@ class DeepsetCloudAPI:
     @staticmethod
     def _get_base_url(api_url: str) -> Callable:
         def func(workspace_name: str) -> str:
-            """Get the base url for the API.
+            """Get the base URL for the API.
 
             :param workspace_name: Name of the workspace to use.
-            :return: Base url.
+            :return: Base URL.
             """
             if not workspace_name or workspace_name == "":
-                raise WorkspaceNotDefinedError(f"Workspace name not defined. Got '{workspace_name}'")
+                raise WorkspaceNotDefinedError(f"Workspace name is not defined. Got '{workspace_name}'")
 
             return f"{api_url}/workspaces/{workspace_name}"
 
@@ -196,7 +194,7 @@ class DeepsetCloudAPI:
 
 
 def get_deepset_cloud_api(config: CommonConfig, client: httpx.AsyncClient) -> DeepsetCloudAPI:
-    """Deepset Cloud API factory. Returns an instance of DeepsetCloudAPI.
+    """deepset Cloud API factory. Returns an instance of DeepsetCloudAPI.
 
     :param config: CommonConfig object.
     :param client: httpx.AsyncClient object.

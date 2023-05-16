@@ -1,4 +1,4 @@
-"""CLI app for the deepset cloud SDK."""
+"""CLI app for the deepset Cloud SDK."""
 import os
 
 import typer
@@ -18,8 +18,8 @@ cli_app.command()(upload_folder)
 
 @cli_app.command()
 def login() -> None:
-    """Login to the deepset cloud."""
-    typer.echo("Login to the deepset cloud")
+    """Log in to deepset cloud."""
+    typer.echo("Log in to deepset cloud")
     passed_api_key = typer.prompt("Your API_KEY", hide_input=True)
     passed_api_url = typer.prompt("Your API_URL", default="https://api.cloud.deepset.ai/api/v1/")
     passed_default_workspace_name = typer.prompt("Your DEFAULT_WORKSPACE_NAME", default="default")

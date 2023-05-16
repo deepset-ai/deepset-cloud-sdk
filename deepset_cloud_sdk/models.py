@@ -1,4 +1,4 @@
-"""General Data classes for deepset cloud SDK."""
+"""General data classes for deepset Cloud SDK."""
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 from uuid import UUID
@@ -15,7 +15,7 @@ class UserInfo:
 
 @dataclass
 class DeepsetCloudFile:
-    """Dataclass for files in deepsetCloud."""
+    """Dataclass for files in deepset Cloud."""
 
     text: str
     name: str
