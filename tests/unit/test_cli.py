@@ -86,6 +86,22 @@ class TestCLIMethods:
         )
 
     @patch("deepset_cloud_sdk.cli.sync_list_files")
+    def test_listing_files_with_no_found_files(self, sync_list_files_mock: AsyncMock) -> None:
+        def mocked_list_files(
+            *args: Any,
+            **kwargs: Any,
+        ) -> Generator[List[File], None, None]:
+            yield []
+
+        sync_list_files_mock.side_effect = mocked_list_files
+        result = runner.invoke(cli_app, ["list-files"])
+        assert result.exit_code == 0
+        assert (
+            "+-----------+-------+--------+--------+--------------+--------+\n| file_id   | url   | name   | size   | created_at   | meta   |\n+===========+=======+========+========+==============+========+\n+-----------+-------+--------+--------+--------------+--------+\n"
+            in result.stdout
+        )
+
+    @patch("deepset_cloud_sdk.cli.sync_list_files")
     def test_listing_files_with_cut_off(self, sync_list_files_mock: AsyncMock) -> None:
         def mocked_list_files(
             *args: Any,

@@ -69,9 +69,10 @@ def list_files(
     for files in sync_list_files(api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s):
         table = tabulate(files, headers, tablefmt="grid")  # type: ignore
         typer.echo(table)
-        input = typer.prompt("Print more results ?", default="y")
-        if input != "y":
-            break
+        if len(files) > 0:
+            input = typer.prompt("Print more results ?", default="y")
+            if input != "y":
+                break
 
 
 def run_packaged() -> None:
