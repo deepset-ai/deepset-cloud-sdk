@@ -66,6 +66,9 @@ class S3:
     async def validate_file_paths(file_paths: List[Path]) -> None:
         """Validate a list of file paths.
 
+        This method validates the file paths and raises a ValueError if the file paths are invalid.
+        It also validates if there are meta files mapped to not existing raw files.
+
         :param file_paths: A list of paths to upload.
         :raises ValueError: If the file paths are invalid.
         """
