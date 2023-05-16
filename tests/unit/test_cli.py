@@ -1,11 +1,15 @@
+import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, List, Optional
 from unittest.mock import AsyncMock, Mock, patch
+from uuid import UUID
 
 import structlog
+import typer
 from typer.testing import CliRunner
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
+from deepset_cloud_sdk.api.files import File
 from deepset_cloud_sdk.api.upload_sessions import WriteMode
 from deepset_cloud_sdk.cli import cli_app, run_packaged
 
@@ -55,6 +59,57 @@ class TestCLIMethods:
         )
         result = runner.invoke(cli_app, ["upload-folder", "./test/data/upload_folder/example.txt"])
         assert result.exit_code == 1
+
+    @patch("deepset_cloud_sdk.cli.sync_list_files")
+    def test_listing_files(self, sync_list_files_mock: AsyncMock) -> None:
+        def mocked_list_files(
+            *args: Any,
+            **kwargs: Any,
+        ) -> List[File]:
+            return [
+                File(
+                    file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                    name="silly_things_1.txt",
+                    size=611,
+                    meta={},
+                    created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                )
+            ]
+
+        sync_list_files_mock.side_effect = mocked_list_files
+        result = runner.invoke(cli_app, ["list-files"])
+        assert result.exit_code == 0
+        assert (
+            " cd16435f-f6eb-423f-bf6f-994dc8a36a10 | /api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10 | silly_things_1.txt |    611 | 2022-06-21 16:40:00.634653+00:00 | {}  "
+            in result.stdout
+        )
+
+    @patch("deepset_cloud_sdk.cli.sync_list_files")
+    def test_listing_files_with_cut_off(self, sync_list_files_mock: AsyncMock) -> None:
+        def mocked_list_files(
+            *args: Any,
+            **kwargs: Any,
+        ) -> List[File]:
+            return [
+                File(
+                    file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                    name="silly_things_1.txt",
+                    size=611,
+                    meta={},
+                    created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                )
+            ]
+
+        sync_list_files_mock.side_effect = mocked_list_files
+        result = runner.invoke(cli_app, ["list-files", "--limit", "0"])
+        assert result.exit_code == 0
+        # check that the table is empty
+        assert (
+            "+-----------+-------+--------+--------+--------------+--------+\n| file_id   | url   | name   | size   | created_at   | meta   |\n+===========+=======+========+========+==============+========+\n| ...       | ...   | ...    | ...    | ...          | ...    |\n+-----------+-------+--------+--------+--------------+--------+\n"
+            == result.stdout
+        )
 
 
 class TestCLIUtils:
