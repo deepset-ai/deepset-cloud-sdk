@@ -21,6 +21,11 @@ The deepset Cloud SDK is available on PyPI and you can install it using pip:
 pip install deepset-cloud-sdk
 ```
 
+After installing the deepset Cloud SDK, you can use it to interact with deepset Cloud. It comes with a command line interface (CLI), that you can use by calling:
+```bash
+deepset-cloud-cli --help
+```
+
 ### Development Installation
 To install the deepset Cloud SDK for development, clone the repository and install the package in editable mode:
 ```bash
