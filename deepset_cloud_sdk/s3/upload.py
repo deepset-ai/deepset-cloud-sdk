@@ -72,7 +72,6 @@ class S3:
         :param file_paths: A list of paths to upload.
         :raises ValueError: If the file paths are invalid.
         """
-
         allowed_suffixes = {".txt", ".json", ".pdf"}
         for file_path in file_paths:
             if not file_path.suffix.lower() in allowed_suffixes:
