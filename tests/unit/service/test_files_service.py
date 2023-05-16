@@ -144,13 +144,16 @@ class TestUploadsFileService:
                 write_mode=WriteMode.OVERWRITE,
                 blocking=True,
                 timeout_s=300,
+                show_progress=False,
             )
 
             mocked_upload_sessions_api.create.assert_called_once_with(
                 workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
             )
 
-            mocked_s3.upload_texts.assert_called_once_with(upload_session=upload_session_response, dc_files=dc_files)
+            mocked_s3.upload_texts.assert_called_once_with(
+                upload_session=upload_session_response, dc_files=dc_files, show_progress=False
+            )
 
             mocked_upload_sessions_api.close.assert_called_once_with(
                 workspace_name="test_workspace", session_id=upload_session_response.session_id
@@ -249,6 +252,25 @@ class TestListFilesService:
             meta={},
             created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
         )
+
+    async def test_list_all_files_with_no_results(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                FileList(
+                    total=11,
+                    data=[],
+                    has_more=True,
+                )
+            ]
+        )
+
+        monkeypatch.setattr(file_service._files, "list_paginated", mocked_list_paginated)
+
+        file_batches: List[List[File]] = []
+        async for file_batch in file_service.list_all(workspace_name="test_workspace", batch_size=10, timeout_s=2):
+            file_batches.append(file_batch)
+
+        assert file_batches == []
 
     async def test_list_all_files_with_timeout(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
         mocked_list_paginated = AsyncMock(

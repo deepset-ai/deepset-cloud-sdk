@@ -1,8 +1,9 @@
-# pylint: disable=too-many-arguments
 """Sync client for files workflow."""
 import asyncio
 from pathlib import Path
-from typing import List, Optional
+from typing import Generator, List, Optional
+
+import structlog
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk.api.files import File
@@ -21,6 +22,8 @@ from deepset_cloud_sdk.workflows.async_client.files import (
     upload_texts as async_upload_texts,
 )
 
+logger = structlog.get_logger(__name__)
+
 
 def upload_file_paths(
     file_paths: List[Path],
@@ -30,8 +33,9 @@ def upload_file_paths(
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
+    show_progress: bool = True,
 ) -> None:
-    """Upload files to the Deepset Cloud.
+    """Upload files to deepset Cloud.
 
     :param file_paths: List of file paths to upload.
     :param api_key: API key to use for authentication.
@@ -49,6 +53,7 @@ def upload_file_paths(
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
+            show_progress=show_progress,
         )
     )
 
@@ -61,8 +66,9 @@ def upload_folder(
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
+    show_progress: bool = True,
 ) -> None:
-    """Upload a folder to the Deepset Cloud.
+    """Upload a folder to deepset Cloud.
 
     :param folder_path: Path to the folder to upload.
     :param api_key: API key to use for authentication.
@@ -80,6 +86,7 @@ def upload_folder(
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
+            show_progress=show_progress,
         )
     )
 
@@ -92,8 +99,9 @@ def upload_texts(
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
     timeout_s: int = 300,
+    show_progress: bool = True,
 ) -> None:
-    """Upload texts to the Deepset Cloud.
+    """Upload texts to deepset Cloud.
 
     :param dc_files: List of DeepsetCloudFiles to upload.
     :param api_key: API key to use for authentication.
@@ -111,6 +119,7 @@ def upload_texts(
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
+            show_progress=show_progress,
         )
     )
 
@@ -124,10 +133,10 @@ def list_files(
     odata_filter: Optional[str] = None,
     batch_size: int = 100,
     timeout_s: int = 300,
-) -> List[File]:
-    """List files in the Deepset Cloud.
+) -> Generator[List[File], None, None]:
+    """List files in deepset Cloud.
 
-    WARNING: this will only work for workspaces up to 1000 files.
+    WARNING: This only works for workspaces with up to 1000 files.
     TODO: make this a generator
 
     :param api_key: API key to use for authentication.
@@ -138,20 +147,22 @@ def list_files(
     :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     """
+    loop = asyncio.new_event_loop()
 
-    async def list_files_async() -> List[File]:
-        files: List[File] = []
-        async for file_batch in async_list_files(
-            api_key=api_key,
-            api_url=api_url,
-            workspace_name=workspace_name,
-            name=name,
-            content=content,
-            odata_filter=odata_filter,
-            batch_size=batch_size,
-            timeout_s=timeout_s,
-        ):
-            files += file_batch
-        return files
-
-    return asyncio.run(list_files_async())
+    async_list_files_generator = async_list_files(
+        api_key=api_key,
+        api_url=api_url,
+        workspace_name=workspace_name,
+        name=name,
+        content=content,
+        odata_filter=odata_filter,
+        batch_size=batch_size,
+        timeout_s=timeout_s,
+    )
+    try:
+        while True:
+            yield loop.run_until_complete(async_list_files_generator.__anext__())
+    except StopAsyncIteration:
+        pass
+    finally:
+        loop.close()

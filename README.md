@@ -10,26 +10,31 @@ The deepset Cloud SDK is an open source software development kit that provides c
 This README provides an overview of the SDK and its features, and information on contributing to the project and exploring related resources.
 
 # Supported Features
-The current version of the SDK focuses on providing an easy way to upload files to deepset Cloud for further processing and analysis. For detailed instructions and examples, see file_uploads/README.md.
-
-## Examples
-The following examples demonstrate how to use the deepset Cloud SDK to interact with deepset Cloud.
-- [Upload datasets to deepset Cloud via SDK](/examples/sdk/upload.py)
-- [Upload datasets to deepset Cloud via CLI](/examples/cli/README.md)
-
-## CLI
+The following examples demonstrate how to use the deepset Cloud SDK to interact with deepset Cloud using Python.
 You can use the deepset Cloud SDK in the command line as well. For more information, see the [CLI documentation](/examples/cli/README.md).
+- [SDK - Upload datasets](/examples/sdk/upload.py)
+- [CLI - Upload datasets](/examples/cli/README.md)
 
 ## Installation
-The deepset Cloud SDK is available on PyPI and can be installed using pip:
+The deepset Cloud SDK is available on PyPI and you can install it using pip:
 ```bash
 pip install deepset-cloud-sdk
 ```
 
+After installing the deepset Cloud SDK, you can use it to interact with deepset Cloud. It comes with a command line interface (CLI), that you can use by calling:
+```bash
+deepset-cloud-cli --help
+```
+
+### Development Installation
+To install the deepset Cloud SDK for development, clone the repository and install the package in editable mode:
+```bash
+pip install hatch==1.7.0
+hatch build
+```
 
 ## Contributing
-We welcome contributions from the open source community to enhance the deepset Cloud SDK. I
-f you would like to contribute, refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines and instructions on how to get started.
+We welcome contributions from the open source community to enhance the deepset Cloud SDK. If you would like to contribute, have a look at [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and instructions on how to get started.
 We appreciate your contributions, whether they're bug fixes, new features, or documentation improvements.
 
 

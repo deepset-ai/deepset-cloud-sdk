@@ -1,4 +1,5 @@
 import os
+from unittest import mock
 from unittest.mock import Mock, patch
 
 from deepset_cloud_sdk.api.config import ENV_FILE_PATH, load_environment
@@ -14,5 +15,7 @@ def test_load_environment_from_local_env() -> None:
 
 @patch("deepset_cloud_sdk.api.config.load_dotenv")
 def test_load_environment_with_login_credentials(mocked_load_dotenv: Mock) -> None:
-    assert load_environment()
-    mocked_load_dotenv.assert_called_once_with(ENV_FILE_PATH)
+    with patch("deepset_cloud_sdk.api.config.os") as mocked_os:
+        mocked_os.path.isfile.return_value = False
+        assert load_environment()
+        mocked_load_dotenv.assert_called_once_with(ENV_FILE_PATH)

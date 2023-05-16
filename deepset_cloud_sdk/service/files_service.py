@@ -1,20 +1,14 @@
-"""Module for all file related operations."""
+"""Module for all file-related operations."""
 from __future__ import annotations
 
 import asyncio
-import enum
 import os
 import time
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
-from functools import partial
-from io import BufferedReader
 from pathlib import Path
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Tuple
-from unittest.mock import AsyncMock
+from typing import AsyncGenerator, List, Optional
 from uuid import UUID
 
-import httpx
 import structlog
 
 from deepset_cloud_sdk.api.config import CommonConfig
@@ -33,7 +27,7 @@ logger = structlog.get_logger(__name__)
 
 
 class FilesService:
-    """Service for all file related operations."""
+    """Service for all file-related operations."""
 
     def __init__(self, upload_sessions: UploadSessionsAPI, files: FilesAPI, s3: S3):
         """Initialize the service.
@@ -107,17 +101,19 @@ class FilesService:
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: int = 300,
+        show_progress: bool = True,
     ) -> None:
         """Upload a list of files to a workspace.
 
-        Upload a list of files via upload sessions to a selected workspace. If blocking is True, the function waits until
-        all files are uploaded and listed by deepsetCloud. If blocking is False, the function returns immediately after
-        the upload of the files is done. Note: It can take a while until the files are listed in deepsetCloud.
+        Upload a list of files  to a selected workspace using upload sessions. If blocking is True, the function waits until
+        all files are uploaded and listed by deepset Cloud. If blocking is False, the function returns immediately after
+        the upload of the files is done. Note: It can take a while until the files are listed in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :file_paths: List of file paths to upload.
         :blocking: If True, blocks until the ingestion is finished.
         :timeout_s: Timeout in seconds for the blocking ingestion.
+        :show_progress If True, shows a progress bar for S3 uploads
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         # create session to upload files to
@@ -151,19 +147,22 @@ class FilesService:
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: int = 300,
+        show_progress: bool = True,
     ) -> None:
         """Upload a folder to a workspace.
 
-        Upload a folder via upload sessions to a selected workspace. If blocking is True, the function waits until
-        all files are uploaded and listed by deepsetCloud. If blocking is False, the function returns immediately after
-        the upload of the files is done. Note: It can take a while until the files are listed in deepsetCloud.
+        Upload a folder to a selected workspace using upload sessions. If blocking is True, the function waits until
+        all files are uploaded and listed by deepset Cloud. If blocking is False, the function returns immediately after
+        the upload of the files is done. Note: It can take a while until the files are listed in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :folder_path: Path to the folder to upload.
         :blocking: If True, blocks until the ingestion is finished.
         :timeout_s: Timeout in seconds for the blocking ingestion.
+        :show_progress If True, shows a progress bar for S3 uploads
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
+        logger.info("Getting valid files from file path. This may take up to a minute.")
         all_files = [path for path in folder_path.glob("**/*")]
 
         file_paths = [
@@ -184,6 +183,7 @@ class FilesService:
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
+            show_progress=show_progress,
         )
 
     async def upload_texts(
@@ -193,26 +193,28 @@ class FilesService:
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: int = 300,
+        show_progress: bool = True,
     ) -> None:
         """
         Upload a list of raw texts to a workspace.
 
-        Upload a list of raw texts via upload sessions to a selected workspace. This method accepts a list of DeepsetCloudFiles
-        which contain the raw text, file name and optional meta data.
+        Upload a list of raw texts to a selected workspace using upload sessions. This method accepts a list of DeepsetCloudFiles
+        which contain raw text, file name, and optional meta data.
 
-        If blocking is True, the function waits until all files are uploaded and listed by deepsetCloud.
+        If blocking is True, the function waits until all files are uploaded and listed by deepset Cloud.
         If blocking is False, the function returns immediately after the upload of the files is done.
-        Note: It can take a while until the files are listed in deepsetCloud.
+        Note: It can take a while until the files are listed in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :dc_files: List of DeepsetCloudFiles to upload.
         :blocking: If True, blocks until the ingestion is finished.
         :timeout_s: Timeout in seconds for the blocking ingestion.
+        :show_progress If True, shows a progress bar for S3 uploads
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
-            await self._s3.upload_texts(upload_session=upload_session, dc_files=dc_files)
+            await self._s3.upload_texts(upload_session=upload_session, dc_files=dc_files, show_progress=show_progress)
 
         if blocking:
             await self._wait_for_finished(
@@ -234,7 +236,7 @@ class FilesService:
         """List all files in a workspace.
 
         Returns an async generator that yields lists of files. The generator is finished when all files are listed.
-        The batch size per number of returned files can be specified with batch_size.
+        You can specfy the batch size per number of returned files with batch_size.
 
         :param workspace_name: Name of the workspace to use.
         :param name: odata_filter by file name.
@@ -262,6 +264,8 @@ class FilesService:
                 after_value=after_value,
             )
             has_more = response.has_more
+            if not response.data:
+                return
             after_value = response.data[-1].created_at
             after_file_id = response.data[-1].file_id
             yield response.data

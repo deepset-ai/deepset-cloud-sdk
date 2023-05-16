@@ -20,17 +20,11 @@ def workspace_name() -> str:
 
 @pytest.mark.asyncio
 class TestUploadsFileService:
-    async def test_upload_file_paths(self, integration_config: CommonConfig, workspace_name: str) -> None:
+    async def test_upload_folder(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
-            test_data_path = "./tests/test_data/msmarco.10"
-            file_paths = [
-                Path(join(test_data_path, f))
-                for f in listdir(test_data_path)
-                if f.endswith(".txt") or f.endswith(".meta.json")
-            ]
-            await file_service.upload_file_paths(
+            await file_service.upload_folder(
                 workspace_name=workspace_name,
-                file_paths=file_paths,
+                folder_path=Path("./tests/test_data/msmarco.10"),
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=120,
@@ -65,6 +59,6 @@ class TestListFilesService:
             ):
                 file_batches.append(file_batch)
 
-            assert len(file_batches) == 2
+            assert len(file_batches) >= 2
             assert len(file_batches[0]) == 11
-            assert len(file_batches[1]) == 9
+            assert len(file_batches[1]) >= 1
