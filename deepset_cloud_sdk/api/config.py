@@ -41,7 +41,8 @@ else:
     )
 
 # connection to deepset Cloud
-API_URL: str = os.getenv("API_URL", "https://api.cloud.deepset.ai/")
+API_URL: str = os.getenv("API_URL", "https://api.cloud.deepset.ai/api/v1")
+
 API_KEY: str = os.getenv("API_KEY", "")
 
 # configuration to use a selectd workspace
@@ -61,3 +62,6 @@ class CommonConfig:
             self.api_key != ""
         ), "You must set the API_KEY environment variable. Go to [Connections](https://cloud.deepset.ai/settings/connections) in deepset Cloud to get an API key."
         assert self.api_url != "", "API_URL environment variable must be set"
+
+        if self.api_url.endswith("/"):
+            self.api_url = self.api_url[:-1]
