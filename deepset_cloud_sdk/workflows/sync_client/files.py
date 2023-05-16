@@ -34,7 +34,7 @@ def upload_file_paths(
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
-    """Upload files to the Deepset Cloud.
+    """Upload files to deepset Cloud.
 
     :param file_paths: List of file paths to upload.
     :param api_key: API key to use for authentication.
@@ -65,7 +65,7 @@ def upload_folder(
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
-    """Upload a folder to the Deepset Cloud.
+    """Upload a folder to deepset Cloud.
 
     :param folder_path: Path to the folder to upload.
     :param api_key: API key to use for authentication.
@@ -96,7 +96,7 @@ def upload_texts(
     blocking: bool = True,
     timeout_s: int = 300,
 ) -> None:
-    """Upload texts to the Deepset Cloud.
+    """Upload texts to deepset Cloud.
 
     :param dc_files: List of DeepsetCloudFiles to upload.
     :param api_key: API key to use for authentication.
@@ -128,9 +128,9 @@ def list_files(
     batch_size: int = 100,
     timeout_s: int = 300,
 ) -> Generator[List[File], None, None]:
-    """List files in the Deepset Cloud.
+    """List files in deepset Cloud.
 
-    WARNING: this will only work for workspaces up to 1000 files.
+    WARNING: This only works for workspaces with up to 1000 files.
     TODO: make this a generator
 
     :param api_key: API key to use for authentication.

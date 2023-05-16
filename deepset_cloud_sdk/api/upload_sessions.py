@@ -77,7 +77,7 @@ class UploadSessionIngestionStatus:
     """Upload session ingestion status.
 
     This status only contains the number of processed and therefore failed and finished files.
-    The total number of uploaded files need to be tracked by the client.
+    The total number of uploaded files needs to be tracked by the client.
     """
 
     failed_files: int
@@ -121,9 +121,9 @@ class UploadSessionsAPI:
         """Create upload session.
 
         This method creates an upload session for a given workspace. The upload session
-        is valid for 24 hours. After that, a new upload session needs to be created.
+        is valid for 24 hours. After that, you need to create a new upload session.
 
-        Each session needs to be closed to start the ingestion.
+        You must close a session to start the ingestion.
 
         :param workspace_name: Name of the workspace.
         :raises FailedToSendUploadSessionRequest: If the session could not be created.
@@ -155,8 +155,8 @@ class UploadSessionsAPI:
     async def close(self, workspace_name: str, session_id: UUID) -> None:
         """Close upload session.
 
-        This method closes an upload session for a given workspace. Once the session is closed, no more files can be
-        uploaded to this session and the ingestion is automatically started.
+        This method closes an upload session for a given workspace. Once the session is closed, you can't upload
+        more files to this session and the ingestion is automatically started.
         This means that your files will appear in the workspace after a short while.
 
         :param workspace_name: Name of the workspace.

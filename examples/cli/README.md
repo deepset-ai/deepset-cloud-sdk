@@ -1,29 +1,29 @@
 # deepset Cloud CLI
-The deepset Cloud CLI is a command-line interface tool that allows you to interact with the deepset Cloud SDK and perform various operations, such as uploading files and folders to your deepset Cloud workspace.
+The deepset Cloud CLI is a command-line interface tool that you can use to interact with the deepset Cloud SDK and perform various operations, such as uploading files and folders to your deepset Cloud workspace.
 
 ## Installation
-To install the deepset Cloud CLI, you can use `pip`:
+To install the deepset Cloud CLI, use `pip`:
 
 ```shell
 pip3 install deepset-cloud-sdk
 ```
 ## Configuration
-Before using the deepset Cloud CLI, you need to log in and provide your credentials. You can do this by running the following command:
+Before using the deepset Cloud CLI, log in and provide your credentials. You can do this by running the command:
 
 ```shell
 deepset-cloud-cli login
 ```
 
-This command will prompt you to enter your API key and default workspace name. Once you provide these details, the CLI will store your credentials in the `~/.deepset-cloud-cli/.env` file. This file will be used as the default configuration for subsequent CLI commands.
+This command prompts you to enter your API key and default workspace name. Once you provide these details, the CLI stores your credentials in the `~/.deepset-cloud-cli/.env` file. This file is used as the default configuration for subsequent CLI commands.
 
-Alternatively, if you want to use a different environment file for your configuration, you can create an `.env` file in the local directory. Additionally, you have the flexibility to provide the credentials directly as command-line arguments or set them programmatically in your code.
+Alternatively, to use a different environment file for your configuration, you can create an `.env` file in the local directory. Additionally, you have the flexibility to provide the credentials directly as command-line arguments or set them programmatically in your code.
 
 ## Usage
 You can use the deepset Cloud CLI by running the following command:
 ```shell
 deepset-cloud-cli <command>
 ```
-Replace <command> with one of the supported commands. To list all available commands, run the following command `deepset-cloud-cli --help`.
+Replace <command> with one of the supported commands. To list all available commands, run: `deepset-cloud-cli --help`.
 
 ## Example Commands
 
@@ -38,13 +38,13 @@ This command uploads the file example.txt to your deepset Cloud workspace.
 deepset-cloud-cli upload-folder "./examples/data"
 ```
 This command uploads the entire data folder, located in the examples directory, to your deepset Cloud workspace.
-Please note that the paths provided in the above examples are relative to the current working directory.
+Note that the paths provided in the above examples are relative to the current working directory.
 
 If you want to overwrite existing files in your project, you can use the `--write-mode` flag. For example:
 ```shell
 deepset-cloud-cli upload-file-paths ./examples/data/example.txt --write-mode OVERWRITE
 ```
-This allows syncing your local files with the files in your deepset Cloud workspace without having to manually delete the files in your workspace.
+This syncs your local files with the files in your deepset Cloud workspace without having to manually delete the files in your workspace.
 
 
 ### List files
@@ -60,9 +60,9 @@ with optional arguments:
 ```
 
 ### Documentation
-For more information and detailed usage instructions, please refer to the deepset Cloud SDK documentation.
+For more information and detailed usage instructions, see the deepset Cloud SDK documentation.
 
 ### Support
-If you encounter any issues or have any questions, please feel free to reach out to our team on [discord](https://discord.com/invite/qZxjM4bAHU).
+If you encounter any issues or have any questions, feel free to reach out to our team on [discord](https://discord.com/invite/qZxjM4bAHU).
 
 We hope you find the deepset Cloud CLI useful in your projects. Happy coding!

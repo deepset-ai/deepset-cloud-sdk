@@ -14,11 +14,11 @@ ENV_FILE_PATH = os.path.expanduser("~/.deepset-cloud-cli/.env")
 def load_environment() -> bool:
     """Load environment variables from .env file.
 
-    If a .env file is present in the current directory, load the environment variables from there.
+    If an .env file is present in the current directory, load the environment variables from there.
     Otherwise, load the environment variables from the .env file in the home directory that can be created using the CLI.
     To create the .env file in the home directory, run `deepset-cloud-cli login` in the terminal.
 
-    :return: True if the environment variables were loaded successfully, False otherwise
+    :return: True if the environment variables were loaded successfully, False otherwise.
     """
     successfully_loded_env: bool = False
     current_path_env = os.path.join(os.getcwd(), ".env")
@@ -37,7 +37,7 @@ if loaded_env_vars:
     logger.info("Environment variables loaded successfully")
 else:
     logger.info(
-        "No environment variables loaded from .env file. API_KEY and API_URL need to be set manually. If you dont wan't to set them manually, run `deepset-cloud-cli login` in the terminal."
+        "No environment variables were loaded from the .env file. Set API_KEY and API_URL manually. If you dont wan't to set them manually, run `deepset-cloud-cli login` in the terminal."
     )
 
 # connection to deepset Cloud
@@ -50,7 +50,7 @@ DEFAULT_WORKSPACE_NAME: str = os.getenv("DEFAULT_WORKSPACE_NAME", "")
 
 @dataclass
 class CommonConfig:
-    """Common config for connecting to Deepset Cloud API."""
+    """Common config for connecting to the deepset Cloud API."""
 
     api_key: str = API_KEY
     api_url: str = API_URL
@@ -59,5 +59,5 @@ class CommonConfig:
         """Validate config."""
         assert (
             self.api_key != ""
-        ), "API_KEY environment variable must be set. Please visit https://cloud.deepset.ai/settings/connections to get an API key."
+        ), "You must set the API_KEY environment variable. Go to [Connections](https://cloud.deepset.ai/settings/connections) in deepset Cloud to get an API key."
         assert self.api_url != "", "API_URL environment variable must be set"
