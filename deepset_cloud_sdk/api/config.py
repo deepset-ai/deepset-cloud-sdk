@@ -36,7 +36,7 @@ loaded_env_vars = load_environment()
 if loaded_env_vars:
     logger.info("Environment variables loaded successfully")
 else:
-    logger.info(
+    logger.warning(
         "No environment variables were loaded from the .env file. Set API_KEY and API_URL manually. If you dont wan't to set them manually, run `deepset-cloud-cli login` in the terminal."
     )
 

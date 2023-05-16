@@ -2,19 +2,13 @@
 from __future__ import annotations
 
 import asyncio
-import enum
 import os
 import time
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
-from functools import partial
-from io import BufferedReader
 from pathlib import Path
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Tuple
-from unittest.mock import AsyncMock
+from typing import AsyncGenerator, List, Optional
 from uuid import UUID
 
-import httpx
 import structlog
 
 from deepset_cloud_sdk.api.config import CommonConfig
