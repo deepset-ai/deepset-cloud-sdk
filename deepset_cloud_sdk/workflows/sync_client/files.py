@@ -1,4 +1,3 @@
-# pylint: disable=too-many-arguments
 """Sync client for files workflow."""
 import asyncio
 from pathlib import Path

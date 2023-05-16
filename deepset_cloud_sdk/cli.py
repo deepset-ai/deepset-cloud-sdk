@@ -1,9 +1,13 @@
 """CLI app for the deepset Cloud SDK."""
 import os
+from typing import List, Optional, Union
 
 import typer
+from tabulate import tabulate
 
-from deepset_cloud_sdk.api.config import ENV_FILE_PATH
+from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
+from deepset_cloud_sdk.api.files import File
+from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
 from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_file_paths,
     upload_folder,
@@ -33,6 +37,41 @@ def login() -> None:
         env_file.write(env_content)
 
     typer.echo(f"{ENV_FILE_PATH} created successfully!")
+
+
+@cli_app.command()
+def list_files(
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    content: Optional[str] = None,
+    name: Optional[str] = None,
+    odata_filter: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    batch_size: int = 100,
+    timeout_s: int = 300,
+    limit: Optional[int] = 100,
+) -> None:
+    """List files in the Deepset Cloud.
+
+    CLI method to list files in the Deepset Cloud.
+
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to list the files from.
+    :param name: Name of the file to odata_filter for.
+    :param content: Content of the file to odata_filter for.
+    :param odata_filter: odata_filter to apply to the file list.
+    :param batch_size: Batch size to use for the file list.
+    """
+    headers = ["file_id", "url", "name", "size", "created_at", "meta"]  # Assuming the first row contains the headers
+
+    files = sync_list_files(api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s)
+    to_print_files: List[Union[File, str]] = files[:limit]  # type: ignore
+    if len(files) != len(to_print_files):
+        to_print_files.append(["...", "...", "...", "...", "...", "..."])  # type: ignore
+
+    table = tabulate(to_print_files, headers, tablefmt="grid")  # type: ignore
+    typer.echo(table)
 
 
 def run_packaged() -> None:
