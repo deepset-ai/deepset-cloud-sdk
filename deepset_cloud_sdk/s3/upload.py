@@ -153,7 +153,11 @@ class S3:
         :return: S3UploadResult object.
         """
         results: List[S3UploadResult] = await asyncio.gather(*tasks)
-        logger.info("Finished uploading files", results=results)
+        logger.info(
+            "Finished uploading files",
+            number_of_successful_files=len(results),
+            failed_files=[r for r in results if not r.success],
+        )
 
         failed: List[str] = []
         successfully_uploaded = 0
