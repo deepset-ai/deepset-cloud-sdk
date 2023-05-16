@@ -84,15 +84,18 @@ def test_list_files() -> None:
         ]
 
     with patch("deepset_cloud_sdk.workflows.sync_client.files.async_list_files", new=mocked_async_list_files):
-        file_list = list_files(
-            workspace_name="my_workspace",
-            name="test_file.txt",
-            content="test content",
-            odata_filter="test",
-            batch_size=100,
-            timeout_s=100,
+        returned_files = list(
+            list_files(
+                workspace_name="my_workspace",
+                name="test_file.txt",
+                content="test content",
+                odata_filter="test",
+                batch_size=100,
+                timeout_s=100,
+            )
         )
-        assert file_list == [
+        assert len(returned_files) == 1
+        assert returned_files[0] == [
             File(
                 file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                 url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
