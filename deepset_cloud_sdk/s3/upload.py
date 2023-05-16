@@ -192,7 +192,6 @@ class S3:
         :param file_paths: A list of paths to upload.
         :return: S3UploadSummary object.
         """
-
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
             tasks = []
 
