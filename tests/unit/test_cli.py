@@ -1,4 +1,5 @@
 import datetime
+import os
 from pathlib import Path
 from typing import Any, Generator, List
 from unittest.mock import AsyncMock, Mock, patch
@@ -8,6 +9,7 @@ import structlog
 import typer
 from typer.testing import CliRunner
 
+from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk.api.files import File
 from deepset_cloud_sdk.api.upload_sessions import WriteMode
@@ -198,3 +200,23 @@ class TestCLIUtils:
                     "API_KEY=test_api_key_2\nAPI_URL=https://endpoint.com/api\nDEFAULT_WORKSPACE_NAME=default"
                     == f.read()
                 )
+
+    @patch("deepset_cloud_sdk.cli.os")
+    def test_logout_if_not_logged_in(self, mocked_os: Mock) -> None:
+        mocked_os.path.exists.return_value = False
+        result = runner.invoke(cli_app, ["logout"])
+        assert result.exit_code == 0
+        assert "You are not logged in. Nothing to do!" in result.stdout
+
+    @patch("deepset_cloud_sdk.cli.os")
+    def test_logout(self, mocked_os: Mock) -> None:
+        mocked_os.path.exists.return_value = True
+
+        result = runner.invoke(cli_app, ["logout"])
+        assert result.exit_code == 0
+        assert "removed successfully" in result.stdout
+
+    def test_get_version(self) -> None:
+        result = runner.invoke(cli_app, ["--version"])
+        assert result.exit_code == 0
+        assert __version__ in result.stdout
