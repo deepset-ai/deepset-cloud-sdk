@@ -263,7 +263,6 @@ class FilesService:
             )
             has_more = response.has_more
             if not response.data:
-                yield []
                 return
             after_value = response.data[-1].created_at
             after_file_id = response.data[-1].file_id

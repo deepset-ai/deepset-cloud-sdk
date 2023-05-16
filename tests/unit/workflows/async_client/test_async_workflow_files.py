@@ -6,6 +6,7 @@ from uuid import UUID
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from sniffio import AsyncLibraryNotFoundError
 
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk.api.files import File
@@ -105,3 +106,23 @@ class TestUploadFiles:
                     created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
                 )
             ]
+
+    async def test_list_files_silence_exit(self, monkeypatch: MonkeyPatch) -> None:
+        async def mocked_list_all(
+            self: Any,
+            *args: Any,
+            **kwargs: Any,
+        ) -> AsyncGenerator[List[File], None]:
+            raise AsyncLibraryNotFoundError()
+            yield []  # for some reason monkeypatch requires to have the yield statement
+
+        monkeypatch.setattr(FilesService, "list_all", mocked_list_all)
+        async for file_batch in list_files(
+            workspace_name="my_workspace",
+            name="test_file.txt",
+            content="test content",
+            odata_filter="test",
+            batch_size=100,
+            timeout_s=100,
+        ):
+            pass
