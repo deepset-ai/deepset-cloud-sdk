@@ -62,6 +62,37 @@ class S3:
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
 
+    @staticmethod
+    async def validate_file_paths(file_paths: List[Path]) -> None:
+        """Validate a list of file paths.
+
+        :param file_paths: A list of paths to upload.
+        :raises ValueError: If the file paths are invalid.
+        """
+
+        allowed_suffixes = {".txt", ".json", ".pdf"}
+        for file_path in file_paths:
+            if not file_path.suffix.lower() in allowed_suffixes:
+                raise ValueError(f"Invalid file extension: {file_path.suffix}")
+            if file_path.suffix.lower() == ".json" and not str(file_path).endswith(".meta.json"):
+                raise ValueError(
+                    f"JSON files are only supported for meta files. Please make sure to name your files '<file_name>.meta.json'. Got {file_path.name}."
+                )
+        meta_files = [file_path for file_path in file_paths if file_path.suffix.lower() == ".json"]
+
+        not_mapped_meta_files = [
+            meta_file_path
+            for meta_file_path in meta_files
+            if not Path(str(meta_file_path).split(".meta.json")[0]) in file_paths
+        ]
+        if len(not_mapped_meta_files) > 0:
+            raise ValueError(
+                f"Meta files without corresponding text files found: {not_mapped_meta_files}. "
+                "Please make sure that for each meta file there is a corresponding text file."
+                "The mapping needs to be done via file name '<file_name>' and '<file_name>.meta.json'. "
+                "For example: 'file1.txt' and 'file1.txt.meta.json'."
+            )
+
     @retry(retry=retry_if_exception_type(HTTPError), stop=stop_after_attempt(3), wait=wait_fixed(0.5))  # type: ignore
     async def _upload_file_with_retries(
         self,
@@ -183,6 +214,10 @@ class S3:
         :param file_paths: A list of paths to upload.
         :return: S3UploadSummary object.
         """
+        # validate file paths
+        await self.validate_file_paths(file_paths)
+
+        # upload files
         with ProgressBar(
             f"Uploading to S3",
             max=len(file_paths),
