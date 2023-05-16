@@ -183,7 +183,7 @@ class TestCLIUtils:
             assert "created successfully" in result.stdout
             with open(fake_env_path) as f:
                 assert (
-                    "API_KEY=test_api_key\nAPI_URL=https://api.cloud.deepset.ai/api/v1/\nDEFAULT_WORKSPACE_NAME=default"
+                    "API_KEY=test_api_key\nAPI_URL=https://api.cloud.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=default"
                     == f.read()
                 )
 
