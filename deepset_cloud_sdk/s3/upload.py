@@ -98,7 +98,7 @@ class S3:
         file_path: Path,
         upload_session: UploadSession,
         client_session: aiohttp.ClientSession,
-        progress: Optional[ProgressBar],
+        progress: Optional[ProgressBar] = None,
     ) -> S3UploadResult:
         """Upload a file to the prefixed S3 namespace given a path.
 
@@ -130,7 +130,7 @@ class S3:
         upload_session: UploadSession,
         content: str,
         client_session: aiohttp.ClientSession,
-        progress: Optional[ProgressBar],
+        progress: Optional[ProgressBar] = None,
     ) -> S3UploadResult:
         """Upload text to the prefixed S3 namespace.
 
