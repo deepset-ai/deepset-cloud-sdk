@@ -162,6 +162,7 @@ class FilesService:
         :show_progress If True, shows a progress bar for S3 uploads
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
+        logger.info("Getting valid files from file path. This may take up to a minute.")
         all_files = [path for path in folder_path.glob("**/*")]
 
         file_paths = [
