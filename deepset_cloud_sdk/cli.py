@@ -13,7 +13,7 @@ from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_folder,
 )
 
-cli_app = typer.Typer()
+cli_app = typer.Typer(pretty_exceptions_show_locals=False)
 
 # cli commands
 cli_app.command()(upload_file_paths)
