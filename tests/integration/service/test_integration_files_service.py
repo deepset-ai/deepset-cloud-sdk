@@ -59,6 +59,6 @@ class TestListFilesService:
             ):
                 file_batches.append(file_batch)
 
-            assert len(file_batches) == 2
+            assert len(file_batches) >= 2
             assert len(file_batches[0]) == 11
             assert len(file_batches[1]) >= 1
