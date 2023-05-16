@@ -1,4 +1,4 @@
-"""Module for all file related operations."""
+"""Module for all file-related operations."""
 from __future__ import annotations
 
 import asyncio
@@ -33,7 +33,7 @@ logger = structlog.get_logger(__name__)
 
 
 class FilesService:
-    """Service for all file related operations."""
+    """Service for all file-related operations."""
 
     def __init__(self, upload_sessions: UploadSessionsAPI, files: FilesAPI, s3: S3):
         """Initialize the service.
@@ -111,9 +111,9 @@ class FilesService:
     ) -> None:
         """Upload a list of files to a workspace.
 
-        Upload a list of files via upload sessions to a selected workspace. If blocking is True, the function waits until
-        all files are uploaded and listed by deepsetCloud. If blocking is False, the function returns immediately after
-        the upload of the files is done. Note: It can take a while until the files are listed in deepsetCloud.
+        Upload a list of files  to a selected workspace using upload sessions. If blocking is True, the function waits until
+        all files are uploaded and listed by deepset Cloud. If blocking is False, the function returns immediately after
+        the upload of the files is done. Note: It can take a while until the files are listed in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :file_paths: List of file paths to upload.
@@ -157,9 +157,9 @@ class FilesService:
     ) -> None:
         """Upload a folder to a workspace.
 
-        Upload a folder via upload sessions to a selected workspace. If blocking is True, the function waits until
-        all files are uploaded and listed by deepsetCloud. If blocking is False, the function returns immediately after
-        the upload of the files is done. Note: It can take a while until the files are listed in deepsetCloud.
+        Upload a folder to a selected workspace using upload sessions. If blocking is True, the function waits until
+        all files are uploaded and listed by deepset Cloud. If blocking is False, the function returns immediately after
+        the upload of the files is done. Note: It can take a while until the files are listed in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :folder_path: Path to the folder to upload.
@@ -203,12 +203,12 @@ class FilesService:
         """
         Upload a list of raw texts to a workspace.
 
-        Upload a list of raw texts via upload sessions to a selected workspace. This method accepts a list of DeepsetCloudFiles
-        which contain the raw text, file name and optional meta data.
+        Upload a list of raw texts to a selected workspace using upload sessions. This method accepts a list of DeepsetCloudFiles
+        which contain raw text, file name, and optional meta data.
 
-        If blocking is True, the function waits until all files are uploaded and listed by deepsetCloud.
+        If blocking is True, the function waits until all files are uploaded and listed by deepset Cloud.
         If blocking is False, the function returns immediately after the upload of the files is done.
-        Note: It can take a while until the files are listed in deepsetCloud.
+        Note: It can take a while until the files are listed in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :dc_files: List of DeepsetCloudFiles to upload.
@@ -241,7 +241,7 @@ class FilesService:
         """List all files in a workspace.
 
         Returns an async generator that yields lists of files. The generator is finished when all files are listed.
-        The batch size per number of returned files can be specified with batch_size.
+        You can specfy the batch size per number of returned files with batch_size.
 
         :param workspace_name: Name of the workspace to use.
         :param name: odata_filter by file name.
@@ -269,6 +269,8 @@ class FilesService:
                 after_value=after_value,
             )
             has_more = response.has_more
+            if not response.data:
+                return
             after_value = response.data[-1].created_at
             after_file_id = response.data[-1].file_id
             yield response.data

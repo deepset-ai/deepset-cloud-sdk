@@ -9,7 +9,7 @@ You can upload files in three different ways:
 
 For uploading files from your local machine to deepset Cloud, you can use the `upload_file_paths` or `upload_folder`.
 
-If you want to preprocessed text and upload the processed text to deepset Cloud, you can use the `upload_text` method. This method accepts a list of `DeepsetCloudFiles` metadata and file name as input and uploads the text to deepset Cloud.
+To preprocess text and upload the preprocessed text to deepset Cloud, you can use the `upload_text` method. This method accepts a list of `DeepsetCloudFiles` metadata and file name as input, and uploads the text to deepset Cloud.
 ```python
 DeepsetCloudFile(
     name="example.txt",

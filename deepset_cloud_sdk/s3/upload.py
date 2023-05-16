@@ -1,4 +1,4 @@
-"""Module for Upload related S3 Operations."""
+"""Module for upload-related S3 operations."""
 import asyncio
 import json
 import os
@@ -46,12 +46,11 @@ class S3UploadResult:
 
 def make_safe_file_name(file_name: str) -> str:
     """
-    Transform a given string to a representation that can be accepted by S3.
+    Transform a given string to a representation that S3 accepts.
 
-    :param str: The file name
-    :return str: The transformed string
-    See for details of character exclusions:
-    https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
+    :param str: The file name.
+    :return str: The transformed string.
+    For character exclusions, see [Creating object key names](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html).
     """
     transformed = re.sub(r"[\\\\#%\"'\|<>\{\}`\^\[\]~\x00-\x1F]", "_", file_name)
     return quote(transformed)
@@ -79,7 +78,7 @@ class S3:
     ) -> aiohttp.ClientResponse:
         """Upload a file to the prefixed S3 namespace.
 
-        :param file_path: The Path to upload from.
+        :param file_path: The path to upload from.
         :param upload_session: UploadSession to associate the upload with.
         :param client_session: The aiohttp ClientSession to use for this request.
         :return: ClientResponse object.
@@ -107,7 +106,7 @@ class S3:
     ) -> S3UploadResult:
         """Upload a file to the prefixed S3 namespace given a path.
 
-        :param file_path: The Path to upload from.
+        :param file_path: The path to upload from.
         :param upload_session: UploadSession to associate the upload with.
         :param client_session: The aiohttp ClientSession to use for this request.
         :return: S3UploadResult object.
@@ -136,6 +135,7 @@ class S3:
         :param file_name: Name of the file.
         :param upload_session: UploadSession to associate the upload with.
         :param client_session: The aiohttp ClientSession to use for this request.
+        :param progress: A progress bar.
         :return: S3UploadResult object.
         """
         try:
@@ -160,7 +160,11 @@ class S3:
         else:
             results = await asyncio.gather(*tasks)
 
-        logger.info("Finished uploading files", results=results)
+        logger.info(
+            "Finished uploading files",
+            number_of_successful_files=len(results),
+            failed_files=[r for r in results if not r.success],
+        )
 
         failed: List[str] = []
         successfully_uploaded = 0
@@ -185,7 +189,7 @@ class S3:
         """Upload a set of files to the prefixed S3 namespace given a list of paths.
 
         :param upload_session: UploadSession to associate the upload with.
-        :param file_paths: A list of Paths to upload.
+        :param file_paths: A list of paths to upload.
         :return: S3UploadSummary object.
         """
 

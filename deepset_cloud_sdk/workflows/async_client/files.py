@@ -1,6 +1,9 @@
-"""This module contains async functions for uploading files and folders to the Deepset Cloud."""
+# pylint:disable=too-many-arguments
+"""This module contains async functions for uploading files and folders to deepset Cloud."""
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional
+
+from sniffio import AsyncLibraryNotFoundError
 
 from deepset_cloud_sdk.api.config import (
     API_KEY,
@@ -35,16 +38,20 @@ async def list_files(
     :param batch_size: Batch size for the listing.
     :return: List of files.
     """
-    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        async for file_batch in file_service.list_all(
-            workspace_name=workspace_name,
-            name=name,
-            content=content,
-            odata_filter=odata_filter,
-            batch_size=batch_size,
-            timeout_s=timeout_s,
-        ):
-            yield file_batch
+    try:
+        async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+            async for file_batch in file_service.list_all(
+                workspace_name=workspace_name,
+                name=name,
+                content=content,
+                odata_filter=odata_filter,
+                batch_size=batch_size,
+                timeout_s=timeout_s,
+            ):
+                yield file_batch
+    except AsyncLibraryNotFoundError:
+        # since we are using asyncio.run() in the sync wrapper, we need to catch this error
+        pass
 
 
 async def upload_file_paths(
@@ -57,7 +64,7 @@ async def upload_file_paths(
     timeout_s: int = 300,
     show_progress: bool = True,
 ) -> None:
-    """Upload files to the Deepset Cloud.
+    """Upload files to deepset Cloud.
 
     :param file_paths: List of file paths to upload.
     :param api_key: API key to use for authentication.
@@ -87,7 +94,7 @@ async def upload_folder(
     timeout_s: int = 300,
     show_progress: bool = True,
 ) -> None:
-    """Upload a folder to the Deepset Cloud.
+    """Upload a folder to deepset Cloud.
 
     :param folder_path: Path to the folder to upload.
     :param api_key: API key to use for authentication.
@@ -117,7 +124,7 @@ async def upload_texts(
     timeout_s: int = 300,
     show_progress: bool = True,
 ) -> None:
-    """Upload texts to the Deepset Cloud.
+    """Upload texts to deepset Cloud.
 
     :param dc_files: List of DeepsetCloudFiles to upload.
     :param api_key: API key to use for authentication.

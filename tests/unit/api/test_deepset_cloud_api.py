@@ -31,6 +31,20 @@ class TestUtilitiesForDeepsetCloudAPI:
 
 
 @pytest.mark.asyncio
+class TestCommonConfig:
+    async def test_common_config_raises_exception_if_no_api_key_is_defined(self) -> None:
+        with pytest.raises(AssertionError):
+            CommonConfig(api_key="", api_url="https://fake.dc.api")
+
+    async def test_common_config_raises_exception_if_no_api_url_is_defined(self) -> None:
+        with pytest.raises(AssertionError):
+            CommonConfig(api_key="your-key", api_url="")
+
+    async def test_common_config_removes_last_backslash(self) -> None:
+        assert CommonConfig(api_key="your-key", api_url="https://fake.dc.api/").api_url == "https://fake.dc.api"
+
+
+@pytest.mark.asyncio
 class TestCRUDForDeepsetCloudAPI:
     async def test_get(
         self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock

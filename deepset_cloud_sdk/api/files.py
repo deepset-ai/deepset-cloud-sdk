@@ -1,7 +1,7 @@
 """
 File API for deepset Cloud.
 
-This module takes care of all file related API calls to deepset Cloud, including uploading, downloading, listing and
+This module takes care of all file-related API calls to deepset Cloud, including uploading, downloading, listing and
 deleting files.
 """
 
@@ -22,7 +22,7 @@ logger = structlog.get_logger(__name__)
 
 @dataclass
 class File:
-    """File primitive from deepset Cloud. This dataclass is used for all file related operations that dont include thea actual file content."""
+    """File primitive from deepset Cloud. This dataclass is used for all file-related operations that don't include thea actual file content."""
 
     file_id: UUID
     url: str
@@ -35,7 +35,7 @@ class File:
     def from_dict(cls, env: Dict[str, Any]) -> Any:
         """Parse a dictionary into a File object.
 
-        Not existing keys will be ignored.
+        Ignores keys that don't exist.
 
         :param env: Dictionary to parse.
         """
@@ -47,7 +47,7 @@ class File:
 
 @dataclass
 class FileList:
-    """List of files from deepset Cloud. This dataclass is used for all file related operations that return a list of files."""
+    """List of files from deepset Cloud. This dataclass is used for all file-related operations that return a list of files."""
 
     total: int
     data: List[File]
@@ -57,8 +57,8 @@ class FileList:
 class FilesAPI:
     """File API for deepset Cloud.
 
-    This module takes care of all file related API calls to deepset Cloud, including
-    uploading, downloading, listing and deleting files.
+    This module takes care of all file-related API calls to deepset Cloud, including
+    uploading, downloading, listing, and deleting files.
 
     :param deepset_cloud_api: Instance of the DeepsetCloudAPI.
     """
@@ -82,7 +82,7 @@ class FilesAPI:
         after_file_id: Optional[UUID] = None,
     ) -> FileList:
         """
-        List files in a workspace, paginated with cursor based pagination.
+        List files in a workspace, paginated with cursor-based pagination.
 
         :param workspace_name: Name of the workspace to use.
         :param limit: Number of files to return per page.

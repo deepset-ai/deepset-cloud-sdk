@@ -1,1 +1,1 @@
-"""A set of Utils for the SDK."""
+"""A set of utils for the SDK."""
