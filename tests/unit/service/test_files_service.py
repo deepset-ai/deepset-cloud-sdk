@@ -250,6 +250,25 @@ class TestListFilesService:
             created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
         )
 
+    async def test_list_all_files_with_no_results(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                FileList(
+                    total=11,
+                    data=[],
+                    has_more=True,
+                )
+            ]
+        )
+
+        monkeypatch.setattr(file_service._files, "list_paginated", mocked_list_paginated)
+
+        file_batches: List[List[File]] = []
+        async for file_batch in file_service.list_all(workspace_name="test_workspace", batch_size=10, timeout_s=2):
+            file_batches.append(file_batch)
+
+        assert file_batches == []
+
     async def test_list_all_files_with_timeout(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
         mocked_list_paginated = AsyncMock(
             return_value=FileList(

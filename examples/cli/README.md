@@ -26,6 +26,8 @@ deepset-cloud-cli <command>
 Replace <command> with one of the supported commands. To list all available commands, run: `deepset-cloud-cli --help`.
 
 ## Example Commands
+
+### Upload Files and Folders
 Here are a couple of example commands that demonstrate how to use the deepset Cloud CLI:
 ```shell
 deepset-cloud-cli upload-file-paths ./examples/data/example.txt
@@ -43,6 +45,19 @@ If you want to overwrite existing files in your project, you can use the `--writ
 deepset-cloud-cli upload-file-paths ./examples/data/example.txt --write-mode OVERWRITE
 ```
 This syncs your local files with the files in your deepset Cloud workspace without having to manually delete the files in your workspace.
+
+
+### List files
+You can run the `list-files` operation to search files in your deepset Cloud workspace. For example:
+```shell
+deepset-cloud-cli list-files
+```
+with optional arguments:
+```shell
+--name "<your-file-name>"  # search by file name
+--content "content" # search by file content
+--odata-filter "key eq 'value'" # search by odata filter
+```
 
 ### Documentation
 For more information and detailed usage instructions, see the deepset Cloud SDK documentation.
