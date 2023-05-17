@@ -84,8 +84,8 @@ async def upload_file_paths(
         )
 
 
-async def upload_folder(
-    folder_path: Path,
+async def upload(
+    paths: List[Path],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
@@ -96,7 +96,7 @@ async def upload_folder(
 ) -> None:
     """Upload a folder to deepset Cloud.
 
-    :param folder_path: Path to the folder to upload.
+    :param paths: Path to the folder to upload.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
@@ -104,9 +104,9 @@ async def upload_folder(
     :param timeout_s: Timeout in seconds for the upload.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        await file_service.upload_folder(
+        await file_service.upload(
             workspace_name=workspace_name,
-            folder_path=folder_path,
+            paths=paths,
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,
@@ -115,7 +115,7 @@ async def upload_folder(
 
 
 async def upload_texts(
-    dc_files: List[DeepsetCloudFile],
+    files: List[DeepsetCloudFile],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
@@ -126,7 +126,7 @@ async def upload_texts(
 ) -> None:
     """Upload texts to deepset Cloud.
 
-    :param dc_files: List of DeepsetCloudFiles to upload.
+    :param files: List of DeepsetCloudFiles to upload.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
@@ -136,7 +136,7 @@ async def upload_texts(
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         await file_service.upload_texts(
             workspace_name=workspace_name,
-            dc_files=dc_files,
+            files=files,
             write_mode=write_mode,
             blocking=blocking,
             timeout_s=timeout_s,

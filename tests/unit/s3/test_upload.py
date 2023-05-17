@@ -46,7 +46,7 @@ class TestUploadsS3:
                 DeepsetCloudFile("two.txt", "two"),
                 DeepsetCloudFile("three.txt", "three"),
             ]
-            await s3.upload_texts(upload_session=upload_session_response, dc_files=files, show_progress=True)
+            await s3.upload_texts(upload_session=upload_session_response, files=files, show_progress=True)
 
             assert tqdm_gather.call_count == 1
 
@@ -59,7 +59,7 @@ class TestUploadsS3:
                 DeepsetCloudFile("two.txt", "two"),
                 DeepsetCloudFile("three.txt", "three"),
             ]
-            await s3.upload_texts(upload_session=upload_session_response, dc_files=files, show_progress=True)
+            await s3.upload_texts(upload_session=upload_session_response, files=files, show_progress=True)
 
             assert post.call_count == 3
 
@@ -73,7 +73,7 @@ class TestUploadsS3:
                 DeepsetCloudFile("two.txt", "two"),
                 DeepsetCloudFile("three.txt", "three"),
             ]
-            await s3.upload_texts(upload_session=upload_session_response, dc_files=files, show_progress=False)
+            await s3.upload_texts(upload_session=upload_session_response, files=files, show_progress=False)
 
             assert tqdm_gather.call_count == 0
 
