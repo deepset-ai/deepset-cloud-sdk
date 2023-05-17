@@ -24,6 +24,7 @@ upload(
 ## Example 2: Upload raw texts
 ## ---------------------------
 ## Uploads a list of raw texts to the default workspace.
+## This can be useful if you want to process your text first and later upload the content of the files.
 upload_texts(
     # workspace_name="my_workspace",  # optional, by default the environment variable "DEFAULT_WORKSPACE_NAME" is used
     files=[
