@@ -168,3 +168,5 @@ cython_debug/
 .vscode
 
 requirements.txt
+.idea
+.python-version

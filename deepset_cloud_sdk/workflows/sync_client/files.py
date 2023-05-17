@@ -19,6 +19,7 @@ from deepset_cloud_sdk.workflows.async_client.files import (
 from deepset_cloud_sdk.workflows.async_client.files import (
     upload_texts as async_upload_texts,
 )
+from deepset_cloud_sdk.workflows.sync_client.utils import iter_over_async
 
 logger = structlog.get_logger(__name__)
 
@@ -135,7 +136,6 @@ def list_files(
     """List files in deepset Cloud.
 
     WARNING: This only works for workspaces with up to 1000 files.
-    TODO: make this a generator
 
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
@@ -144,6 +144,7 @@ def list_files(
     :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
+    :param timeout_s: Timeout in seconds for the API requests.
     """
     loop = asyncio.new_event_loop()
 
@@ -158,9 +159,6 @@ def list_files(
         timeout_s=timeout_s,
     )
     try:
-        while True:
-            yield loop.run_until_complete(async_list_files_generator.__anext__())
-    except StopAsyncIteration:
-        pass
+        yield from iter_over_async(async_list_files_generator, loop)
     finally:
         loop.close()
