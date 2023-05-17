@@ -1,14 +1,11 @@
-import asyncio
 from pathlib import Path
-from typing import List
-from unittest.mock import Mock, mock_open, patch
-from urllib.error import HTTPError
+from unittest.mock import Mock, patch
 
 import aiohttp
 import pytest
 from tqdm.asyncio import tqdm
 
-from deepset_cloud_sdk.api.upload_sessions import UploadSession, UploadSessionDetail
+from deepset_cloud_sdk.api.upload_sessions import UploadSession
 from deepset_cloud_sdk.models import DeepsetCloudFile
 from deepset_cloud_sdk.s3.upload import S3, make_safe_file_name
 
@@ -171,32 +168,3 @@ class TestUploadsS3:
                     "three.txt",
                     "three.txt.meta.json",
                 ]
-
-
-@pytest.mark.asyncio
-class TestValidateFilePaths:
-    @pytest.mark.parametrize(
-        "file_paths",
-        [
-            [Path("/home/user/file1.txt"), Path("/home/user/file2.txt")],
-            [Path("/home/user/file1.txt"), Path("/home/user/file1.txt.meta.json")],
-            [Path("/home/user/file1.pdf"), Path("/home/user/file1.pdf.meta.json")],
-        ],
-    )
-    async def test_validate_file_paths(self, file_paths: List[Path]) -> None:
-        await S3.validate_file_paths(file_paths)
-
-    @pytest.mark.parametrize(
-        "file_paths",
-        [
-            [Path("/home/user/file2.json")],
-            [Path("/home/user/file1.md")],
-            [Path("/home/user/file1.docx")],
-            [Path("/home/user/file1.pdf"), Path("/home/user/file2.pdf.meta.json")],
-            [Path("/home/user/file1.pdf"), Path("/home/user/file1.txt.meta.json")],
-            [Path("/home/user/file1.txt"), Path("/home/user/file1.pdf.meta.json")],
-        ],
-    )
-    async def test_validate_file_paths_with_broken_meta_field(self, file_paths: List[Path]) -> None:
-        with pytest.raises(ValueError):
-            await S3.validate_file_paths(file_paths)

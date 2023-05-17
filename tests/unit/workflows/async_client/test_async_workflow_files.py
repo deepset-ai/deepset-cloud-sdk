@@ -52,6 +52,7 @@ class TestUploadFiles:
             blocking=True,
             timeout_s=300,
             show_progress=True,
+            recursive=False,
         )
 
     async def test_upload_texts(self, monkeypatch: MonkeyPatch) -> None:

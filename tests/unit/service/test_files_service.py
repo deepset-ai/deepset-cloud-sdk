@@ -138,6 +138,11 @@ class TestUploadsFileService:
                 in mocked_upload_file_paths.call_args[1]["file_paths"]
             )
 
+            assert (
+                Path("tests/data/upload_folder_nested/meta/example.txt.meta.json")
+                in mocked_upload_file_paths.call_args[1]["file_paths"]
+            )
+
         async def test_upload_paths_to_file(
             self,
             file_service: FilesService,
@@ -337,3 +342,32 @@ class TestListFilesService:
         with pytest.raises(TimeoutError):
             async for _ in file_service.list_all(workspace_name="test_workspace", batch_size=10, timeout_s=0):
                 pass
+
+
+@pytest.mark.asyncio
+class TestValidateFilePaths:
+    @pytest.mark.parametrize(
+        "file_paths",
+        [
+            [Path("/home/user/file1.txt"), Path("/home/user/file2.txt")],
+            [Path("/home/user/file1.txt"), Path("/home/user/file1.txt.meta.json")],
+            [Path("/home/user/file1.pdf"), Path("/home/user/file1.pdf.meta.json")],
+        ],
+    )
+    async def test_validate_file_paths(self, file_paths: List[Path]) -> None:
+        FilesService._validate_file_paths(file_paths)
+
+    @pytest.mark.parametrize(
+        "file_paths",
+        [
+            [Path("/home/user/file2.json")],
+            [Path("/home/user/file1.md")],
+            [Path("/home/user/file1.docx")],
+            [Path("/home/user/file1.pdf"), Path("/home/user/file2.pdf.meta.json")],
+            [Path("/home/user/file1.pdf"), Path("/home/user/file1.txt.meta.json")],
+            [Path("/home/user/file1.txt"), Path("/home/user/file1.pdf.meta.json")],
+        ],
+    )
+    async def test_validate_file_paths_with_broken_meta_field(self, file_paths: List[Path]) -> None:
+        with pytest.raises(ValueError):
+            FilesService._validate_file_paths(file_paths)
