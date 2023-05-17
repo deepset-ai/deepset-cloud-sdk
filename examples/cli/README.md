@@ -28,10 +28,6 @@ Replace <command> with one of the supported commands. To list all available comm
 ## Example Commands
 
 ### Upload Files and Folders
-Here are a couple of example commands that demonstrate how to use the deepset Cloud CLI:
-```shell
-deepset-cloud-cli upload-file-paths ./examples/data/example.txt
-```
 This command uploads the file example.txt to your deepset Cloud workspace.
 
 ```shell
@@ -42,7 +38,7 @@ Note that the paths provided in the above examples are relative to the current w
 
 If you want to overwrite existing files in your project, you can use the `--write-mode` flag. For example:
 ```shell
-deepset-cloud-cli upload-file-paths ./examples/data/example.txt --write-mode OVERWRITE
+deepset-cloud-cli upload ./examples/data --write-mode OVERWRITE
 ```
 This syncs your local files with the files in your deepset Cloud workspace without having to manually delete the files in your workspace.
 
