@@ -230,13 +230,13 @@ class FilesService:
                 failed=upload_summary.failed,
             )
 
-            if blocking:
-                await self._wait_for_finished(
-                    workspace_name=workspace_name,
-                    session_id=upload_session.session_id,
-                    total_files=len(dc_files),
-                    timeout_s=timeout_s,
-                )
+        if blocking:
+            await self._wait_for_finished(
+                workspace_name=workspace_name,
+                session_id=upload_session.session_id,
+                total_files=len(dc_files),
+                timeout_s=timeout_s,
+            )
 
     async def list_all(
         self,
