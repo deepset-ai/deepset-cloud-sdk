@@ -87,17 +87,17 @@ class TestUploadsFileService:
                     workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=0
                 )
 
-    class TestFolderUpload:
-        async def test_upload_folder_path(
+    class TestUpload:
+        async def test_upload_paths_to_folder(
             self,
             file_service: FilesService,
             monkeypatch: MonkeyPatch,
         ) -> None:
             mocked_upload_file_paths = AsyncMock(return_value=None)
             monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
-            await file_service.upload_folder(
+            await file_service.upload(
                 workspace_name="test_workspace",
-                folder_path=Path("./tests/data/upload_folder"),
+                paths=[Path("./tests/data/upload_folder")],
                 blocking=True,
                 timeout_s=300,
             )
@@ -113,6 +113,50 @@ class TestUploadsFileService:
             assert Path("tests/data/upload_folder/example.txt") in mocked_upload_file_paths.call_args[1]["file_paths"]
             assert Path("tests/data/upload_folder/example.pdf") in mocked_upload_file_paths.call_args[1]["file_paths"]
 
+        async def test_upload_paths_nested(
+            self,
+            file_service: FilesService,
+            monkeypatch: MonkeyPatch,
+        ) -> None:
+            mocked_upload_file_paths = AsyncMock(return_value=None)
+            monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+            await file_service.upload(
+                workspace_name="test_workspace",
+                paths=[Path("./tests/data/upload_folder_nested")],
+                blocking=True,
+                timeout_s=300,
+                recursive=True,
+            )
+            assert mocked_upload_file_paths.called
+
+            assert (
+                Path("tests/data/upload_folder_nested/nested_folder/second.txt")
+                in mocked_upload_file_paths.call_args[1]["file_paths"]
+            )
+            assert (
+                Path("tests/data/upload_folder_nested/example.txt")
+                in mocked_upload_file_paths.call_args[1]["file_paths"]
+            )
+
+        async def test_upload_paths_to_file(
+            self,
+            file_service: FilesService,
+            monkeypatch: MonkeyPatch,
+        ) -> None:
+            mocked_upload_file_paths = AsyncMock(return_value=None)
+            monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+            await file_service.upload(
+                workspace_name="test_workspace",
+                paths=[Path("./tests/data/upload_folder/example.txt")],
+                blocking=True,
+                timeout_s=300,
+                recursive=True,
+            )
+            assert mocked_upload_file_paths.called
+            assert len(mocked_upload_file_paths.call_args[1]["file_paths"]) == 1
+
+            assert Path("tests/data/upload_folder/example.txt") in mocked_upload_file_paths.call_args[1]["file_paths"]
+
     class TestUploadTexts:
         async def test_upload_texts(
             self,
@@ -121,7 +165,7 @@ class TestUploadsFileService:
             upload_session_response: UploadSession,
             mocked_s3: Mock,
         ) -> None:
-            dc_files = [
+            files = [
                 DeepsetCloudFile(
                     name="test_file.txt",
                     text="test content",
@@ -140,7 +184,7 @@ class TestUploadsFileService:
             )
             await file_service.upload_texts(
                 workspace_name="test_workspace",
-                dc_files=dc_files,
+                files=files,
                 write_mode=WriteMode.OVERWRITE,
                 blocking=True,
                 timeout_s=300,
@@ -152,7 +196,7 @@ class TestUploadsFileService:
             )
 
             mocked_s3.upload_texts.assert_called_once_with(
-                upload_session=upload_session_response, dc_files=dc_files, show_progress=False
+                upload_session=upload_session_response, files=files, show_progress=False
             )
 
             mocked_upload_sessions_api.close.assert_called_once_with(

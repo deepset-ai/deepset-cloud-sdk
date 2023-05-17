@@ -12,11 +12,9 @@ from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.workflows.async_client.files import (
     list_files as async_list_files,
 )
+from deepset_cloud_sdk.workflows.async_client.files import upload as async_upload
 from deepset_cloud_sdk.workflows.async_client.files import (
     upload_file_paths as async_upload_file_paths,
-)
-from deepset_cloud_sdk.workflows.async_client.files import (
-    upload_folder as async_upload_folder,
 )
 from deepset_cloud_sdk.workflows.async_client.files import (
     upload_texts as async_upload_texts,
@@ -58,8 +56,8 @@ def upload_file_paths(
     )
 
 
-def upload_folder(
-    folder_path: Path,
+def upload(
+    paths: List[Path],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
@@ -70,7 +68,7 @@ def upload_folder(
 ) -> None:
     """Upload a folder to deepset Cloud.
 
-    :param folder_path: Path to the folder to upload.
+    :param paths: Path to the folder to upload.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
@@ -78,8 +76,8 @@ def upload_folder(
     :param timeout_s: Timeout in seconds for the upload.
     """
     asyncio.run(
-        async_upload_folder(
-            folder_path=folder_path,
+        async_upload(
+            paths=paths,
             api_key=api_key,
             api_url=api_url,
             workspace_name=workspace_name,
@@ -92,7 +90,7 @@ def upload_folder(
 
 
 def upload_texts(
-    dc_files: List[DeepsetCloudFile],
+    files: List[DeepsetCloudFile],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
@@ -103,7 +101,7 @@ def upload_texts(
 ) -> None:
     """Upload texts to deepset Cloud.
 
-    :param dc_files: List of DeepsetCloudFiles to upload.
+    :param files: List of DeepsetCloudFiles to upload.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
@@ -112,7 +110,7 @@ def upload_texts(
     """
     asyncio.run(
         async_upload_texts(
-            dc_files=dc_files,
+            files=files,
             api_key=api_key,
             api_url=api_url,
             workspace_name=workspace_name,

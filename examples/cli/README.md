@@ -35,7 +35,7 @@ deepset-cloud-cli upload-file-paths ./examples/data/example.txt
 This command uploads the file example.txt to your deepset Cloud workspace.
 
 ```shell
-deepset-cloud-cli upload-folder "./examples/data"
+deepset-cloud-cli upload ./examples/data
 ```
 This command uploads the entire data folder, located in the examples directory, to your deepset Cloud workspace.
 Note that the paths provided in the above examples are relative to the current working directory.

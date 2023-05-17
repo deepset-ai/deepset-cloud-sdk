@@ -20,11 +20,11 @@ def workspace_name() -> str:
 
 @pytest.mark.asyncio
 class TestUploadsFileService:
-    async def test_upload_folder(self, integration_config: CommonConfig, workspace_name: str) -> None:
+    async def test_upload(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
-            await file_service.upload_folder(
+            await file_service.upload(
                 workspace_name=workspace_name,
-                folder_path=Path("./tests/test_data/msmarco.10"),
+                paths=[Path("./tests/test_data/msmarco.10")],
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=120,
@@ -32,7 +32,7 @@ class TestUploadsFileService:
 
     async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
-            dc_files = [
+            files = [
                 DeepsetCloudFile("file1", "file1.txt", {"which": 1}),
                 DeepsetCloudFile("file2", "file2.txt", {"which": 2}),
                 DeepsetCloudFile("file3", "file3.txt", {"which": 3}),
@@ -41,7 +41,7 @@ class TestUploadsFileService:
             ]
             await file_service.upload_texts(
                 workspace_name=workspace_name,
-                dc_files=dc_files,
+                files=files,
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=120,

@@ -8,16 +8,12 @@ from tabulate import tabulate
 from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
 from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
-from deepset_cloud_sdk.workflows.sync_client.files import (
-    upload_file_paths,
-    upload_folder,
-)
+from deepset_cloud_sdk.workflows.sync_client.files import upload
 
 cli_app = typer.Typer(pretty_exceptions_show_locals=False)
 
 # cli commands
-cli_app.command()(upload_file_paths)
-cli_app.command()(upload_folder)
+cli_app.command()(upload)
 
 
 @cli_app.command()

@@ -264,18 +264,18 @@ class S3:
             return result_summary
 
     async def upload_texts(
-        self, upload_session: UploadSession, dc_files: List[DeepsetCloudFile], show_progress: bool = True
+        self, upload_session: UploadSession, files: List[DeepsetCloudFile], show_progress: bool = True
     ) -> S3UploadSummary:
         """Upload a set of texts to the prefixed S3 namespace given a list of paths.
 
         :param upload_session: UploadSession to associate the upload with.
-        :param dc_files: A list of DeepsetCloudFiles to upload.
+        :param files: A list of DeepsetCloudFiles to upload.
         :return: S3UploadSummary object.
         """
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
             tasks = []
 
-            for file in dc_files:
+            for file in files:
                 # raw data
                 file_name = file.name
                 tasks.append(self.upload_from_string(file_name, upload_session, file.text, client_session))

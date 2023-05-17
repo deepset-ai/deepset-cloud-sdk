@@ -14,8 +14,8 @@ from deepset_cloud_sdk.api.upload_sessions import WriteMode
 from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
 from deepset_cloud_sdk.workflows.async_client.files import (
     list_files,
+    upload,
     upload_file_paths,
-    upload_folder,
     upload_texts,
 )
 
@@ -39,15 +39,15 @@ class TestUploadFiles:
             show_progress=False,
         )
 
-    async def test_upload_folder(self, monkeypatch: MonkeyPatch) -> None:
-        mocked_upload_folder = AsyncMock(return_value=None)
+    async def test_upload(self, monkeypatch: MonkeyPatch) -> None:
+        mocked_upload = AsyncMock(return_value=None)
 
-        monkeypatch.setattr(FilesService, "upload_folder", mocked_upload_folder)
-        await upload_folder(folder_path=Path("./tests/data/upload_folder"))
+        monkeypatch.setattr(FilesService, "upload", mocked_upload)
+        await upload(paths=[Path("./tests/data/upload_folder")])
 
-        mocked_upload_folder.assert_called_once_with(
+        mocked_upload.assert_called_once_with(
             workspace_name=DEFAULT_WORKSPACE_NAME,
-            folder_path=Path("./tests/data/upload_folder"),
+            paths=[Path("./tests/data/upload_folder")],
             write_mode=WriteMode.KEEP,
             blocking=True,
             timeout_s=300,
@@ -57,18 +57,18 @@ class TestUploadFiles:
     async def test_upload_texts(self, monkeypatch: MonkeyPatch) -> None:
         mocked_upload_texts = AsyncMock(return_value=None)
         monkeypatch.setattr(FilesService, "upload_texts", mocked_upload_texts)
-        dc_files = [
+        files = [
             DeepsetCloudFile(
                 name="test_file.txt",
                 text="test content",
                 meta={"test": "test"},
             )
         ]
-        await upload_texts(dc_files=dc_files)
+        await upload_texts(files=files)
 
         mocked_upload_texts.assert_called_once_with(
             workspace_name=DEFAULT_WORKSPACE_NAME,
-            dc_files=dc_files,
+            files=files,
             write_mode=WriteMode.KEEP,
             blocking=True,
             timeout_s=300,

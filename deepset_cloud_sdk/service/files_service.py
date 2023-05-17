@@ -145,30 +145,59 @@ class FilesService:
                 timeout_s=timeout_s,
             )
 
-    async def upload_folder(
+    @staticmethod
+    def _get_file_paths(paths: List[Path], recursive: bool = False) -> List[Path]:
+        """Get all valid file paths from a list of paths.
+
+        Flatten a list of paths and return all valid file paths. If recursive is True, recursively walk through all
+        subfolders and return all files.
+
+        :param paths: List of paths to flatten.
+        :param recursive: If True, recursively walk through all subfolders and return all files.
+        """
+        file_paths = []
+        for path in paths:
+            if os.path.isfile(path):
+                file_paths.append(path)
+            elif os.path.isdir(path):
+                if recursive:
+                    for root, _, files in os.walk(path):
+                        for file in files:
+                            file_paths.append(Path(os.path.join(root, file)))
+                else:
+                    for file in os.listdir(path):
+                        file_path = os.path.join(path, file)
+                        if os.path.isfile(file_path):
+                            file_paths.append(Path(file_path))
+        return file_paths
+
+    async def upload(
         self,
         workspace_name: str,
-        folder_path: Path,
+        paths: List[Path],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: int = 300,
         show_progress: bool = True,
+        recursive: bool = False,
     ) -> None:
-        """Upload a folder to a workspace.
+        """Upload a list of file or folder paths to a workspace.
 
-        Upload a folder to a selected workspace using upload sessions. If blocking is True, the function waits until
+        Upload files to a selected workspace using upload sessions. If blocking is True, the function waits until
         all files are uploaded and listed by deepset Cloud. If blocking is False, the function returns immediately after
         the upload of the files is done. Note: It can take a while until the files are listed in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
-        :folder_path: Path to the folder to upload.
+        :paths: Path to the folder to upload.
         :blocking: If True, blocks until the ingestion is finished.
         :timeout_s: Timeout in seconds for the blocking ingestion.
         :show_progress If True, shows a progress bar for S3 uploads
+        :recursive: If True, recursively upload all files in the folder.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         logger.info("Getting valid files from file path. This may take up to a minute.")
-        all_files = [path for path in folder_path.glob("**/*")]
+
+        all_files = self._get_file_paths(paths, recursive=recursive)
 
         file_paths = [
             path
@@ -178,7 +207,7 @@ class FilesService:
         if len(file_paths) < len(all_files):
             logger.warning(
                 "Skipping files with unsupported file format.",
-                folder_path=folder_path,
+                paths=paths,
                 skipped_files=len(all_files) - len(file_paths),
             )
 
@@ -194,7 +223,7 @@ class FilesService:
     async def upload_texts(
         self,
         workspace_name: str,
-        dc_files: List[DeepsetCloudFile],
+        files: List[DeepsetCloudFile],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: int = 300,
@@ -211,7 +240,7 @@ class FilesService:
         Note: It can take a while until the files are listed in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
-        :dc_files: List of DeepsetCloudFiles to upload.
+        :files: List of DeepsetCloudFiles to upload.
         :blocking: If True, blocks until the ingestion is finished.
         :timeout_s: Timeout in seconds for the blocking ingestion.
         :show_progress If True, shows a progress bar for S3 uploads
@@ -220,7 +249,7 @@ class FilesService:
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
             upload_summary = await self._s3.upload_texts(
-                upload_session=upload_session, dc_files=dc_files, show_progress=show_progress
+                upload_session=upload_session, files=files, show_progress=show_progress
             )
 
             logger.info(
@@ -234,7 +263,7 @@ class FilesService:
             await self._wait_for_finished(
                 workspace_name=workspace_name,
                 session_id=upload_session.session_id,
-                total_files=len(dc_files),
+                total_files=len(files),
                 timeout_s=timeout_s,
             )
 
