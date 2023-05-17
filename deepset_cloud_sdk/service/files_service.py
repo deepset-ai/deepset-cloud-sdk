@@ -10,6 +10,7 @@ from typing import AsyncGenerator, List, Optional
 from uuid import UUID
 
 import structlog
+from tqdm import tqdm
 
 from deepset_cloud_sdk.api.config import CommonConfig
 from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
@@ -55,9 +56,15 @@ class FilesService:
 
             yield cls(upload_sessions_api, files_api, S3(concurrency=30))
 
-    async def _wait_for_finished(self, workspace_name: str, session_id: UUID, total_files: int, timeout_s: int) -> None:
+    async def _wait_for_finished(
+        self, workspace_name: str, session_id: UUID, total_files: int, timeout_s: int, show_progress: bool = True
+    ) -> None:
         start = time.time()
         ingested_files = 0
+        pbar = None
+        if show_progress:
+            pbar = tqdm(total=total_files, desc="Ingestion Progress")
+
         while ingested_files < total_files:
             if time.time() - start > timeout_s:
                 raise TimeoutError("Ingestion timed out.")
@@ -69,17 +76,27 @@ class FilesService:
                 upload_session_status.ingestion_status.finished_files
                 + upload_session_status.ingestion_status.failed_files
             )
-            logger.info(
-                "Waiting for ingestion to finish.",
-                finished_files=upload_session_status.ingestion_status.finished_files,
-                failed_files=upload_session_status.ingestion_status.failed_files,
-                total_files=total_files,
-            )
+            if pbar is not None:
+                pbar.update(ingested_files - pbar.n)
+            else:
+                logger.info(
+                    "Waiting for ingestion to finish.",
+                    finished_files=upload_session_status.ingestion_status.finished_files,
+                    failed_files=upload_session_status.ingestion_status.failed_files,
+                    total_files=total_files,
+                )
             await asyncio.sleep(2)
+
+        if pbar is not None:
+            pbar.close()
+
         logger.info(
             "Uploaded all files.",
             total_files=total_files,
             failed_files=upload_session_status.ingestion_status.failed_files,
+        )
+        logger.warning(
+            "Listing the files in deepset Cloud can still take up to 3 minutes after marking them as finished."
         )
 
     @asynccontextmanager
@@ -143,6 +160,7 @@ class FilesService:
                 session_id=upload_session.session_id,
                 total_files=total_files,
                 timeout_s=timeout_s,
+                show_progress=show_progress,
             )
 
     @staticmethod
@@ -265,6 +283,7 @@ class FilesService:
                 session_id=upload_session.session_id,
                 total_files=len(files),
                 timeout_s=timeout_s,
+                show_progress=show_progress,
             )
 
     async def list_all(
