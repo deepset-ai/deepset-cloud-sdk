@@ -98,9 +98,8 @@ class TestUploadsS3:
             assert len(results.failed) == 0
 
         async def test_upload_files_from_path_http_error(self, upload_session_response: UploadSession) -> None:
-            with patch.object(
-                aiohttp.ClientSession, "post", side_effect=HTTPError("https://error.com", 503, "test error", "", None)  # type: ignore
-            ):
+            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock, status=503)  # type: ignore
+            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):  # type: ignore
                 s3 = S3()
 
                 files = [
@@ -127,9 +126,8 @@ class TestUploadsS3:
                 ]
 
         async def test_upload_texts_http_error(self, upload_session_response: UploadSession) -> None:
-            with patch.object(
-                aiohttp.ClientSession, "post", side_effect=HTTPError("https://error.com", 503, "test error", "", None)  # type: ignore
-            ):
+            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock, status=503)  # type: ignore
+            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):  # type: ignore
                 s3 = S3()
 
                 files = [
@@ -150,9 +148,8 @@ class TestUploadsS3:
                 ]
 
         async def test_upload_texts_with_metadata_http_error(self, upload_session_response: UploadSession) -> None:
-            with patch.object(
-                aiohttp.ClientSession, "post", side_effect=HTTPError("https://error.com", 503, "test error", "", None)  # type: ignore
-            ):
+            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock, status=503)  # type: ignore
+            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):  # type: ignore
                 s3 = S3()
 
                 files = [
