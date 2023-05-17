@@ -28,7 +28,10 @@ logger = structlog.get_logger(__name__)
 
 
 class RetryableHttpError(Exception):
+    """An error that indicates a function should be retried."""
+
     def __init__(self, error: aiohttp.ClientResponseError):
+        """Store the original exception"""
         self.error = error
 
 
