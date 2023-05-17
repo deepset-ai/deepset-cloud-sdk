@@ -248,7 +248,17 @@ class FilesService:
         """
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
-            await self._s3.upload_texts(upload_session=upload_session, files=files, show_progress=show_progress)
+
+            upload_summary = await self._s3.upload_texts(
+                upload_session=upload_session, files=files, show_progress=show_progress
+            )
+
+            logger.info(
+                "Summary of S3 Uploads",
+                successful_uploads=upload_summary.successful_upload_count,
+                failed_uploads=upload_summary.failed_upload_count,
+                failed=upload_summary.failed,
+            )
 
         if blocking:
             await self._wait_for_finished(
