@@ -88,7 +88,7 @@ class TestUploadsFileService:
                 )
 
     class TestUpload:
-        async def test_upload_paths(
+        async def test_upload_paths_to_folder(
             self,
             file_service: FilesService,
             monkeypatch: MonkeyPatch,
@@ -137,6 +137,25 @@ class TestUploadsFileService:
                 Path("tests/data/upload_folder_nested/example.txt")
                 in mocked_upload_file_paths.call_args[1]["file_paths"]
             )
+
+        async def test_upload_paths_to_file(
+            self,
+            file_service: FilesService,
+            monkeypatch: MonkeyPatch,
+        ) -> None:
+            mocked_upload_file_paths = AsyncMock(return_value=None)
+            monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+            await file_service.upload(
+                workspace_name="test_workspace",
+                paths=[Path("./tests/data/upload_folder/example.txt")],
+                blocking=True,
+                timeout_s=300,
+                recursive=True,
+            )
+            assert mocked_upload_file_paths.called
+            assert len(mocked_upload_file_paths.call_args[1]["file_paths"]) == 1
+
+            assert Path("tests/data/upload_folder/example.txt") in mocked_upload_file_paths.call_args[1]["file_paths"]
 
     class TestUploadTexts:
         async def test_upload_texts(

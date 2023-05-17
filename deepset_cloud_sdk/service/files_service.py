@@ -147,13 +147,21 @@ class FilesService:
 
     @staticmethod
     def _get_file_paths(paths: List[Path], recursive: bool = False) -> List[Path]:
+        """Get all valid file paths from a list of paths.
+
+        Flatten a list of paths and return all valid file paths. If recursive is True, recursively walk through all
+        subfolders and return all files.
+
+        :param paths: List of paths to flatten.
+        :param recursive: If True, recursively walk through all subfolders and return all files.
+        """
         file_paths = []
         for path in paths:
             if os.path.isfile(path):
                 file_paths.append(path)
             elif os.path.isdir(path):
                 if recursive:
-                    for root, dirs, files in os.walk(path):
+                    for root, _, files in os.walk(path):
                         for file in files:
                             file_paths.append(Path(os.path.join(root, file)))
                 else:
