@@ -9,6 +9,7 @@ from typing import Any, Coroutine, List, Optional
 from urllib.error import HTTPError
 from urllib.parse import quote
 
+import aiofiles
 import aiohttp
 import structlog
 from tenacity import (
@@ -146,10 +147,11 @@ class S3:
         :return: S3UploadResult object.
         """
         async with self.semaphore:
-            with open(file_path, "rb") as file:
+            async with aiofiles.open(file_path, "rb") as file:
                 file_name = os.path.basename(file_path)
+                content = await file.read()
                 try:
-                    await self._upload_file_with_retries(file_name, upload_session, file, client_session)
+                    await self._upload_file_with_retries(file_name, upload_session, content, client_session)
                     return S3UploadResult(file_name=file_name, success=True)
                 except RetryError:
                     logger.warn(
