@@ -248,7 +248,6 @@ class FilesService:
         """
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
-
             upload_summary = await self._s3.upload_texts(
                 upload_session=upload_session, files=files, show_progress=show_progress
             )
