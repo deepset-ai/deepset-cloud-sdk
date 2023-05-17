@@ -75,7 +75,7 @@ class FilesService:
                 failed_files=upload_session_status.ingestion_status.failed_files,
                 total_files=total_files,
             )
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
 
     @asynccontextmanager
     async def _create_upload_session(
@@ -214,15 +214,17 @@ class FilesService:
         """
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
-            await self._s3.upload_texts(upload_session=upload_session, dc_files=dc_files, show_progress=show_progress)
-
-        if blocking:
-            await self._wait_for_finished(
-                workspace_name=workspace_name,
-                session_id=upload_session.session_id,
-                total_files=len(dc_files),
-                timeout_s=timeout_s,
+            summary = await self._s3.upload_texts(
+                upload_session=upload_session, dc_files=dc_files, show_progress=show_progress
             )
+
+            if blocking:
+                await self._wait_for_finished(
+                    workspace_name=workspace_name,
+                    session_id=upload_session.session_id,
+                    total_files=len(dc_files),
+                    timeout_s=timeout_s,
+                )
 
     async def list_all(
         self,

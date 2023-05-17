@@ -4,9 +4,9 @@ import json
 import os
 import re
 from dataclasses import dataclass
+from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Coroutine, List, Optional
-from urllib.error import HTTPError
 from urllib.parse import quote
 
 import aiofiles
@@ -25,6 +25,11 @@ from deepset_cloud_sdk.api.upload_sessions import UploadSession
 from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
+
+
+class RetryableHttpError(Exception):
+    def __init__(self, error: aiohttp.ClientResponseError):
+        self.error = error
 
 
 @dataclass
@@ -103,19 +108,21 @@ class S3:
                 "For example: 'file1.txt' and 'file1.txt.meta.json'."
             )
 
-    @retry(retry=retry_if_exception_type(HTTPError), stop=stop_after_attempt(3), wait=wait_fixed(0.5))  # type: ignore
+    @retry(retry=retry_if_exception_type(RetryableHttpError), stop=stop_after_attempt(3), wait=wait_fixed(0.5), reraise=True)  # type: ignore
     async def _upload_file_with_retries(
         self,
         file_name: str,
         upload_session: UploadSession,
         content: Any,
         client_session: aiohttp.ClientSession,
+        content_length: Optional[int] = None,
     ) -> aiohttp.ClientResponse:
         """Upload a file to the prefixed S3 namespace.
 
         :param file_path: The path to upload from.
         :param upload_session: UploadSession to associate the upload with.
         :param client_session: The aiohttp ClientSession to use for this request.
+        :param headers: The headers for the request
         :return: ClientResponse object.
         """
         aws_safe_name = make_safe_file_name(file_name)
@@ -125,13 +132,24 @@ class S3:
         for key in aws_config.fields:
             file_data.add_field(key, aws_config.fields[key])
         file_data.add_field("file", content, filename=aws_safe_name, content_type="text/plain")
+
         async with client_session.post(
             aws_config.url,
             data=file_data,
         ) as response:
-            response.raise_for_status()
-
-        return response
+            try:
+                response.raise_for_status()
+                return response
+            except aiohttp.ClientResponseError as e:
+                if e.status in [
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    HTTPStatus.BAD_GATEWAY,
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                    HTTPStatus.GATEWAY_TIMEOUT,
+                    HTTPStatus.REQUEST_TIMEOUT,
+                ]:
+                    raise RetryableHttpError(e)
+                raise
 
     async def upload_from_file(
         self,
@@ -153,7 +171,7 @@ class S3:
                 try:
                     await self._upload_file_with_retries(file_name, upload_session, content, client_session)
                     return S3UploadResult(file_name=file_name, success=True)
-                except RetryError:
+                except:
                     logger.warn(
                         "Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id
                     )
@@ -177,7 +195,7 @@ class S3:
         try:
             await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
-        except RetryError:
+        except:
             logger.warn("Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id)
             return S3UploadResult(file_name=file_name, success=False)
 
@@ -216,6 +234,8 @@ class S3:
             failed=failed,
             total_files=len(tasks),
         )
+        if result_summary.successful_upload_count == 0:
+            logger.error("Could not upload any files to S3.")
 
         return result_summary
 
@@ -229,7 +249,7 @@ class S3:
         :return: S3UploadSummary object.
         """
         # validate file paths
-        await self.validate_file_paths(file_paths)
+        # await self.validate_file_paths(file_paths)
 
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
             tasks = []
