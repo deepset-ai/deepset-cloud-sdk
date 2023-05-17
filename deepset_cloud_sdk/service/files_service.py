@@ -75,7 +75,12 @@ class FilesService:
                 failed_files=upload_session_status.ingestion_status.failed_files,
                 total_files=total_files,
             )
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
+        logger.info(
+            "Uploaded all files.",
+            total_files=total_files,
+            failed_files=upload_session_status.ingestion_status.failed_files,
+        )
 
     @asynccontextmanager
     async def _create_upload_session(
