@@ -249,7 +249,7 @@ class S3:
         :return: S3UploadSummary object.
         """
         # validate file paths
-        # await self.validate_file_paths(file_paths)
+        await self.validate_file_paths(file_paths)
 
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
             tasks = []
