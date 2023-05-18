@@ -101,24 +101,23 @@ class S3:
         for key in aws_config.fields:
             file_data.add_field(key, aws_config.fields[key])
         file_data.add_field("file", content, filename=aws_safe_name, content_type="text/plain")
-
-        async with client_session.post(
-            aws_config.url,
-            data=file_data,
-        ) as response:
-            try:
+        try:
+            async with client_session.post(
+                aws_config.url,
+                data=file_data,
+            ) as response:
                 response.raise_for_status()
                 return response
-            except aiohttp.ClientResponseError as e:
-                if e.status in [
-                    HTTPStatus.INTERNAL_SERVER_ERROR,
-                    HTTPStatus.BAD_GATEWAY,
-                    HTTPStatus.SERVICE_UNAVAILABLE,
-                    HTTPStatus.GATEWAY_TIMEOUT,
-                    HTTPStatus.REQUEST_TIMEOUT,
-                ]:
-                    raise RetryableHttpError(e)
-                raise
+        except aiohttp.ClientResponseError as e:
+            if e.status in [
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                HTTPStatus.BAD_GATEWAY,
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                HTTPStatus.GATEWAY_TIMEOUT,
+                HTTPStatus.REQUEST_TIMEOUT,
+            ]:
+                raise RetryableHttpError(e)
+            raise
 
     async def upload_from_file(
         self,

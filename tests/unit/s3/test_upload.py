@@ -7,7 +7,7 @@ from tqdm.asyncio import tqdm
 
 from deepset_cloud_sdk.api.upload_sessions import UploadSession
 from deepset_cloud_sdk.models import DeepsetCloudFile
-from deepset_cloud_sdk.s3.upload import S3, make_safe_file_name
+from deepset_cloud_sdk.s3.upload import S3, RetryableHttpError, make_safe_file_name
 
 
 class TestUploadsS3:
@@ -168,3 +168,27 @@ class TestUploadsS3:
                     "three.txt",
                     "three.txt.meta.json",
                 ]
+
+        @pytest.mark.parametrize("status", [503, 502, 500, 504, 408])
+        @patch("aiohttp.ClientSession")
+        async def test_upload_file_retries_for_exception(
+            self, mock_session: Mock, upload_session_response: UploadSession, status: int
+        ) -> None:
+            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock, status=status)  # type: ignore
+            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):  # type: ignore
+                s3 = S3()
+
+                with pytest.raises(RetryableHttpError):
+                    await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
+
+        @pytest.mark.parametrize("status", [422, 501])
+        @patch("aiohttp.ClientSession")
+        async def test_upload_file_does_not_retry_for_exception(
+            self, mock_session: Mock, upload_session_response: UploadSession, status: int
+        ) -> None:
+            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock, status=status)  # type: ignore
+            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):  # type: ignore
+                s3 = S3()
+
+                with pytest.raises(aiohttp.ClientResponseError):
+                    await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
