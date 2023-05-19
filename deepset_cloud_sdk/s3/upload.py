@@ -59,7 +59,8 @@ def make_safe_file_name(file_name: str) -> str:
 
     :param str: The file name.
     :return str: The transformed string.
-    For character exclusions, see [Creating object key names](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html).
+    For character exclusions, see
+    [Creating object key names](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html).
     """
     transformed = re.sub(r"[\\\\#%\"'\|<>\{\}`\^\[\]~\x00-\x1F]", "_", file_name)
     return quote(transformed)
