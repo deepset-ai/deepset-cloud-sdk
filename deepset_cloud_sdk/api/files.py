@@ -7,9 +7,8 @@ deleting files.
 
 import datetime
 import inspect
-import time
 from dataclasses import dataclass
-from typing import Any, AsyncGenerator, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 import structlog

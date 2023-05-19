@@ -6,19 +6,13 @@ import re
 from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Coroutine, List, Optional
+from typing import Any, Coroutine, List
 from urllib.parse import quote
 
 import aiofiles
 import aiohttp
 import structlog
-from tenacity import (
-    RetryError,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_fixed,
-)
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from tqdm.asyncio import tqdm
 
 from deepset_cloud_sdk.api.upload_sessions import UploadSession
@@ -78,14 +72,18 @@ class S3:
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
 
-    @retry(retry=retry_if_exception_type(RetryableHttpError), stop=stop_after_attempt(3), wait=wait_fixed(0.5), reraise=True)  # type: ignore
+    @retry(
+        retry=retry_if_exception_type(RetryableHttpError),
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(0.5),
+        reraise=True,
+    )  # type: ignore
     async def _upload_file_with_retries(
         self,
         file_name: str,
         upload_session: UploadSession,
         content: Any,
         client_session: aiohttp.ClientSession,
-        content_length: Optional[int] = None,
     ) -> aiohttp.ClientResponse:
         """Upload a file to the prefixed S3 namespace.
 
@@ -109,15 +107,15 @@ class S3:
             ) as response:
                 response.raise_for_status()
                 return response
-        except aiohttp.ClientResponseError as e:
-            if e.status in [
+        except aiohttp.ClientResponseError as cre:
+            if cre.status in [
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 HTTPStatus.BAD_GATEWAY,
                 HTTPStatus.SERVICE_UNAVAILABLE,
                 HTTPStatus.GATEWAY_TIMEOUT,
                 HTTPStatus.REQUEST_TIMEOUT,
             ]:
-                raise RetryableHttpError(e)
+                raise RetryableHttpError(cre) from cre
             raise
 
     async def upload_from_file(
@@ -140,7 +138,7 @@ class S3:
                 try:
                     await self._upload_file_with_retries(file_name, upload_session, content, client_session)
                     return S3UploadResult(file_name=file_name, success=True)
-                except:
+                except:  # pylint: disable=bare-except
                     logger.warn(
                         "Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id
                     )
@@ -164,7 +162,7 @@ class S3:
         try:
             await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
-        except:
+        except:  # pylint: disable=bare-except
             logger.warn("Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id)
             return S3UploadResult(file_name=file_name, success=False)
 

@@ -102,6 +102,7 @@ lint = "pylint deepset_cloud_sdk"
 sort = "isort --check --profile black ."
 hooks = "pre-commit install"
 docstrings = "pydocstyle deepset_cloud_sdk"
+flake = "autoflake --remove-all-unused-imports --remove-duplicate-keys --remove-unused-variables -v -r ./deepset_cloud_sdk"
 
 [tool.hatch.envs.tools]
 detached = false

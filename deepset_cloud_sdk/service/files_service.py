@@ -19,7 +19,6 @@ from deepset_cloud_sdk.api.files import File, FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import (
     UploadSession,
     UploadSessionsAPI,
-    UploadSessionStatus,
     WriteMode,
 )
 from deepset_cloud_sdk.models import DeepsetCloudFile
