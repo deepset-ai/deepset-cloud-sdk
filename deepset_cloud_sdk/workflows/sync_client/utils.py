@@ -1,3 +1,4 @@
+"""Utils for making async code sync."""
 from asyncio import AbstractEventLoop
 from typing import AsyncIterator, Generator, Optional, Tuple, TypeVar
 
@@ -5,7 +6,7 @@ T = TypeVar("T")
 
 
 def iter_over_async(ait: AsyncIterator[T], loop: AbstractEventLoop) -> Generator[T, None, None]:
-    """Converts an async generator to a sync generator.
+    """Convert an async generator to a sync generator.
 
     :param ait: Async generator to convert.
     :param loop: Event loop to run the async generator on.
