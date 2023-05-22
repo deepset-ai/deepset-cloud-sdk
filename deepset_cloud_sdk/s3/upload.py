@@ -77,7 +77,7 @@ class S3:
         stop=stop_after_attempt(3),
         wait=wait_fixed(0.5),
         reraise=True,
-    )  # type: ignore
+    )
     async def _upload_file_with_retries(
         self,
         file_name: str,

@@ -174,7 +174,7 @@ class TestUploadsS3:
         async def test_upload_file_retries_for_exception(
             self, mock_session: Mock, upload_session_response: UploadSession, status: int
         ) -> None:
-            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock, status=status)  # type: ignore
+            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=status)
             with patch.object(aiohttp.ClientSession, "post", side_effect=exception):  # type: ignore
                 s3 = S3()
 

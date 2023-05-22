@@ -360,6 +360,7 @@ class TestValidateFilePaths:
     @pytest.mark.parametrize(
         "file_paths",
         [
+            [Path("/home/user/.DS_Store")],
             [Path("/home/user/file2.json")],
             [Path("/home/user/file1.md")],
             [Path("/home/user/file1.docx")],
@@ -371,3 +372,19 @@ class TestValidateFilePaths:
     async def test_validate_file_paths_with_broken_meta_field(self, file_paths: List[Path]) -> None:
         with pytest.raises(ValueError):
             FilesService._validate_file_paths(file_paths)
+
+
+class TestPreprocessFiles:
+    def test_show_progress_triggers_spinner_update(self) -> None:
+        mock_spinner = Mock()
+        mock_spinner.text = "initial"
+
+        FilesService._preprocess_paths([Path("tests/data/upload_folder/example.txt")], spinner=mock_spinner)
+
+        assert mock_spinner.text == "Validating files and metadata"
+
+    def test_no_spinner_does_not_cause_error(self) -> None:
+        try:
+            FilesService._preprocess_paths([Path("tests/data/upload_folder/example.txt")], spinner=None)
+        except Exception as e:
+            assert False, f"No error should have been thrown but got error of type '{type(e).__name__}'"

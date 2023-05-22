@@ -1,6 +1,6 @@
 import datetime
 from pathlib import Path
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, List
 from unittest.mock import AsyncMock
 from uuid import UUID
 
@@ -38,6 +38,28 @@ class TestUploadFiles:
             timeout_s=300,
             show_progress=False,
         )
+
+    async def test_upload_show_progress(self, monkeypatch: MonkeyPatch) -> None:
+        paths = [Path("./tests/data/example.txt")]
+        mocked_preprocess = AsyncMock(return_value=paths)
+        mocked_upload_file_paths = AsyncMock(return_value=None)
+        monkeypatch.setattr(FilesService, "_preprocess_paths", mocked_preprocess)
+        monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+
+        await upload(paths=paths, show_progress=True)
+
+        assert mocked_preprocess.call_args.kwargs.get("spinner") is not None
+
+    async def test_upload_dont_show_progress(self, monkeypatch: MonkeyPatch) -> None:
+        paths = [Path("./tests/data/example.txt")]
+        mocked_preprocess = AsyncMock(return_value=paths)
+        mocked_upload_file_paths = AsyncMock(return_value=None)
+        monkeypatch.setattr(FilesService, "_preprocess_paths", mocked_preprocess)
+        monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+
+        await upload(paths=paths, show_progress=False)
+
+        assert mocked_preprocess.call_args.kwargs.get("spinner") is None
 
     async def test_upload(self, monkeypatch: MonkeyPatch) -> None:
         mocked_upload = AsyncMock(return_value=None)
