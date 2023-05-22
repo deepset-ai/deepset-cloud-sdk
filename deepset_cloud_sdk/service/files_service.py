@@ -65,13 +65,14 @@ class FilesService:
         if show_progress:
             pbar = tqdm(total=total_files, desc="Ingestion Progress")
 
+        upload_session_status: UploadSessionStatus = await self._upload_sessions.status(
+            workspace_name=workspace_name, session_id=session_id
+        )
+
         while ingested_files < total_files:
             if time.time() - start > timeout_s:
                 raise TimeoutError("Ingestion timed out.")
 
-            upload_session_status: UploadSessionStatus = await self._upload_sessions.status(
-                workspace_name=workspace_name, session_id=session_id
-            )
             ingested_files = (
                 upload_session_status.ingestion_status.finished_files
                 + upload_session_status.ingestion_status.failed_files
