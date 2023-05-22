@@ -5,6 +5,7 @@ import asyncio
 import os
 import time
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional
 from uuid import UUID
@@ -17,6 +18,7 @@ from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.api.files import File, FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import (
     UploadSession,
+    UploadSessionIngestionStatus,
     UploadSessionsAPI,
     UploadSessionStatus,
     WriteMode,
@@ -65,8 +67,15 @@ class FilesService:
         if show_progress:
             pbar = tqdm(total=total_files, desc="Ingestion Progress")
 
-        upload_session_status: UploadSessionStatus = await self._upload_sessions.status(
-            workspace_name=workspace_name, session_id=session_id
+        # emtpy upload session status
+        upload_session_status: UploadSessionStatus = UploadSessionStatus(
+            session_id=session_id,
+            documentation_url="",
+            expires_at=datetime.now(),
+            ingestion_status=UploadSessionIngestionStatus(
+                failed_files=0,
+                finished_files=0,
+            ),
         )
 
         while ingested_files < total_files:
