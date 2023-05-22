@@ -54,7 +54,7 @@ tests-unit = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov
 tests-integration = "pytest tests/integration"
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.10"]
+python = ["3.8"]
 
 [tool.hatch.envs.default]
 dependencies = [
@@ -79,11 +79,12 @@ dependencies = [
 
 
 [tool.hatch.envs.code-quality]
+python = "3.8"
 template='default'
 detached = false
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
 dependencies = [
-  "pylint==2.15.2",
+  "pylint==2.17.4",
   "pydocstyle==6.3.0",
   "black==23.3.0",
   "isort==5.12.0",
@@ -100,6 +101,7 @@ format = "black deepset_cloud_sdk tests --check"
 format-fix = "black deepset_cloud_sdk tests"
 lint = "pylint deepset_cloud_sdk"
 sort = "isort --check --profile black ."
+sort-fix = "isort --profile black ."
 hooks = "pre-commit install"
 docstrings = "pydocstyle deepset_cloud_sdk"
 flake = "autoflake --remove-all-unused-imports --remove-duplicate-keys --remove-unused-variables -v -r ./deepset_cloud_sdk"
@@ -132,7 +134,7 @@ exclude_lines = [
 line-length = 120
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
