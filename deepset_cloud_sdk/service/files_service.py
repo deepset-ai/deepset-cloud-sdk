@@ -5,22 +5,20 @@ import asyncio
 import os
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional
 from uuid import UUID
 
 import structlog
 from tqdm import tqdm
+from yaspin import yaspin
 
 from deepset_cloud_sdk.api.config import CommonConfig
 from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.api.files import File, FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import (
     UploadSession,
-    UploadSessionIngestionStatus,
     UploadSessionsAPI,
-    UploadSessionStatus,
     WriteMode,
 )
 from deepset_cloud_sdk.models import DeepsetCloudFile
@@ -67,24 +65,13 @@ class FilesService:
         if show_progress:
             pbar = tqdm(total=total_files, desc="Ingestion Progress")
 
-        # emtpy upload session status
-        upload_session_status: UploadSessionStatus = UploadSessionStatus(
-            session_id=session_id,
-            documentation_url="",
-            expires_at=datetime.now(),
-            ingestion_status=UploadSessionIngestionStatus(
-                failed_files=0,
-                finished_files=0,
-            ),
-        )
-
         while ingested_files < total_files:
             if time.time() - start > timeout_s:
                 raise TimeoutError("Ingestion timed out.")
+
             upload_session_status = await self._upload_sessions.status(
                 workspace_name=workspace_name, session_id=session_id
             )
-
             ingested_files = (
                 upload_session_status.ingestion_status.finished_files
                 + upload_session_status.ingestion_status.failed_files
@@ -103,11 +90,13 @@ class FilesService:
         if pbar is not None:
             pbar.close()
 
-        logger.info(
-            "Uploaded all files.",
-            total_files=total_files,
-            failed_files=upload_session_status.ingestion_status.failed_files,
-        )
+        if total_files > 0:
+            logger.info(
+                "Uploaded all files.",
+                total_files=total_files,
+                failed_files=upload_session_status.ingestion_status.failed_files,
+            )
+
         logger.warning(
             "Listing the files in deepset Cloud can still take up to 3 minutes after marking them as finished."
         )
@@ -188,18 +177,76 @@ class FilesService:
         """
         file_paths = []
         for path in paths:
-            if os.path.isfile(path):
+            if path.is_file():
                 file_paths.append(path)
-            elif os.path.isdir(path):
-                if recursive:
-                    for root, _, files in os.walk(path):
-                        for file in files:
-                            file_paths.append(Path(os.path.join(root, file)))
-                else:
-                    for file in os.listdir(path):
-                        file_path = os.path.join(path, file)
-                        if os.path.isfile(file_path):
-                            file_paths.append(Path(file_path))
+            elif recursive:
+                file_paths.extend([file_path for file_path in path.rglob("*")])
+            else:
+                file_paths.extend([file_path for file_path in path.glob("*")])
+        return file_paths
+
+    @staticmethod
+    def _validate_file_paths(file_paths: List[Path]) -> None:
+        """Validate a list of file paths.
+
+        This method validates the file paths and raises a ValueError if the file paths are invalid.
+        It also validates if there are meta files mapped to not existing raw files.
+
+        :param file_paths: A list of paths to upload.
+        :raises ValueError: If the file paths are invalid.
+        """
+        logger.info("Validating file paths and metadata")
+        allowed_suffixes = {".txt", ".json", ".pdf"}
+        for file_path in file_paths:
+            if not file_path.suffix.lower() in allowed_suffixes:
+                raise ValueError(f"Invalid file extension: {file_path.suffix}")
+            if file_path.suffix.lower() == ".json" and not str(file_path).endswith(".meta.json"):
+                raise ValueError(
+                    f"JSON files are only supported for meta files. Please make sure to name your files '<file_name>.meta.json'. Got {file_path.name}."
+                )
+        meta_file_names = list(
+            map(
+                lambda fp: os.path.basename(fp),
+                [file_path for file_path in file_paths if file_path.suffix.lower() == ".json"],
+            )
+        )
+        file_names = list(map(lambda fp: os.path.basename(fp), file_paths))
+        file_name_set = set(filter(lambda fn: not fn.endswith(".meta.json"), file_names))
+
+        not_mapped_meta_files = [
+            meta_file_name
+            for meta_file_name in meta_file_names
+            if not (meta_file_name.split(".meta.json")[0]) in file_name_set
+        ]
+
+        if len(not_mapped_meta_files) > 0:
+            raise ValueError(
+                f"Meta files without corresponding text files found: {not_mapped_meta_files}. "
+                "Please make sure that for each meta file there is a corresponding text file."
+                "The mapping needs to be done via file name '<file_name>' and '<file_name>.meta.json'. "
+                "For example: 'file1.txt' and 'file1.txt.meta.json'."
+            )
+
+    @staticmethod
+    def _preprocess_paths(paths: List[Path], spinner: yaspin.Spinner = None, recursive: bool = False) -> List[Path]:
+        all_files = FilesService._get_file_paths(paths, recursive=recursive)
+        file_paths = [
+            path
+            for path in all_files
+            if path.is_file() and ((path.suffix in [".txt", ".pdf"]) or path.name.endswith("meta.json"))
+        ]
+
+        if len(file_paths) < len(all_files):
+            logger.warning(
+                "Skipping files with unsupported file format.",
+                paths=paths,
+                skipped_files=len(all_files) - len(file_paths),
+            )
+
+        if spinner is not None:
+            spinner.text = "Validating files and metadata"
+        FilesService._validate_file_paths(file_paths)
+
         return file_paths
 
     async def upload(
@@ -226,21 +273,15 @@ class FilesService:
         :recursive: If True, recursively upload all files in the folder.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
-        logger.info("Getting valid files from file path. This may take up to a minute.")
+        logger.info("Getting valid files from file path. This may take a few minutes.", recursive=recursive)
+        file_paths = []
 
-        all_files = self._get_file_paths(paths, recursive=recursive)
-
-        file_paths = [
-            path
-            for path in all_files
-            if path.is_file() and ((path.suffix in [".txt", ".pdf"]) or path.name.endswith("meta.json"))
-        ]
-        if len(file_paths) < len(all_files):
-            logger.warning(
-                "Skipping files with unsupported file format.",
-                paths=paths,
-                skipped_files=len(all_files) - len(file_paths),
-            )
+        if show_progress:
+            with yaspin().arc as sp:
+                sp.text = "Finding uploadable files in the given paths"
+                file_paths = self._preprocess_paths(paths, spinner=sp, recursive=recursive)
+        else:
+            file_paths = self._preprocess_paths(paths, recursive=recursive)
 
         await self.upload_file_paths(
             workspace_name=workspace_name,

@@ -93,6 +93,7 @@ async def upload(
     blocking: bool = True,
     timeout_s: int = 300,
     show_progress: bool = True,
+    recursive: bool = False,
 ) -> None:
     """Upload a folder to deepset Cloud.
 
@@ -111,6 +112,7 @@ async def upload(
             blocking=blocking,
             timeout_s=timeout_s,
             show_progress=show_progress,
+            recursive=recursive,
         )
 
 
