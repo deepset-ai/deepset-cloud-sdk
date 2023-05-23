@@ -3,7 +3,7 @@
 import datetime
 import enum
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Dict, List
 from uuid import UUID
 
 import structlog

@@ -48,6 +48,7 @@ def test_upload_folder(async_upload_mock: AsyncMock) -> None:
         blocking=True,
         timeout_s=300,
         show_progress=True,
+        recursive=False,
     )
 
 

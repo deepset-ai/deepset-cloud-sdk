@@ -18,6 +18,8 @@ upload(
     paths=[Path("./examples/data")],
     blocking=True,  # optional, by default True
     timeout_s=300,  # optional, by default 300
+    show_progress=True,  # optional, by default True
+    recursive=False,  # optional, by default False
 )
 
 
