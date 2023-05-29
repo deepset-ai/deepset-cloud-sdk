@@ -16,7 +16,7 @@ logger = structlog.get_logger(__name__)
 
 
 @dataclass
-class AWSPrefixedRequesetConfig:
+class AWSPrefixedRequestConfig:
     """AWS prefixed request config.
 
     This prefixed request config can be used to send authenticated requests to AWS S3.
@@ -33,7 +33,7 @@ class UploadSession:
     session_id: UUID
     documentation_url: str
     expires_at: datetime.datetime
-    aws_prefixed_request_config: AWSPrefixedRequesetConfig
+    aws_prefixed_request_config: AWSPrefixedRequestConfig
 
 
 class UploadSessionWriteModeEnum(str, enum.Enum):
@@ -146,7 +146,7 @@ class UploadSessionsAPI:
             session_id=UUID(response_body["session_id"]),
             documentation_url=response_body["documentation_url"],
             expires_at=datetime.datetime.fromisoformat(response_body["expires_at"]),
-            aws_prefixed_request_config=AWSPrefixedRequesetConfig(
+            aws_prefixed_request_config=AWSPrefixedRequestConfig(
                 fields=response_body["aws_prefixed_request_config"]["fields"],
                 url=response_body["aws_prefixed_request_config"]["url"],
             ),

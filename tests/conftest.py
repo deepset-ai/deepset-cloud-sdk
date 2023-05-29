@@ -12,7 +12,7 @@ from deepset_cloud_sdk.api.config import CommonConfig
 from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.api.files import FilesAPI
 from deepset_cloud_sdk.api.upload_sessions import (
-    AWSPrefixedRequesetConfig,
+    AWSPrefixedRequestConfig,
     UploadSession,
     UploadSessionsAPI,
 )
@@ -77,5 +77,5 @@ def upload_session_response() -> UploadSession:
         session_id=uuid4(),
         documentation_url="Documentation URL",
         expires_at=datetime.datetime.now(),
-        aws_prefixed_request_config=AWSPrefixedRequesetConfig(url="uploadURL", fields={"key": "value"}),
+        aws_prefixed_request_config=AWSPrefixedRequestConfig(url="uploadURL", fields={"key": "value"}),
     )
