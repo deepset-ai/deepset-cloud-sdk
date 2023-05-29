@@ -70,7 +70,8 @@ def upload(
 ) -> None:
     """Upload a folder to deepset Cloud.
 
-    :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped. deepset Cloud supports TXT and PDF files.
+    :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped.
+    deepset Cloud supports TXT and PDF files.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.

@@ -97,7 +97,8 @@ async def upload(
 ) -> None:
     """Upload a folder to deepset Cloud.
 
-    :param paths: Path to the folder to upload. If the folder contains unsupported files, they're skipped during the upload. Supported file formats are TXT and PDF.
+    :param paths: Path to the folder to upload. If the folder contains unsupported files, they're skipped
+    during the upload. Supported file formats are TXT and PDF.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
@@ -132,7 +133,8 @@ async def upload_texts(
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
-    :param blocking: Whether to wait for the files to be listed and displayed in deepset Cloud. This may take a couple of minutes.
+    :param blocking: Whether to wait for the files to be listed and displayed in deepset Cloud.
+    This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
