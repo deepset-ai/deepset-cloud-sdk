@@ -47,7 +47,7 @@ class FilesService:
         """Create a new instance of the service.
 
         :param config: CommonConfig object.
-        :param client: httpx client.
+        :param client: HTTPX client.
         :return: New instance of the service.
         """
         async with DeepsetCloudAPI.factory(config) as deepset_cloud_api:
@@ -98,7 +98,7 @@ class FilesService:
             )
 
         logger.warning(
-            "Listing the files in deepset Cloud can still take up to 3 minutes after marking them as finished."
+            "It may take up to three minutes for the files to be visible in deepset Cloud after they were marked as finished."
         )
 
     @asynccontextmanager
@@ -110,7 +110,7 @@ class FilesService:
         """Create a new upload session.
 
         :param workspace_name: Name of the workspace to create the upload session for.
-        :return: Upload session id.
+        :return: Upload session ID.
         """
         upload_session = await self._upload_sessions.create(workspace_name=workspace_name, write_mode=write_mode)
         try:
@@ -129,15 +129,16 @@ class FilesService:
     ) -> None:
         """Upload a list of files to a workspace.
 
-        Upload a list of files  to a selected workspace using upload sessions. If blocking is True, the function waits until
-        all files are uploaded and listed by deepset Cloud. If blocking is False, the function returns immediately after
-        the upload of the files is done. Note: It can take a while until the files are listed in deepset Cloud.
+        Upload a list of files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset Cloud.
+        Listing the files in deepset Cloud may take a couple of minutes. Use the `blocking` parameter to control if you want to wait until the files are listed and displayed in deepset Cloud.
+        If blocking is set to `True`, the function waits until all files are visible in deepset Cloud. If blocking is set to `False`, the function returns immediately after
+        the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :file_paths: List of file paths to upload.
-        :blocking: If True, blocks until the ingestion is finished.
-        :timeout_s: Timeout in seconds for the blocking ingestion.
-        :show_progress If True, shows a progress bar for S3 uploads
+        :blocking: If True, waits until the ingestion is finished and the files are visible in deepset Cloud.
+        :timeout_s: Timeout in seconds for the `blocking` parameter.
+        :show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         # create session to upload files to
@@ -190,19 +191,21 @@ class FilesService:
         """Validate a list of file paths.
 
         This method validates the file paths and raises a ValueError if the file paths are invalid.
-        It also validates if there are meta files mapped to not existing raw files.
+        It also validates if there are metadata files mapped to not existing raw files.
 
         :param file_paths: A list of paths to upload.
         :raises ValueError: If the file paths are invalid.
         """
-        logger.info("Validating file paths and metadata")
+        logger.info("Validating file paths and metadata.")
         allowed_suffixes = {".txt", ".json", ".pdf"}
         for file_path in file_paths:
             if not file_path.suffix.lower() in allowed_suffixes:
-                raise ValueError(f"Invalid file extension: {file_path.suffix}")
+                raise ValueError(
+                    f"Invalid file extension: {file_path.suffix}. You can upload TXT and PDF files. Metadata files should have the `.meta.json` extension."
+                )
             if file_path.suffix.lower() == ".json" and not str(file_path).endswith(".meta.json"):
                 raise ValueError(
-                    f"JSON files are only supported for meta files. Please make sure to name your files '<file_name>.meta.json'. Got {file_path.name}."
+                    f"JSON files are only supported for metadata files. Make sure you follow this naming format for your metadata files: '<file_name>.meta.json'. Got {file_path.name}."
                 )
         meta_file_names = list(
             map(
@@ -221,9 +224,9 @@ class FilesService:
 
         if len(not_mapped_meta_files) > 0:
             raise ValueError(
-                f"Meta files without corresponding text files found: {not_mapped_meta_files}. "
-                "Please make sure that for each meta file there is a corresponding text file."
-                "The mapping needs to be done via file name '<file_name>' and '<file_name>.meta.json'. "
+                f"Metadata files without corresponding text files were found: {not_mapped_meta_files}. "
+                "Make sure each metadata file has a corresponding text or PDF file."
+                "Map the files using file names like this: '<file_name>' and '<file_name>.meta.json'. "
                 "For example: 'file1.txt' and 'file1.txt.meta.json'."
             )
 
@@ -244,7 +247,7 @@ class FilesService:
             )
 
         if spinner is not None:
-            spinner.text = "Validating files and metadata"
+            spinner.text = "Validating files and metadata."
         FilesService._validate_file_paths(file_paths)
 
         return file_paths
@@ -261,16 +264,17 @@ class FilesService:
     ) -> None:
         """Upload a list of file or folder paths to a workspace.
 
-        Upload files to a selected workspace using upload sessions. If blocking is True, the function waits until
-        all files are uploaded and listed by deepset Cloud. If blocking is False, the function returns immediately after
-        the upload of the files is done. Note: It can take a while until the files are listed in deepset Cloud.
+        Upload files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset Cloud.
+        Listing the files in deepset Cloud may take a couple of minutes. Use the `blocking` parameter to control if you want to wait until the files are listed and displayed in deepset Cloud.
+        If blocking is set to `True`, the function waits until all files are visible in deepset Cloud. If blocking is set to `False`, the function returns immediately after
+        the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :paths: Path to the folder to upload.
-        :blocking: If True, blocks until the ingestion is finished.
-        :timeout_s: Timeout in seconds for the blocking ingestion.
-        :show_progress If True, shows a progress bar for S3 uploads
-        :recursive: If True, recursively upload all files in the folder.
+        :blocking: If True, waits until the ingestion to S3 is finished and the files are visible in deepset Cloud.
+        :timeout_s: Timeout in seconds for the `blocking` parameter.
+        :show_progress If True, shows a progress bar for S3 uploads.
+        :recursive: If True, recursively uploads all files in the folder.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         logger.info("Getting valid files from file path. This may take a few minutes.", recursive=recursive)
@@ -278,7 +282,7 @@ class FilesService:
 
         if show_progress:
             with yaspin().arc as sp:
-                sp.text = "Finding uploadable files in the given paths"
+                sp.text = "Finding uploadable files in the given paths."
                 file_paths = self._preprocess_paths(paths, spinner=sp, recursive=recursive)
         else:
             file_paths = self._preprocess_paths(paths, recursive=recursive)
@@ -302,20 +306,19 @@ class FilesService:
         show_progress: bool = True,
     ) -> None:
         """
-        Upload a list of raw texts to a workspace.
+        Upload a list of raw texts to a workspace using upload sessions. This method accepts a list of DeepsetCloudFiles
+        which contain raw text, file name, and optional metadata.
 
-        Upload a list of raw texts to a selected workspace using upload sessions. This method accepts a list of DeepsetCloudFiles
-        which contain raw text, file name, and optional meta data.
-
-        If blocking is True, the function waits until all files are uploaded and listed by deepset Cloud.
-        If blocking is False, the function returns immediately after the upload of the files is done.
-        Note: It can take a while until the files are listed in deepset Cloud.
+        It first uploads the files to S3 and then lists them in deepset Cloud.
+        Listing the files in deepset Cloud may take a couple of minutes. Use the `blocking` parameter to control if you want to wait until the files are listed and displayed in deepset Cloud.
+        If blocking is set to `True`, the function waits until all files are visible in deepset Cloud. If blocking is set to `False`, the function returns immediately after
+        the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :files: List of DeepsetCloudFiles to upload.
-        :blocking: If True, blocks until the ingestion is finished.
-        :timeout_s: Timeout in seconds for the blocking ingestion.
-        :show_progress If True, shows a progress bar for S3 uploads
+        :blocking: If True, waits until the ingestion to S3 is finished and the files are displayed in deepset Cloud.
+        :timeout_s: Timeout in seconds for the `blocking` parameter.
+        :show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         # create session to upload files to
@@ -352,9 +355,9 @@ class FilesService:
         """List all files in a workspace.
 
         Returns an async generator that yields lists of files. The generator is finished when all files are listed.
-        You can specfy the batch size per number of returned files with batch_size.
+        You can specify the batch size per number of returned files using `batch_size`.
 
-        :param workspace_name: Name of the workspace to use.
+        :param workspace_name: Name of the workspace whose files you want to list.
         :param name: odata_filter by file name.
         :param content: odata_filter by file content.
         :param odata_filter: odata_filter by file meta data.

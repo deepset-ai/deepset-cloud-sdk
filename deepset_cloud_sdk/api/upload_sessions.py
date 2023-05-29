@@ -118,12 +118,12 @@ class UploadSessionsAPI:
         self._deepset_cloud_api = deepset_cloud_api
 
     async def create(self, workspace_name: str, write_mode: WriteMode = WriteMode.KEEP) -> UploadSession:
-        """Create upload session.
+        """Create and upload session.
 
-        This method creates an upload session for a given workspace. The upload session
-        is valid for 24 hours. After that, you need to create a new upload session.
+        This method creates an upload session for a given workspace. Use this session to upload files to deepset Cloud.
 
-        You must close a session to start the ingestion.
+        You must close the session to start the file upload. If you don't close a session, it remains open for 24 hours.
+        After that it's automatically closed and you must open a new session to upload more files.
 
         :param workspace_name: Name of the workspace.
         :raises FailedToSendUploadSessionRequest: If the session could not be created.
@@ -134,12 +134,12 @@ class UploadSessionsAPI:
         )
         if response.status_code != codes.CREATED:
             logger.error(
-                "Failed to create upload session.",
+                "Failed to create the upload session.",
                 status_code=response.status_code,
                 response_body=response.text,
             )
             raise FailedToSendUploadSessionRequest(
-                f"Failed to create upload session. Status code: {response.status_code}."
+                f"Failed to create the upload session. Status code: {response.status_code}."
             )
         response_body = response.json()
         return UploadSession(
@@ -153,11 +153,12 @@ class UploadSessionsAPI:
         )
 
     async def close(self, workspace_name: str, session_id: UUID) -> None:
-        """Close upload session.
+        """Close an upload session.
 
-        This method closes an upload session for a given workspace. Once the session is closed, you can't upload
-        more files to this session and the ingestion is automatically started.
+        This method closes an upload session for a given workspace. Once the session is closed, the file ingestion starts automatically.
         This means that your files will appear in the workspace after a short while.
+
+        You can't upload files to a closed session.
 
         :param workspace_name: Name of the workspace.
         :param session_id: ID of the session.
@@ -169,12 +170,12 @@ class UploadSessionsAPI:
         )
         if response.status_code != codes.NO_CONTENT:
             logger.error(
-                "Failed to close upload session.",
+                "Failed to close the upload session.",
                 status_code=response.status_code,
                 response_body=response.text,
             )
             raise FailedToSendUploadSessionRequest(
-                f"Failed to close upload session. Status code: {response.status_code}."
+                f"Failed to close the upload session. Status code: {response.status_code}."
             )
 
     async def status(self, workspace_name: str, session_id: UUID) -> UploadSessionStatus:

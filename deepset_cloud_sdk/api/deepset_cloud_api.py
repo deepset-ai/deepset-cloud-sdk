@@ -48,7 +48,9 @@ class DeepsetCloudAPI:
             :return: Base URL.
             """
             if not workspace_name or workspace_name == "":
-                raise WorkspaceNotDefinedError(f"Workspace name is not defined. Got '{workspace_name}'")
+                raise WorkspaceNotDefinedError(
+                    f"Workspace name is not defined. Got '{workspace_name}'. Enter the name of the workspace in `workspace_name`."
+                )
 
             return f"{api_url}/workspaces/{workspace_name}"
 
@@ -82,7 +84,7 @@ class DeepsetCloudAPI:
             timeout=timeout_s,
         )
         logger.debug(
-            "Called deepset Cloud API",
+            "Called deepset Cloud API.",
             method="GET",
             workspace=workspace_name,
             endpoint=endpoint,
@@ -193,7 +195,7 @@ class DeepsetCloudAPI:
 
 
 def get_deepset_cloud_api(config: CommonConfig, client: httpx.AsyncClient) -> DeepsetCloudAPI:
-    """Deepset Cloud API factory. Return an instance of DeepsetCloudAPI.
+    """deepset Cloud API factory. Return an instance of DeepsetCloudAPI.
 
     :param config: CommonConfig object.
     :param client: httpx.AsyncClient object.
