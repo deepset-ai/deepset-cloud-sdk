@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 logger = structlog.get_logger(__name__)
 
-ENV_FILE_PATH = os.path.expanduser("~/.deepset-cloud-cli/.env")
+ENV_FILE_PATH = os.path.expanduser("~/.deepset-cloud/.env")
 
 
 def load_environment() -> bool:
@@ -16,7 +16,7 @@ def load_environment() -> bool:
 
     If an .env file is present in the current directory, load the environment variables from there.
     Otherwise, load the environment variables from the .env file in the home directory that can be created using the CLI.
-    To create the .env file in the home directory, run `deepset-cloud-cli login` in the terminal.
+    To create the .env file in the home directory, run `deepset-cloud login` in the terminal.
 
     :return: True if the environment variables were loaded successfully, False otherwise.
     """
@@ -37,7 +37,7 @@ if loaded_env_vars:
     logger.info("Environment variables loaded successfully")
 else:
     logger.warning(
-        "No environment variables were loaded from the .env file. Set API_KEY and API_URL manually. If you dont wan't to set them manually, run `deepset-cloud-cli login` in the terminal."
+        "No environment variables were loaded from the .env file. Set API_KEY and API_URL manually. If you dont wan't to set them manually, run `deepset-cloud login` in the terminal."
     )
 
 # connection to deepset Cloud
