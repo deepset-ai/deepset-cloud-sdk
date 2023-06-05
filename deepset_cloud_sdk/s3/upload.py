@@ -169,7 +169,7 @@ class S3:
     async def _process_results(
         self, tasks: List[Coroutine[Any, Any, S3UploadResult]], show_progress: bool = True
     ) -> S3UploadSummary:
-        """Summarise the results of the Uploads to S3.
+        """Summarize the results of the uploads to S3.
 
         :param tasks: List of upload tasks.
         :return: S3UploadResult object.
@@ -182,7 +182,7 @@ class S3:
             results = await asyncio.gather(*tasks)
 
         logger.info(
-            "Finished uploading files",
+            "Finished uploading files.",
             number_of_successful_files=len(results),
             failed_files=[r for r in results if not r.success],
         )

@@ -12,11 +12,11 @@ ENV_FILE_PATH = os.path.expanduser("~/.deepset-cloud-cli/.env")
 
 
 def load_environment() -> bool:
-    """Load environment variables from .env file.
+    """Load environment variables from the .env file.
 
-    If an .env file is present in the current directory, load the environment variables from there.
-    Otherwise, load the environment variables from the .env file in the home directory that can be created using the CLI.
-    To create the .env file in the home directory, run `deepset-cloud-cli login` in the terminal.
+    If an .env file exists in the current directory, load the environment variables from there.
+    Otherwise, load the environment variables from the .env file in the home directory. You can create this file using the CLI
+    by running `deepset-cloud-cli login` in the terminal.
 
     :return: True if the environment variables were loaded successfully, False otherwise.
     """
@@ -34,10 +34,10 @@ def load_environment() -> bool:
 
 loaded_env_vars = load_environment()
 if loaded_env_vars:
-    logger.info("Environment variables loaded successfully")
+    logger.info("Environment variables loaded successfully.")
 else:
     logger.warning(
-        "No environment variables were loaded from the .env file. Set API_KEY and API_URL manually. If you dont wan't to set them manually, run `deepset-cloud-cli login` in the terminal."
+        "No environment variables were loaded from the .env file. Create the .env file and add API_KEY and API_URL there, or run `deepset-cloud-cli login` in the terminal to let SDK create the file for you."
     )
 
 # connection to deepset Cloud
@@ -61,7 +61,7 @@ class CommonConfig:
         assert (
             self.api_key != ""
         ), "You must set the API_KEY environment variable. Go to [Connections](https://cloud.deepset.ai/settings/connections) in deepset Cloud to get an API key."
-        assert self.api_url != "", "API_URL environment variable must be set"
+        assert self.api_url != "", "API_URL environment variable must be set."
 
         if self.api_url.endswith("/"):
             self.api_url = self.api_url[:-1]

@@ -37,11 +37,11 @@ def upload_file_paths(
     """Upload files to deepset Cloud.
 
     :param file_paths: List of file paths to upload.
-    :param api_key: API key to use for authentication.
+    :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
-    :param blocking: Whether to wait for the upload to finish.
-    :param timeout_s: Timeout in seconds for the upload.
+    :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
+    :param timeout_s: Timeout in seconds for the `blocking` parameter`.
     """
     asyncio.run(
         async_upload_file_paths(
@@ -70,12 +70,13 @@ def upload(
 ) -> None:
     """Upload a folder to deepset Cloud.
 
-    :param paths: Path to the folder to upload.
-    :param api_key: API key to use for authentication.
+    :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped.
+    deepset Cloud supports TXT and PDF files.
+    :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
-    :param blocking: Whether to wait for the upload to finish.
-    :param timeout_s: Timeout in seconds for the upload.
+    :param blocking: Whether to wait for the files to be uploaded and displayed in deepset Cloud.
+    :param timeout_s: Timeout in seconds for the `blocking` parameter.
     """
     asyncio.run(
         async_upload(
@@ -105,11 +106,11 @@ def upload_texts(
     """Upload texts to deepset Cloud.
 
     :param files: List of DeepsetCloudFiles to upload.
-    :param api_key: API key to use for authentication.
+    :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to.
-    :param blocking: Whether to wait for the upload to finish.
-    :param timeout_s: Timeout in seconds for the upload.
+    :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
+    :param timeout_s: Timeout in seconds for the `blocking` parameter.
     """
     asyncio.run(
         async_upload_texts(
@@ -139,7 +140,7 @@ def list_files(
 
     WARNING: This only works for workspaces with up to 1000 files.
 
-    :param api_key: API key to use for authentication.
+    :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from.
     :param name: Name of the file to odata_filter for.

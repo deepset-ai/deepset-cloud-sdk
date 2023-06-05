@@ -381,7 +381,7 @@ class TestPreprocessFiles:
 
         FilesService._preprocess_paths([Path("tests/data/upload_folder/example.txt")], spinner=mock_spinner)
 
-        assert mock_spinner.text == "Validating files and metadata"
+        assert mock_spinner.text == "Validating files and metadata."
 
     def test_no_spinner_does_not_cause_error(self) -> None:
         try:
