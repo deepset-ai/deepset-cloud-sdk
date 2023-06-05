@@ -95,7 +95,7 @@ def main(
     _: Optional[bool] = typer.Option(
         None, "--version", callback=version_callback, is_eager=True, help="Show the SDK version and exit."
     )
-) -> None:
+) -> None:  # noqa
     """The CLI for the deepset Cloud SDK."""
 
 

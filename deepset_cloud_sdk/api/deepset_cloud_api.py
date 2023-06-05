@@ -194,7 +194,7 @@ class DeepsetCloudAPI:
         return response
 
 
-def get_deepset_cloud_api(config: CommonConfig, client: httpx.AsyncClient) -> DeepsetCloudAPI:
+def get_deepset_cloud_api(config: CommonConfig, client: httpx.AsyncClient) -> DeepsetCloudAPI:  # noqa
     """deepset Cloud API factory. Return an instance of DeepsetCloudAPI.
 
     :param config: CommonConfig object.

@@ -304,7 +304,7 @@ class FilesService:
         blocking: bool = True,
         timeout_s: int = 300,
         show_progress: bool = True,
-    ) -> None:
+    ) -> None:  # noqa
         """
         Upload a list of raw texts to a workspace using upload sessions. This method accepts a list of DeepsetCloudFiles
         which contain raw text, file name, and optional metadata.
