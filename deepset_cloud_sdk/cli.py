@@ -41,7 +41,7 @@ def logout() -> None:
     typer.echo("Log out of deepset Cloud")
     config_file_exists = os.path.exists(ENV_FILE_PATH)
     if not config_file_exists:
-        typer.echo("You are not logged in.")
+        typer.echo("You are not logged in. Nothing to do!")
         return
     os.remove(ENV_FILE_PATH)
     typer.echo(f"{ENV_FILE_PATH} removed successfully.")
