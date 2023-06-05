@@ -1,5 +1,4 @@
 import datetime
-import os
 from pathlib import Path
 from typing import Any, Generator, List
 from unittest.mock import AsyncMock, Mock, patch
@@ -168,12 +167,12 @@ class TestCLIUtils:
     def test_login_with_all_filled(self) -> None:
         fake_env_path = Path("./tests/tmp/.env")
         with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
-            result = runner.invoke(cli_app, ["login"], input="test_api_key_2\nhttps://endpoint.com/api\ndefault\n")
+            result = runner.invoke(cli_app, ["login"], input="test_api_key_2\n")
             assert result.exit_code == 0
             assert "created successfully" in result.stdout
             with open(fake_env_path) as f:
                 assert (
-                    "API_KEY=test_api_key_2\nAPI_URL=https://endpoint.com/api\nDEFAULT_WORKSPACE_NAME=default"
+                    "API_KEY=test_api_key_2\nAPI_URL=https://api.cloud.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=default"
                     == f.read()
                 )
 
