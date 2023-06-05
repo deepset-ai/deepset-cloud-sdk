@@ -16,7 +16,7 @@ def load_environment() -> bool:
 
     If an .env file exists in the current directory, load the environment variables from there.
     Otherwise, load the environment variables from the .env file in the home directory. You can create this file using the CLI
-    by running `deepset-cloud-cli login` in the terminal.
+    by running `deepset-cloud login` in the terminal.
 
     :return: True if the environment variables were loaded successfully, False otherwise.
     """
@@ -37,7 +37,7 @@ if loaded_env_vars:
     logger.info("Environment variables loaded successfully.")
 else:
     logger.warning(
-        "No environment variables were loaded from the .env file. Create the .env file and add API_KEY and API_URL there, or run `deepset-cloud-cli login` in the terminal to let SDK create the file for you."
+        "No environment variables were loaded from the .env file. Create the .env file and add API_KEY and API_URL there, or run `deepset-cloud login` in the terminal to let SDK create the file for you."
     )
 
 # connection to deepset Cloud
