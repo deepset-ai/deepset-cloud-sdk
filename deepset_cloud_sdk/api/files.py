@@ -1,7 +1,7 @@
 """
 File API for deepset Cloud.
 
-This module takes care of all file-related API calls to deepset Cloud, including uploading, downloading, listing and
+This module takes care of all file-related API calls to deepset Cloud, including uploading, downloading, listing, and
 deleting files.
 """
 
@@ -81,7 +81,7 @@ class FilesAPI:
         after_file_id: Optional[UUID] = None,
     ) -> FileList:
         """
-        List files in a workspace, paginated with cursor-based pagination.
+        List files in a workspace using cursor-based pagination.
 
         :param workspace_name: Name of the workspace to use.
         :param limit: Number of files to return per page.

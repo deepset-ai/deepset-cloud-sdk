@@ -1,4 +1,4 @@
-"""CLI app for the deepset Cloud SDK."""
+"""The CLI for the deepset Cloud SDK."""
 import os
 from typing import Optional
 
@@ -18,9 +18,9 @@ cli_app.command()(upload)
 
 @cli_app.command()
 def login() -> None:
-    """Log in to deepset cloud."""
-    typer.echo("Log in to deepset cloud")
-    passed_api_key = typer.prompt("Your API_KEY", hide_input=True)
+    """Log in to deepset Cloud."""
+    typer.echo("Log in to deepset Cloud")
+    passed_api_key = typer.prompt("Your deepset Cloud API_KEY", hide_input=True)
     passed_api_url = typer.prompt("Your API_URL", default="https://api.cloud.deepset.ai/api/v1")
     passed_default_workspace_name = typer.prompt("Your DEFAULT_WORKSPACE_NAME", default="default")
 
@@ -37,14 +37,14 @@ def login() -> None:
 
 @cli_app.command()
 def logout() -> None:
-    """Log out from deepset cloud."""
-    typer.echo("Log out from deepset cloud")
+    """Log out of deepset Cloud."""
+    typer.echo("Log out of deepset Cloud")
     config_file_exists = os.path.exists(ENV_FILE_PATH)
     if not config_file_exists:
-        typer.echo("You are not logged in. Nothing to do!")
+        typer.echo("You are not logged in.")
         return
     os.remove(ENV_FILE_PATH)
-    typer.echo(f"{ENV_FILE_PATH} removed successfully!")
+    typer.echo(f"{ENV_FILE_PATH} removed successfully.")
 
 
 @cli_app.command()
@@ -58,11 +58,11 @@ def list_files(
     batch_size: int = 10,
     timeout_s: int = 300,
 ) -> None:
-    """List files in the Deepset Cloud.
+    """List files in deepset Cloud.
 
-    CLI method to list files in the Deepset Cloud.
+    A CLI method to list files that exist in deepset Cloud.
 
-    :param api_key: API key to use for authentication.
+    :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from.
     :param name: Name of the file to odata_filter for.
@@ -86,23 +86,23 @@ def version_callback(value: bool) -> None:
     :param value: Value of the version option.
     """
     if value:
-        typer.echo(f"Deepset Cloud SDK version: {__version__}")
+        typer.echo(f"deepset Cloud SDK version: {__version__}")
         raise typer.Exit()
 
 
 @cli_app.callback()
 def main(
     _: Optional[bool] = typer.Option(
-        None, "--version", callback=version_callback, is_eager=True, help="Show the version and exit."
+        None, "--version", callback=version_callback, is_eager=True, help="Show the SDK version and exit."
     )
-) -> None:
-    """CLI app for the deepset Cloud SDK."""
+) -> None:  # noqa
+    """The CLI for the deepset Cloud SDK."""
 
 
 def run_packaged() -> None:
-    """Run the packaged CLI app.
+    """Run the packaged CLI.
 
-    This is the entrypoint for the package to enable running the CLI app using typer.
+    This is the entrypoint for the package to enable running the CLI using typer.
     """
     cli_app()
 

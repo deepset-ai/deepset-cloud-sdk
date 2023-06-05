@@ -15,7 +15,7 @@ class UserInfo:
 
 @dataclass
 class DeepsetCloudFile:
-    """Dataclass for files in deepset Cloud."""
+    """Data class for files in deepset Cloud."""
 
     text: str
     name: str
