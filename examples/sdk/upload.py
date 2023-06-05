@@ -7,7 +7,7 @@ from deepset_cloud_sdk.workflows.sync_client.files import upload, upload_texts
 ## --------------
 ## You will need to either explicitly pass an api_key to the `upload` function or set the environment variable
 ## `DEEPSET_CLOUD_API_KEY` to your api key.
-## By running `deepset-cloud-cli login` you can also store your api key globally on your machine.
+## By running `deepset-cloud login` you can also store your api key globally on your machine.
 ## This will allow you to omit the api_key parameter in the following examples.
 
 ## Example 1: Upload all files from a folder

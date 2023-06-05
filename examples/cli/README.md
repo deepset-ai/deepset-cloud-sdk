@@ -11,19 +11,19 @@ pip3 install deepset-cloud-sdk
 Before using the deepset Cloud CLI, log in and provide your credentials. You can do this by running the command:
 
 ```shell
-deepset-cloud-cli login
+deepset-cloud login
 ```
 
-This command prompts you to enter your API key and default workspace name. Once you provide these details, the CLI stores your credentials in the `~/.deepset-cloud-cli/.env` file. This file is used as the default configuration for subsequent CLI commands.
+This command prompts you to enter your API key and default workspace name. Once you provide these details, the CLI stores your credentials in the `~/.deepset-cloud/.env` file. This file is used as the default configuration for subsequent CLI commands.
 
 Alternatively, to use a different environment file for your configuration, you can create an `.env` file in the local directory. Additionally, you have the flexibility to provide the credentials directly as command-line arguments or set them programmatically in your code.
 
 ## Usage
 You can use the deepset Cloud CLI by running the following command:
 ```shell
-deepset-cloud-cli <command>
+deepset-cloud <command>
 ```
-Replace <command> with one of the supported commands. To list all available commands, run: `deepset-cloud-cli --help`.
+Replace <command> with one of the supported commands. To list all available commands, run: `deepset-cloud --help`.
 
 ## Example Commands
 
@@ -31,17 +31,17 @@ Replace <command> with one of the supported commands. To list all available comm
 This command uploads the file example.txt to your deepset Cloud workspace.
 
 ```shell
-deepset-cloud-cli upload ./examples/data/example.txt
+deepset-cloud upload ./examples/data/example.txt
 ```
 This command uploads the entire data folder, located in the examples directory, to your deepset Cloud workspace.
 Note that the paths provided in the above examples are relative to the current working directory.
 ```shell
-deepset-cloud-cli upload ./examples/data
+deepset-cloud upload ./examples/data
 ```
 
 If you want to overwrite existing files in your project, you can use the `--write-mode` flag. For example:
 ```shell
-deepset-cloud-cli upload ./examples/data --write-mode OVERWRITE
+deepset-cloud upload ./examples/data --write-mode OVERWRITE
 ```
 This syncs your local files with the files in your deepset Cloud workspace without having to manually delete the files in your workspace.
 
@@ -49,7 +49,7 @@ This syncs your local files with the files in your deepset Cloud workspace witho
 ### List files
 You can run the `list-files` operation to search files in your deepset Cloud workspace. For example:
 ```shell
-deepset-cloud-cli list-files
+deepset-cloud list-files
 ```
 with optional arguments:
 ```shell

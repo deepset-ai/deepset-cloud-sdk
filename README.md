@@ -24,7 +24,7 @@ pip install deepset-cloud-sdk
 
 After installing the deepset Cloud SDK, you can use it to interact with deepset Cloud. It comes with a command line interface (CLI), that you can use by calling:
 ```bash
-deepset-cloud-cli --help
+deepset-cloud --help
 ```
 
 <p align="center">
