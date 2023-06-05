@@ -13,6 +13,7 @@ ENV_FILE_PATH = os.path.expanduser("~/.deepset-cloud/.env")
 
 def load_environment() -> bool:
     """Load environment variables from the .env file.
+
     If an .env file exists in the current directory, load the environment variables from there.
     Otherwise, load the environment variables from the .env file in the home directory. You can create this file using the CLI
     by running `deepset-cloud-cli login` in the terminal.
