@@ -8,7 +8,7 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from deepset_cloud_sdk._api.config import CommonConfig
-from deepset_cloud_sdk._api.files import File, FileList, FilesAPI
+from deepset_cloud_sdk._api.files import File, FileList
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
     UploadSessionIngestionStatus,
@@ -103,7 +103,7 @@ class TestUploadsFileService:
             )
             assert mocked_upload_file_paths.called
             assert "test_workspace" == mocked_upload_file_paths.call_args[1]["workspace_name"]
-            assert mocked_upload_file_paths.call_args[1]["blocking"] == True
+            assert mocked_upload_file_paths.call_args[1]["blocking"] is True
             assert 300 == mocked_upload_file_paths.call_args[1]["timeout_s"]
 
             assert (
