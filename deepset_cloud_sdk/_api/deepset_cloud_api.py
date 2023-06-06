@@ -35,6 +35,7 @@ class DeepsetCloudAPI:
         self.headers = {
             "Accept": "application/json",
             "Authorization": f"Bearer {config.api_key}",
+            "X-Client-Source": "deepset-cloud-sdk",
         }
         self.base_url = lambda workspace_name: self._get_base_url(config.api_url)(workspace_name)
         self.client = client
