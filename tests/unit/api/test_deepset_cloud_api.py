@@ -21,6 +21,7 @@ class TestUtilitiesForDeepsetCloudAPI:
             assert deepset_cloud_api.headers == {
                 "Accept": "application/json",
                 "Authorization": f"Bearer {unit_config.api_key}",
+                "X-Client-Source": "deepset-cloud-sdk",
             }
 
     async def test_deepset_cloud_api_raises_exception_if_no_workspace_is_defined(
@@ -60,6 +61,7 @@ class TestCRUDForDeepsetCloudAPI:
             headers={
                 "Accept": "application/json",
                 "Authorization": f"Bearer {unit_config.api_key}",
+                "X-Client-Source": "deepset-cloud-sdk",
             },
             timeout=123,
         )
@@ -87,6 +89,7 @@ class TestCRUDForDeepsetCloudAPI:
             headers={
                 "Accept": "application/json",
                 "Authorization": f"Bearer {unit_config.api_key}",
+                "X-Client-Source": "deepset-cloud-sdk",
             },
             timeout=123,
         )
@@ -107,6 +110,7 @@ class TestCRUDForDeepsetCloudAPI:
             headers={
                 "Accept": "application/json",
                 "Authorization": f"Bearer {unit_config.api_key}",
+                "X-Client-Source": "deepset-cloud-sdk",
             },
             timeout=123,
         )
@@ -132,6 +136,7 @@ class TestCRUDForDeepsetCloudAPI:
             headers={
                 "Accept": "application/json",
                 "Authorization": f"Bearer {unit_config.api_key}",
+                "X-Client-Source": "deepset-cloud-sdk",
             },
             timeout=123,
         )
