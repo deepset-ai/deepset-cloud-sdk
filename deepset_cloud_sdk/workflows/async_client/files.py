@@ -5,15 +5,15 @@ from typing import AsyncGenerator, List, Optional
 
 from sniffio import AsyncLibraryNotFoundError
 
-from deepset_cloud_sdk.api.config import (
+from deepset_cloud_sdk._api.config import (
     API_KEY,
     API_URL,
     DEFAULT_WORKSPACE_NAME,
     CommonConfig,
 )
-from deepset_cloud_sdk.api.files import File
-from deepset_cloud_sdk.api.upload_sessions import WriteMode
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk._api.files import File
+from deepset_cloud_sdk._api.upload_sessions import WriteMode
+from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 
 
 def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:

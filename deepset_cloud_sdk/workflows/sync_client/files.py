@@ -5,10 +5,10 @@ from typing import Generator, List, Optional
 
 import structlog
 
-from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
-from deepset_cloud_sdk.api.files import File
-from deepset_cloud_sdk.api.upload_sessions import WriteMode
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
+from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME
+from deepset_cloud_sdk._api.files import File
+from deepset_cloud_sdk._api.upload_sessions import WriteMode
+from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.workflows.async_client.files import (
     list_files as async_list_files,
 )

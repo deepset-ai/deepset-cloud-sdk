@@ -15,7 +15,7 @@ import structlog
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from tqdm.asyncio import tqdm
 
-from deepset_cloud_sdk.api.upload_sessions import UploadSession
+from deepset_cloud_sdk._api.upload_sessions import UploadSession
 from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)

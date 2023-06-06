@@ -8,7 +8,7 @@ import httpx
 import structlog
 from httpx import Response
 
-from deepset_cloud_sdk.api.config import CommonConfig
+from deepset_cloud_sdk._api.config import CommonConfig
 
 logger = structlog.get_logger(__name__)
 

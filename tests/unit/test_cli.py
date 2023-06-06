@@ -8,7 +8,7 @@ import structlog
 from typer.testing import CliRunner
 
 from deepset_cloud_sdk.__about__ import __version__
-from deepset_cloud_sdk.api.files import File
+from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk.cli import cli_app
 
 logger = structlog.get_logger(__name__)

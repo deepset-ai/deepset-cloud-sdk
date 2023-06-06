@@ -1,13 +1,13 @@
 import datetime
 from pathlib import Path
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, List
 from unittest.mock import AsyncMock, patch
 from uuid import UUID
 
-from deepset_cloud_sdk.api.config import DEFAULT_WORKSPACE_NAME
-from deepset_cloud_sdk.api.files import File
-from deepset_cloud_sdk.api.upload_sessions import WriteMode
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
+from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME
+from deepset_cloud_sdk._api.files import File
+from deepset_cloud_sdk._api.upload_sessions import WriteMode
+from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.workflows.sync_client.files import (
     list_files,
     upload,

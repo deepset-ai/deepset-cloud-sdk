@@ -8,15 +8,15 @@ import pytest
 import structlog
 from dotenv import load_dotenv
 
-from deepset_cloud_sdk.api.config import CommonConfig
-from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk.api.files import FilesAPI
-from deepset_cloud_sdk.api.upload_sessions import (
+from deepset_cloud_sdk._api.config import CommonConfig
+from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
+from deepset_cloud_sdk._api.files import FilesAPI
+from deepset_cloud_sdk._api.upload_sessions import (
     AWSPrefixedRequestConfig,
     UploadSession,
     UploadSessionsAPI,
 )
-from deepset_cloud_sdk.s3.upload import S3
+from deepset_cloud_sdk._s3.upload import S3
 
 load_dotenv()
 

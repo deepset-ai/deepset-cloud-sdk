@@ -5,7 +5,7 @@ from uuid import uuid4
 import pytest
 from httpx import Response, codes
 
-from deepset_cloud_sdk.api.upload_sessions import (
+from deepset_cloud_sdk._api.upload_sessions import (
     FailedToSendUploadSessionRequest,
     UploadSession,
     UploadSessionDetailList,

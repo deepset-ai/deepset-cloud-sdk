@@ -9,7 +9,7 @@ from uuid import UUID
 import structlog
 from httpx import codes
 
-from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
+from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.models import UserInfo
 
 logger = structlog.get_logger(__name__)
