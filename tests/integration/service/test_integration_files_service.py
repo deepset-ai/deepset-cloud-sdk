@@ -1,16 +1,13 @@
-import os
-from os import listdir
-from os.path import isfile, join
 from pathlib import Path
 from typing import List
 
 import pytest
 
-from deepset_cloud_sdk.api.config import CommonConfig
-from deepset_cloud_sdk.api.files import File
-from deepset_cloud_sdk.api.upload_sessions import WriteMode
-from deepset_cloud_sdk.s3.upload import S3
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk._api.config import CommonConfig
+from deepset_cloud_sdk._api.files import File
+from deepset_cloud_sdk._api.upload_sessions import WriteMode
+from deepset_cloud_sdk._s3.upload import S3
+from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 
 
 @pytest.fixture

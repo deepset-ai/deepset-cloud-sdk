@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
+from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.workflows.sync_client.files import upload, upload_texts
 
 ## Authentication

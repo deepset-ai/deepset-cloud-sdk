@@ -4,8 +4,8 @@ import httpx
 import pytest
 from httpx import codes
 
-from deepset_cloud_sdk.api.config import CommonConfig
-from deepset_cloud_sdk.api.deepset_cloud_api import (
+from deepset_cloud_sdk._api.config import CommonConfig
+from deepset_cloud_sdk._api.deepset_cloud_api import (
     DeepsetCloudAPI,
     WorkspaceNotDefinedError,
 )

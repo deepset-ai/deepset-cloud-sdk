@@ -7,15 +7,15 @@ from uuid import UUID
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from deepset_cloud_sdk.api.config import CommonConfig
-from deepset_cloud_sdk.api.files import File, FileList, FilesAPI
-from deepset_cloud_sdk.api.upload_sessions import (
+from deepset_cloud_sdk._api.config import CommonConfig
+from deepset_cloud_sdk._api.files import File, FileList, FilesAPI
+from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
     UploadSessionIngestionStatus,
     UploadSessionStatus,
     WriteMode,
 )
-from deepset_cloud_sdk.service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 
 
 @pytest.fixture

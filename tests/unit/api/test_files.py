@@ -1,13 +1,12 @@
 import datetime
-from typing import List
 from unittest.mock import Mock
 from uuid import UUID
 
 import httpx
 import pytest
 
-from deepset_cloud_sdk.api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk.api.files import File, FileList, FilesAPI
+from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
+from deepset_cloud_sdk._api.files import File, FileList, FilesAPI
 
 
 @pytest.fixture

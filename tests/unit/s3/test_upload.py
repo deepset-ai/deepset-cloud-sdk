@@ -5,9 +5,9 @@ import aiohttp
 import pytest
 from tqdm.asyncio import tqdm
 
-from deepset_cloud_sdk.api.upload_sessions import UploadSession
+from deepset_cloud_sdk._api.upload_sessions import UploadSession
+from deepset_cloud_sdk._s3.upload import S3, RetryableHttpError, make_safe_file_name
 from deepset_cloud_sdk.models import DeepsetCloudFile
-from deepset_cloud_sdk.s3.upload import S3, RetryableHttpError, make_safe_file_name
 
 
 class TestUploadsS3:
