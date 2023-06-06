@@ -199,7 +199,7 @@ class FilesService:
         logger.info("Validating file paths and metadata.")
         allowed_suffixes = {".txt", ".json", ".pdf"}
         for file_path in file_paths:
-            if not file_path.suffix.lower() in allowed_suffixes:
+            if file_path.suffix.lower() not in allowed_suffixes:
                 raise ValueError(
                     f"Invalid file extension: {file_path.suffix}. You can upload TXT and PDF files. Metadata files should have the `.meta.json` extension."
                 )
@@ -219,7 +219,7 @@ class FilesService:
         not_mapped_meta_files = [
             meta_file_name
             for meta_file_name in meta_file_names
-            if not (meta_file_name.split(".meta.json")[0]) in file_name_set
+            if meta_file_name.split(".meta.json")[0] not in file_name_set
         ]
 
         if len(not_mapped_meta_files) > 0:

@@ -8,6 +8,7 @@ from uuid import UUID
 
 import structlog
 from httpx import codes
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.models import UserInfo
@@ -178,6 +179,12 @@ class UploadSessionsAPI:
                 f"Failed to close the upload session. Status code: {response.status_code}."
             )
 
+    @retry(
+        retry=retry_if_exception_type(FailedToSendUploadSessionRequest),
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        reraise=True,
+    )
     async def status(self, workspace_name: str, session_id: UUID) -> UploadSessionStatus:
         """Fetch upload session status.
 
@@ -211,6 +218,12 @@ class UploadSessionsAPI:
             ),
         )
 
+    @retry(
+        retry=retry_if_exception_type(FailedToSendUploadSessionRequest),
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        reraise=True,
+    )
     async def list(self, workspace_name: str, limit: int = 10, page_number: int = 1) -> UploadSessionDetailList:
         """List upload sessions.
 
@@ -224,7 +237,7 @@ class UploadSessionsAPI:
         """
         response = await self._deepset_cloud_api.get(
             workspace_name=workspace_name,
-            endpoint=f"upload_sessions",
+            endpoint="upload_sessions",
             params={"limit": limit, "page_number": page_number},
         )
         if response.status_code != codes.OK:

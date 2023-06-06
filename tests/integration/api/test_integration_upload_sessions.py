@@ -1,4 +1,3 @@
-import httpx
 import pytest
 
 from deepset_cloud_sdk._api.config import CommonConfig
@@ -52,6 +51,6 @@ class TestCreateUploadSessions:
             )
 
             assert result.total > 0
-            assert result.has_more == True
+            assert result.has_more is True
             assert result.data is not None
             assert len(result.data) == 3

@@ -1,9 +1,8 @@
-import httpx
 import pytest
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk._api.files import File, FilesAPI
+from deepset_cloud_sdk._api.files import FilesAPI
 
 
 @pytest.fixture
@@ -24,7 +23,7 @@ class TestListFiles:
             )
 
             assert result.total == 1
-            assert result.has_more == False
+            assert result.has_more is False
             assert len(result.data) == 1
             found_file = result.data[0]
             assert found_file.name == "20_Light_of_the_Seven.txt"
