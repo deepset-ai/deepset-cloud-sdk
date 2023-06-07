@@ -91,6 +91,29 @@ class TestCRUDForDeepsetCloudAPI:
             timeout=123,
         )
 
+    async def test_get_with_not_covered_retry_exception(
+        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+    ) -> None:
+        class CustomException(Exception):
+            pass
+
+        mocked_client.get.side_effect = [
+            CustomException(),
+        ]
+        with pytest.raises(CustomException):
+            await deepset_cloud_api.get("default", "endpoint", params={"param_key": "param_value"}, timeout_s=123)
+
+    async def test_get_retry_with_exception(
+        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+    ) -> None:
+        mocked_client.get.side_effect = [
+            httpx.ReadTimeout(message="read timeout"),
+            httpx.RequestError(message="read error"),
+            httpx.RequestError(message="read error"),
+        ]
+        with pytest.raises(httpx.RequestError):
+            await deepset_cloud_api.get("default", "endpoint", params={"param_key": "param_value"}, timeout_s=123)
+
     async def test_post(
         self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
     ) -> None:
