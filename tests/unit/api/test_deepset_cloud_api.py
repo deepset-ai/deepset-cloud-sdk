@@ -71,7 +71,7 @@ class TestCRUDForDeepsetCloudAPI:
     ) -> None:
         mocked_client.get.side_effect = [
             httpx.ReadTimeout(message="read timeout"),
-            httpx.ReadError(message="read error"),
+            httpx.RequestError(message="read error"),
             httpx.Response(status_code=codes.OK, json={"test": "test"}),
         ]
 
