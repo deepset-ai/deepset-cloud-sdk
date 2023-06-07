@@ -7,6 +7,7 @@ from typing import Any, AsyncGenerator, Callable, Dict, Optional
 import httpx
 import structlog
 from httpx import Response
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from deepset_cloud_sdk._api.config import CommonConfig
 
@@ -67,6 +68,12 @@ class DeepsetCloudAPI:
         async with httpx.AsyncClient() as client:
             yield cls(config, client)
 
+    @retry(
+        retry=retry_if_exception_type(httpx.RequestError),
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        reraise=True,
+    )
     async def get(
         self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
     ) -> Response:

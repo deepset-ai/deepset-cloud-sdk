@@ -66,6 +66,54 @@ class TestCRUDForDeepsetCloudAPI:
             timeout=123,
         )
 
+    async def test_get_retry(
+        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+    ) -> None:
+        mocked_client.get.side_effect = [
+            httpx.ReadTimeout(message="read timeout"),
+            httpx.RequestError(message="read error"),
+            httpx.Response(status_code=codes.OK, json={"test": "test"}),
+        ]
+
+        result = await deepset_cloud_api.get("default", "endpoint", params={"param_key": "param_value"}, timeout_s=123)
+        assert result.status_code == codes.OK
+        assert result.json() == {"test": "test"}
+        assert mocked_client.get.call_count == 3
+
+        mocked_client.get.assert_called_with(
+            "https://fake.dc.api/api/v1/workspaces/default/endpoint",
+            params={"param_key": "param_value"},
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Bearer {unit_config.api_key}",
+                "X-Client-Source": "deepset-cloud-sdk",
+            },
+            timeout=123,
+        )
+
+    async def test_get_with_not_covered_retry_exception(
+        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+    ) -> None:
+        class CustomException(Exception):
+            pass
+
+        mocked_client.get.side_effect = [
+            CustomException(),
+        ]
+        with pytest.raises(CustomException):
+            await deepset_cloud_api.get("default", "endpoint", params={"param_key": "param_value"}, timeout_s=123)
+
+    async def test_get_retry_with_exception(
+        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+    ) -> None:
+        mocked_client.get.side_effect = [
+            httpx.ReadTimeout(message="read timeout"),
+            httpx.RequestError(message="read error"),
+            httpx.RequestError(message="read error"),
+        ]
+        with pytest.raises(httpx.RequestError):
+            await deepset_cloud_api.get("default", "endpoint", params={"param_key": "param_value"}, timeout_s=123)
+
     async def test_post(
         self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
     ) -> None:
