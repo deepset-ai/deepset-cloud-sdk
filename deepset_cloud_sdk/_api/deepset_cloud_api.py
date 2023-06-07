@@ -69,7 +69,7 @@ class DeepsetCloudAPI:
             yield cls(config, client)
 
     @retry(
-        retry=retry_if_exception_type((httpx.ReadTimeout, httpx.ReadError)),
+        retry=retry_if_exception_type(httpx.RequestError),
         stop=stop_after_attempt(3),
         wait=wait_fixed(1),
         reraise=True,
