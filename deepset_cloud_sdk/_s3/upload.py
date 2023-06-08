@@ -168,7 +168,7 @@ class S3:
                 "Could not upload a file to S3",
                 file_name=file_name,
                 session_id=upload_session.session_id,
-                exception=exception,
+                exception=str(exception),
             )
             return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
