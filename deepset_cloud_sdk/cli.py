@@ -79,14 +79,26 @@ def list_files(
     :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     """
-    headers = ["file_id", "url", "name", "size", "created_at", "meta"]  # Assuming the first row contains the headers
-    for files in sync_list_files(api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s):
-        table = tabulate(files, headers, tablefmt="grid")  # type: ignore
-        typer.echo(table)
-        if len(files) > 0:
-            prompt_input = typer.prompt("Print more results ?", default="y")
-            if prompt_input != "y":
-                break
+    try:
+        headers = [
+            "file_id",
+            "url",
+            "name",
+            "size",
+            "created_at",
+            "meta",
+        ]  # Assuming the first row contains the headers
+        for files in sync_list_files(
+            api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s
+        ):
+            table = tabulate(files, headers, tablefmt="grid")  # type: ignore
+            typer.echo(table)
+            if len(files) > 0:
+                prompt_input = typer.prompt("Print more results ?", default="y")
+                if prompt_input != "y":
+                    break
+    except TimeoutError:
+        typer.echo("Command timed out.")
 
 
 @cli_app.command()
@@ -110,34 +122,37 @@ def list_upload_sessions(
     :param timeout_s: Timeout in seconds for the API requests.
     """
     headers: List[str] = ["session_id", "created_by", "created_at", "expires_at", "write_mode", "status"]
-    for upload_sessions in sync_list_upload_sessions(
-        api_key=api_key,
-        api_url=api_url,
-        workspace_name=workspace_name,
-        is_expired=is_expired,
-        batch_size=batch_size,
-        timeout_s=timeout_s,
-    ):
-        table = tabulate(
-            [
-                {
-                    "session_id": str(el.session_id),
-                    "created_by": f"{el.created_by.given_name} {el.created_by.family_name}",
-                    "created_at": str(el.created_at),
-                    "expires_at": str(el.expires_at),
-                    "write_mode": el.write_mode,
-                    "status": el.status,
-                }
-                for el in upload_sessions
-            ],
-            dict(enumerate(headers)),  # type: ignore
-            tablefmt="grid",
-        )
-        typer.echo(table)
-        if len(upload_sessions) > 0:
-            prompt_input = typer.prompt("Print more results ?", default="y")
-            if prompt_input != "y":
-                break
+    try:
+        for upload_sessions in sync_list_upload_sessions(
+            api_key=api_key,
+            api_url=api_url,
+            workspace_name=workspace_name,
+            is_expired=is_expired,
+            batch_size=batch_size,
+            timeout_s=timeout_s,
+        ):
+            table = tabulate(
+                [
+                    {
+                        "session_id": str(el.session_id),
+                        "created_by": f"{el.created_by.given_name} {el.created_by.family_name}",
+                        "created_at": str(el.created_at),
+                        "expires_at": str(el.expires_at),
+                        "write_mode": el.write_mode,
+                        "status": el.status,
+                    }
+                    for el in upload_sessions
+                ],
+                dict(enumerate(headers)),  # type: ignore
+                tablefmt="grid",
+            )
+            typer.echo(table)
+            if len(upload_sessions) > 0:
+                prompt_input = typer.prompt("Print more results ?", default="y")
+                if prompt_input != "y":
+                    break
+    except TimeoutError:
+        typer.echo("Command timed out. Please try again later.")
 
 
 @cli_app.command()
