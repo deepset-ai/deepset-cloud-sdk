@@ -1,7 +1,6 @@
 """The CLI for the deepset Cloud SDK."""
 import json
 import os
-from dataclasses import fields
 from typing import List, Optional
 from uuid import UUID
 
@@ -110,7 +109,7 @@ def list_upload_sessions(
     :param batch_size: Batch size to use for the file list.
     :param timeout_s: Timeout in seconds for the API requests.
     """
-    headers: List[str] = [field.name for field in fields(UploadSessionDetail)]
+    headers: List[str] = ["session_id", "created_by", "created_at", "expires_at", "write_mode", "status"]
     for upload_sessions in sync_list_upload_sessions(
         api_key=api_key,
         api_url=api_url,
@@ -119,7 +118,21 @@ def list_upload_sessions(
         batch_size=batch_size,
         timeout_s=timeout_s,
     ):
-        table = tabulate(upload_sessions, headers, tablefmt="grid")  # type: ignore
+        table = tabulate(
+            [
+                {
+                    "session_id": str(el.session_id),
+                    "created_by": f"{el.created_by.given_name} {el.created_by.family_name}",
+                    "created_at": str(el.created_at),
+                    "expires_at": str(el.expires_at),
+                    "write_mode": el.write_mode,
+                    "status": el.status,
+                }
+                for el in upload_sessions
+            ],
+            dict(enumerate(headers)),  # type: ignore
+            tablefmt="grid",
+        )
         typer.echo(table)
         if len(upload_sessions) > 0:
             prompt_input = typer.prompt("Print more results ?", default="y")
