@@ -350,7 +350,7 @@ class TestListFilesService:
 
 
 @pytest.mark.asyncio
-class TestLisUploadSessionService:
+class TestListUploadSessionService:
     async def test_list_all_upload_sessions_files(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
         mocked_list_paginated = AsyncMock(
             side_effect=[
