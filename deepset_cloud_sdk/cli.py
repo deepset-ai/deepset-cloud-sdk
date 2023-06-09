@@ -9,7 +9,6 @@ from tabulate import tabulate
 
 from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
-from deepset_cloud_sdk._api.upload_sessions import UploadSessionDetail
 from deepset_cloud_sdk.workflows.sync_client.files import (
     get_upload_session as sync_get_upload_session,
 )
