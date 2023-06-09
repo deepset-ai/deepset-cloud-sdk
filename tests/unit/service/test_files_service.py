@@ -11,11 +11,16 @@ from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.files import File, FileList
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
+    UploadSessionDetail,
+    UploadSessionDetailList,
     UploadSessionIngestionStatus,
     UploadSessionStatus,
+    UploadSessionStatusEnum,
+    UploadSessionWriteModeEnum,
     WriteMode,
 )
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk.models import UserInfo
 
 
 @pytest.fixture
@@ -341,6 +346,147 @@ class TestListFilesService:
         monkeypatch.setattr(file_service._files, "list_paginated", mocked_list_paginated)
         with pytest.raises(TimeoutError):
             async for _ in file_service.list_all(workspace_name="test_workspace", batch_size=10, timeout_s=0):
+                pass
+
+
+@pytest.mark.asyncio
+class TestLisUploadSessionService:
+    async def test_list_all_upload_sessions_files(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                UploadSessionDetailList(
+                    total=2,
+                    has_more=True,
+                    data=[
+                        UploadSessionDetail(
+                            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            created_by=UserInfo(
+                                user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                                given_name="Fake",
+                                family_name="User",
+                            ),
+                            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                            write_mode=UploadSessionWriteModeEnum.KEEP,
+                            status=UploadSessionStatusEnum.OPEN,
+                        )
+                    ],
+                ),
+                UploadSessionDetailList(
+                    total=2,
+                    has_more=False,
+                    data=[
+                        UploadSessionDetail(
+                            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            created_by=UserInfo(
+                                user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                                given_name="Fake",
+                                family_name="User",
+                            ),
+                            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                            write_mode=UploadSessionWriteModeEnum.KEEP,
+                            status=UploadSessionStatusEnum.OPEN,
+                        )
+                    ],
+                ),
+                UploadSessionDetailList(
+                    total=2,
+                    has_more=False,
+                    data=[],
+                ),
+            ]
+        )
+
+        monkeypatch.setattr(file_service._upload_sessions, "list", mocked_list_paginated)
+
+        file_batches: List[List[File]] = []
+        async for file_batch in file_service.list_upload_sessions(
+            workspace_name="test_workspace", batch_size=10, timeout_s=2
+        ):
+            file_batches.append(file_batch)
+
+        assert len(file_batches) > 0
+        assert len(file_batches[0]) == 1
+        assert file_batches[0][0] == UploadSessionDetail(
+            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+            created_by=UserInfo(
+                user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                given_name="Fake",
+                family_name="User",
+            ),
+            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+            created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+            write_mode=UploadSessionWriteModeEnum.KEEP,
+            status=UploadSessionStatusEnum.OPEN,
+        )
+        assert len(file_batches[1]) == 1
+        assert file_batches[1][0] == UploadSessionDetail(
+            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+            created_by=UserInfo(
+                user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                given_name="Fake",
+                family_name="User",
+            ),
+            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+            created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+            write_mode=UploadSessionWriteModeEnum.KEEP,
+            status=UploadSessionStatusEnum.OPEN,
+        )
+
+    async def test_list_all_upload_sessions_with_no_results(
+        self, file_service: FilesService, monkeypatch: MonkeyPatch
+    ) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                UploadSessionDetailList(
+                    total=0,
+                    has_more=False,
+                    data=[],
+                ),
+            ]
+        )
+
+        monkeypatch.setattr(file_service._upload_sessions, "list", mocked_list_paginated)
+
+        file_batches: List[List[File]] = []
+        async for file_batch in file_service.list_upload_sessions(
+            workspace_name="test_workspace", batch_size=10, timeout_s=2
+        ):
+            file_batches.append(file_batch)
+
+        assert file_batches == []
+
+    async def test_list_all_upload_sessions_with_timeout(
+        self, file_service: FilesService, monkeypatch: MonkeyPatch
+    ) -> None:
+        mocked_list_paginated = AsyncMock(
+            return_value=UploadSessionDetailList(
+                total=2,
+                has_more=True,
+                data=[
+                    UploadSessionDetail(
+                        session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                        created_by=UserInfo(
+                            user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            given_name="Fake",
+                            family_name="User",
+                        ),
+                        expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                        created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                        write_mode=UploadSessionWriteModeEnum.KEEP,
+                        status=UploadSessionStatusEnum.OPEN,
+                    )
+                ],
+            )
+        )
+
+        monkeypatch.setattr(file_service._upload_sessions, "list", mocked_list_paginated)
+
+        with pytest.raises(TimeoutError):
+            async for _ in file_service.list_upload_sessions(
+                workspace_name="test_workspace", batch_size=10, timeout_s=0
+            ):
                 pass
 
 

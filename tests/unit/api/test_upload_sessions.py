@@ -181,7 +181,7 @@ class TestListUploadSessions:
             },
         )
         result: UploadSessionDetailList = await upload_session_client.list(
-            workspace_name="sdk_read", limit=1, page_number=10
+            workspace_name="sdk_read", is_expired=True, limit=1, page_number=10
         )
         assert result.has_more is True
         assert result.total == 23

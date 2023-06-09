@@ -12,7 +12,7 @@ from deepset_cloud_sdk._api.config import (
     CommonConfig,
 )
 from deepset_cloud_sdk._api.files import File
-from deepset_cloud_sdk._api.upload_sessions import WriteMode
+from deepset_cloud_sdk._api.upload_sessions import UploadSessionDetailList, WriteMode
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 
 
@@ -45,6 +45,36 @@ async def list_files(
                 name=name,
                 content=content,
                 odata_filter=odata_filter,
+                batch_size=batch_size,
+                timeout_s=timeout_s,
+            ):
+                yield file_batch
+    except AsyncLibraryNotFoundError:
+        # since we are using asyncio.run() in the sync wrapper, we need to catch this error
+        pass
+
+
+async def list_upload_sessions(
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    is_expired: Optional[bool] = None,
+    batch_size: int = 100,
+    timeout_s: int = 300,
+) -> AsyncGenerator[List[UploadSessionDetailList], None]:
+    """List all files in a workspace.
+
+    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to list the files from.
+    :param batch_size: Batch size for the listing.
+    :return: List of files.
+    """
+    try:
+        async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+            async for file_batch in file_service.list_upload_sessions(
+                workspace_name=workspace_name,
+                is_expired=is_expired,
                 batch_size=batch_size,
                 timeout_s=timeout_s,
             ):

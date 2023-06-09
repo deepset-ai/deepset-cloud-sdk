@@ -7,7 +7,10 @@ from tabulate import tabulate
 
 from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
-from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
+from deepset_cloud_sdk.workflows.sync_client.files import (
+    list_files as sync_list_files,
+    list_upload_sessions as sync_list_upload_sessions,
+)
 from deepset_cloud_sdk.workflows.sync_client.files import upload
 
 cli_app = typer.Typer(pretty_exceptions_show_locals=False)
@@ -72,6 +75,41 @@ def list_files(
     """
     headers = ["file_id", "url", "name", "size", "created_at", "meta"]  # Assuming the first row contains the headers
     for files in sync_list_files(api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s):
+        table = tabulate(files, headers, tablefmt="grid")  # type: ignore
+        typer.echo(table)
+        if len(files) > 0:
+            prompt_input = typer.prompt("Print more results ?", default="y")
+            if prompt_input != "y":
+                break
+
+
+@cli_app.command()
+def list_upload_sessions(
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    content: Optional[str] = None,
+    name: Optional[str] = None,
+    odata_filter: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    batch_size: int = 10,
+    timeout_s: int = 300,
+) -> None:
+    """List files in deepset Cloud.
+
+    A CLI method to list files that exist in deepset Cloud.
+
+    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to list the files from.
+    :param name: Name of the file to odata_filter for.
+    :param content: Content of the file to odata_filter for.
+    :param odata_filter: odata_filter to apply to the file list.
+    :param batch_size: Batch size to use for the file list.
+    """
+    headers = ["file_id", "url", "name", "size", "created_at", "meta"]  # Assuming the first row contains the headers
+    for files in sync_list_upload_sessions(
+        api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s
+    ):
         table = tabulate(files, headers, tablefmt="grid")  # type: ignore
         typer.echo(table)
         if len(files) > 0:

@@ -224,7 +224,9 @@ class UploadSessionsAPI:
         wait=wait_fixed(1),
         reraise=True,
     )
-    async def list(self, workspace_name: str, limit: int = 10, page_number: int = 1) -> UploadSessionDetailList:
+    async def list(
+        self, workspace_name: str, is_expired: bool = False, limit: int = 10, page_number: int = 1
+    ) -> UploadSessionDetailList:
         """List upload sessions.
 
         This method lists all upload sessions for a given workspace.
@@ -238,7 +240,7 @@ class UploadSessionsAPI:
         response = await self._deepset_cloud_api.get(
             workspace_name=workspace_name,
             endpoint="upload_sessions",
-            params={"limit": limit, "page_number": page_number},
+            params={"limit": limit, "page_number": page_number, "is_expired": is_expired},
         )
         if response.status_code != codes.OK:
             logger.error(

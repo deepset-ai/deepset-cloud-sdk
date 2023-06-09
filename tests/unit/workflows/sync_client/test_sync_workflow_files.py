@@ -6,13 +6,22 @@ from uuid import UUID
 
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk._api.files import File
-from deepset_cloud_sdk._api.upload_sessions import WriteMode
+from deepset_cloud_sdk._api.upload_sessions import (
+    UploadSessionDetail,
+    UploadSessionDetailList,
+    UploadSessionStatusEnum,
+    UploadSessionWriteModeEnum,
+    WriteMode,
+)
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
+from deepset_cloud_sdk.models import UserInfo
+
 from deepset_cloud_sdk.workflows.sync_client.files import (
     list_files,
     upload,
     upload_file_paths,
     upload_texts,
+    list_upload_sessions,
 )
 
 
@@ -107,5 +116,52 @@ def test_list_files() -> None:
                 size=611,
                 meta={},
                 created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+            )
+        ]
+
+
+def test_list_upload_sessions() -> None:
+    async def mocked_async_upload_sessions(
+        *args: Any, **kwargs: Any
+    ) -> AsyncGenerator[List[UploadSessionDetailList], None]:
+        yield [
+            UploadSessionDetail(
+                session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                created_by=UserInfo(
+                    user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    given_name="Fake",
+                    family_name="User",
+                ),
+                expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                write_mode=UploadSessionWriteModeEnum.KEEP,
+                status=UploadSessionStatusEnum.CLOSED,
+            )
+        ]
+
+    with patch(
+        "deepset_cloud_sdk.workflows.sync_client.files.async_list_upload_sessions", new=mocked_async_upload_sessions
+    ):
+        returned_files = list(
+            list_upload_sessions(
+                workspace_name="my_workspace",
+                is_expired=True,
+                batch_size=100,
+                timeout_s=100,
+            )
+        )
+        assert len(returned_files) == 1
+        assert returned_files[0] == [
+            UploadSessionDetail(
+                session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                created_by=UserInfo(
+                    user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    given_name="Fake",
+                    family_name="User",
+                ),
+                expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                write_mode=UploadSessionWriteModeEnum.KEEP,
+                status=UploadSessionStatusEnum.CLOSED,
             )
         ]
