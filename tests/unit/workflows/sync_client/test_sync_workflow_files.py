@@ -8,20 +8,18 @@ from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionDetail,
-    UploadSessionDetailList,
     UploadSessionStatusEnum,
     UploadSessionWriteModeEnum,
     WriteMode,
 )
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.models import UserInfo
-
 from deepset_cloud_sdk.workflows.sync_client.files import (
     list_files,
+    list_upload_sessions,
     upload,
     upload_file_paths,
     upload_texts,
-    list_upload_sessions,
 )
 
 
@@ -123,7 +121,7 @@ def test_list_files() -> None:
 def test_list_upload_sessions() -> None:
     async def mocked_async_upload_sessions(
         *args: Any, **kwargs: Any
-    ) -> AsyncGenerator[List[UploadSessionDetailList], None]:
+    ) -> AsyncGenerator[List[UploadSessionDetail], None]:
         yield [
             UploadSessionDetail(
                 session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),

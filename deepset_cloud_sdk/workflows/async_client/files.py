@@ -12,7 +12,7 @@ from deepset_cloud_sdk._api.config import (
     CommonConfig,
 )
 from deepset_cloud_sdk._api.files import File
-from deepset_cloud_sdk._api.upload_sessions import UploadSessionDetailList, WriteMode
+from deepset_cloud_sdk._api.upload_sessions import UploadSessionDetail, WriteMode
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 
 
@@ -61,7 +61,7 @@ async def list_upload_sessions(
     is_expired: Optional[bool] = None,
     batch_size: int = 100,
     timeout_s: int = 300,
-) -> AsyncGenerator[List[UploadSessionDetailList], None]:
+) -> AsyncGenerator[List[UploadSessionDetail], None]:
     """List all files in a workspace.
 
     :param api_key: deepset Cloud API key to use for authentication.

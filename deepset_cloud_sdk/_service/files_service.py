@@ -18,7 +18,7 @@ from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.files import File, FilesAPI
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
-    UploadSessionDetailList,
+    UploadSessionDetail,
     UploadSessionsAPI,
     WriteMode,
 )
@@ -393,10 +393,10 @@ class FilesService:
     async def list_upload_sessions(
         self,
         workspace_name: str,
-        is_expired: Optional[bool] = None,
+        is_expired: Optional[bool] = False,
         batch_size: int = 100,
         timeout_s: int = 20,
-    ) -> AsyncGenerator[List[UploadSessionDetailList], None]:
+    ) -> AsyncGenerator[List[UploadSessionDetail], None]:  # noqa: F821
         """List all upload sessions files in a workspace.
 
         Returns an async generator that yields lists of files. The generator is finished when all files are listed.

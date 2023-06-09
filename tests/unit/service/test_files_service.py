@@ -400,15 +400,15 @@ class TestLisUploadSessionService:
 
         monkeypatch.setattr(file_service._upload_sessions, "list", mocked_list_paginated)
 
-        file_batches: List[List[File]] = []
+        upload_session_batches: List[List[UploadSessionDetail]] = []
         async for file_batch in file_service.list_upload_sessions(
             workspace_name="test_workspace", batch_size=10, timeout_s=2
         ):
-            file_batches.append(file_batch)
+            upload_session_batches.append(file_batch)
 
-        assert len(file_batches) > 0
-        assert len(file_batches[0]) == 1
-        assert file_batches[0][0] == UploadSessionDetail(
+        assert len(upload_session_batches) > 0
+        assert len(upload_session_batches[0]) == 1
+        assert upload_session_batches[0][0] == UploadSessionDetail(
             session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
             created_by=UserInfo(
                 user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
@@ -420,8 +420,8 @@ class TestLisUploadSessionService:
             write_mode=UploadSessionWriteModeEnum.KEEP,
             status=UploadSessionStatusEnum.OPEN,
         )
-        assert len(file_batches[1]) == 1
-        assert file_batches[1][0] == UploadSessionDetail(
+        assert len(upload_session_batches[1]) == 1
+        assert upload_session_batches[1][0] == UploadSessionDetail(
             session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
             created_by=UserInfo(
                 user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
@@ -449,13 +449,13 @@ class TestLisUploadSessionService:
 
         monkeypatch.setattr(file_service._upload_sessions, "list", mocked_list_paginated)
 
-        file_batches: List[List[File]] = []
+        upload_session_batches: List[List[UploadSessionDetail]] = []
         async for file_batch in file_service.list_upload_sessions(
             workspace_name="test_workspace", batch_size=10, timeout_s=2
         ):
-            file_batches.append(file_batch)
+            upload_session_batches.append(file_batch)
 
-        assert file_batches == []
+        assert upload_session_batches == []
 
     async def test_list_all_upload_sessions_with_timeout(
         self, file_service: FilesService, monkeypatch: MonkeyPatch

@@ -7,10 +7,12 @@ import structlog
 
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk._api.files import File
-from deepset_cloud_sdk._api.upload_sessions import UploadSessionDetailList, WriteMode
+from deepset_cloud_sdk._api.upload_sessions import UploadSessionDetail, WriteMode
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.workflows.async_client.files import (
     list_files as async_list_files,
+)
+from deepset_cloud_sdk.workflows.async_client.files import (
     list_upload_sessions as async_list_upload_sessions,
 )
 from deepset_cloud_sdk.workflows.async_client.files import upload as async_upload
@@ -175,7 +177,7 @@ def list_upload_sessions(
     is_expired: Optional[bool] = False,
     batch_size: int = 100,
     timeout_s: int = 300,
-) -> Generator[List[UploadSessionDetailList], None, None]:
+) -> Generator[List[UploadSessionDetail], None, None]:
     """List files in deepset Cloud.
 
     WARNING: This only works for workspaces with up to 1000 files.

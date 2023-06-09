@@ -7,8 +7,8 @@ from tabulate import tabulate
 
 from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
+from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
 from deepset_cloud_sdk.workflows.sync_client.files import (
-    list_files as sync_list_files,
     list_upload_sessions as sync_list_upload_sessions,
 )
 from deepset_cloud_sdk.workflows.sync_client.files import upload
@@ -87,9 +87,7 @@ def list_files(
 def list_upload_sessions(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
-    content: Optional[str] = None,
-    name: Optional[str] = None,
-    odata_filter: Optional[str] = None,
+    is_expired: Optional[bool] = False,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     batch_size: int = 10,
     timeout_s: int = 300,
@@ -108,7 +106,12 @@ def list_upload_sessions(
     """
     headers = ["file_id", "url", "name", "size", "created_at", "meta"]  # Assuming the first row contains the headers
     for files in sync_list_upload_sessions(
-        api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s
+        api_key=api_key,
+        api_url=api_url,
+        workspace_name=workspace_name,
+        is_expired=is_expired,
+        batch_size=batch_size,
+        timeout_s=timeout_s,
     ):
         table = tabulate(files, headers, tablefmt="grid")  # type: ignore
         typer.echo(table)

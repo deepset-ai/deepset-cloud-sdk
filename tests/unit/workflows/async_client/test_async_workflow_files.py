@@ -173,7 +173,7 @@ class TestListUploadSessions:
             self: Any,
             *args: Any,
             **kwargs: Any,
-        ) -> AsyncGenerator[List[File], None]:
+        ) -> AsyncGenerator[List[UploadSessionDetail], None]:
             yield [
                 UploadSessionDetail(
                     session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
