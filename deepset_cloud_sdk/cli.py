@@ -106,10 +106,9 @@ def list_upload_sessions(
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from.
-    :param name: Name of the file to odata_filter for.
-    :param content: Content of the file to odata_filter for.
-    :param odata_filter: odata_filter to apply to the file list.
+    :param is_expired: Whether to list expired upload sessions.
     :param batch_size: Batch size to use for the file list.
+    :param timeout_s: Timeout in seconds for the API requests.
     """
     headers: List[str] = [field.name for field in fields(UploadSessionDetail)]
     for upload_sessions in sync_list_upload_sessions(

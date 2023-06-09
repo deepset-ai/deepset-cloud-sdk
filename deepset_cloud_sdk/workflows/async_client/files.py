@@ -72,18 +72,20 @@ async def list_upload_sessions(
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from.
+    :param is_expired: Whether to list expired upload sessions.
     :param batch_size: Batch size for the listing.
+    :param timeout_s: Timeout in seconds for the API requests.
     :return: List of files.
     """
     try:
         async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-            async for file_batch in file_service.list_upload_sessions(
+            async for upload_session_batch in file_service.list_upload_sessions(
                 workspace_name=workspace_name,
                 is_expired=is_expired,
                 batch_size=batch_size,
                 timeout_s=timeout_s,
             ):
-                yield file_batch
+                yield upload_session_batch
     except AsyncLibraryNotFoundError:
         # since we are using asyncio.run() in the sync wrapper, we need to catch this error
         pass
@@ -97,10 +99,10 @@ async def get_upload_session(
 ) -> UploadSessionStatus:
     """Get the status of an upload session.
 
+    :param session_id: ID of the upload session to get the status for.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from.
-    :param batch_size: Batch size for the listing.
     :return: List of files.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:

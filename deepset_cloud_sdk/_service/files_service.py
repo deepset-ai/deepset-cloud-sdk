@@ -404,6 +404,7 @@ class FilesService:
         You can specify the batch size per number of returned files using `batch_size`.
 
         :param workspace_name: Name of the workspace whose files you want to list.
+        :param is_expired: Whether to list expired upload sessions.
         :param batch_size: Number of files to return per request.
         :param timeout_s: Timeout in seconds for the listing.
         :raises TimeoutError: If the listing takes longer than timeout_s.
