@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Coroutine, List
+from typing import Any, Coroutine, List, Optional
 from urllib.parse import quote
 
 import aiofiles
@@ -45,6 +45,7 @@ class S3UploadResult:
 
     file_name: str
     success: bool
+    exception: Optional[Exception] = None
 
 
 def make_safe_file_name(file_name: str) -> str:
@@ -162,9 +163,14 @@ class S3:
         try:
             await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
-        except:  # pylint: disable=bare-except
-            logger.warn("Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id)
-            return S3UploadResult(file_name=file_name, success=False)
+        except Exception as exception:  # pylint: disable=bare-except, disable=broad-exception-caught
+            logger.warn(
+                "Could not upload a file to S3",
+                file_name=file_name,
+                session_id=upload_session.session_id,
+                exception=str(exception),
+            )
+            return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
     async def _process_results(
         self, tasks: List[Coroutine[Any, Any, S3UploadResult]], show_progress: bool = True
