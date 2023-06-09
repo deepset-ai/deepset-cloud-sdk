@@ -141,7 +141,9 @@ class S3:
                     return S3UploadResult(file_name=file_name, success=True)
                 except:  # pylint: disable=bare-except
                     logger.warn(
-                        "Could not upload a file to S3", file_name=file_name, session_id=upload_session.session_id
+                        "Could not upload a file to deepset Cloud",
+                        file_name=file_name,
+                        session_id=upload_session.session_id,
                     )
                     return S3UploadResult(file_name=file_name, success=False)
 
@@ -165,7 +167,7 @@ class S3:
             return S3UploadResult(file_name=file_name, success=True)
         except Exception as exception:  # pylint: disable=bare-except, disable=broad-exception-caught
             logger.warn(
-                "Could not upload a file to S3",
+                "Could not upload a file to deepset Cloud",
                 file_name=file_name,
                 session_id=upload_session.session_id,
                 exception=str(exception),
