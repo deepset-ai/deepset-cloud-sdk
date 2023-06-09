@@ -187,6 +187,46 @@ class TestCLIMethods:
                 in result.stdout
             )
 
+        @patch("deepset_cloud_sdk.cli.sync_list_upload_sessions")
+        def test_listing_upload_sessions_with_break(self, sync_list_upload_sessions: AsyncMock) -> None:
+            def mocked_list_upload_sessions(
+                *args: Any,
+                **kwargs: Any,
+            ) -> Generator[List[UploadSessionDetail], None, None]:
+                yield [
+                    UploadSessionDetail(
+                        session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                        created_by=UserInfo(
+                            user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            given_name="Fake",
+                            family_name="User",
+                        ),
+                        expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                        created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                        write_mode=UploadSessionWriteModeEnum.KEEP,
+                        status=UploadSessionStatusEnum.OPEN,
+                    )
+                ]
+                yield [
+                    UploadSessionDetail(
+                        session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                        created_by=UserInfo(
+                            user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            given_name="Not In There",
+                            family_name="Not In There",
+                        ),
+                        expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                        created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                        write_mode=UploadSessionWriteModeEnum.KEEP,
+                        status=UploadSessionStatusEnum.OPEN,
+                    ),
+                ]
+
+            sync_list_upload_sessions.side_effect = mocked_list_upload_sessions
+            result = runner.invoke(cli_app, ["list-upload-sessions", "--batch-size", "1"], input="n")
+            assert result.exit_code == 0
+            assert "Not In There" not in result.stdout
+
 
 class TestCLIUtils:
     def test_login_with_minimal(self) -> None:
