@@ -11,11 +11,16 @@ from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.files import File, FileList
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
+    UploadSessionDetail,
+    UploadSessionDetailList,
     UploadSessionIngestionStatus,
     UploadSessionStatus,
+    UploadSessionStatusEnum,
+    UploadSessionWriteModeEnum,
     WriteMode,
 )
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk.models import UserInfo
 
 
 @pytest.fixture
@@ -342,6 +347,169 @@ class TestListFilesService:
         with pytest.raises(TimeoutError):
             async for _ in file_service.list_all(workspace_name="test_workspace", batch_size=10, timeout_s=0):
                 pass
+
+
+@pytest.mark.asyncio
+class TestListUploadSessionService:
+    async def test_list_all_upload_sessions_files(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                UploadSessionDetailList(
+                    total=2,
+                    has_more=True,
+                    data=[
+                        UploadSessionDetail(
+                            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            created_by=UserInfo(
+                                user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                                given_name="Fake",
+                                family_name="User",
+                            ),
+                            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                            write_mode=UploadSessionWriteModeEnum.KEEP,
+                            status=UploadSessionStatusEnum.OPEN,
+                        )
+                    ],
+                ),
+                UploadSessionDetailList(
+                    total=2,
+                    has_more=False,
+                    data=[
+                        UploadSessionDetail(
+                            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            created_by=UserInfo(
+                                user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                                given_name="Fake",
+                                family_name="User",
+                            ),
+                            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                            write_mode=UploadSessionWriteModeEnum.KEEP,
+                            status=UploadSessionStatusEnum.OPEN,
+                        )
+                    ],
+                ),
+                UploadSessionDetailList(
+                    total=2,
+                    has_more=False,
+                    data=[],
+                ),
+            ]
+        )
+
+        monkeypatch.setattr(file_service._upload_sessions, "list", mocked_list_paginated)
+
+        upload_session_batches: List[List[UploadSessionDetail]] = []
+        async for file_batch in file_service.list_upload_sessions(
+            workspace_name="test_workspace", batch_size=10, timeout_s=2
+        ):
+            upload_session_batches.append(file_batch)
+
+        assert len(upload_session_batches) > 0
+        assert len(upload_session_batches[0]) == 1
+        assert upload_session_batches[0][0] == UploadSessionDetail(
+            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+            created_by=UserInfo(
+                user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                given_name="Fake",
+                family_name="User",
+            ),
+            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+            created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+            write_mode=UploadSessionWriteModeEnum.KEEP,
+            status=UploadSessionStatusEnum.OPEN,
+        )
+        assert len(upload_session_batches[1]) == 1
+        assert upload_session_batches[1][0] == UploadSessionDetail(
+            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+            created_by=UserInfo(
+                user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                given_name="Fake",
+                family_name="User",
+            ),
+            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+            created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+            write_mode=UploadSessionWriteModeEnum.KEEP,
+            status=UploadSessionStatusEnum.OPEN,
+        )
+
+    async def test_list_all_upload_sessions_with_no_results(
+        self, file_service: FilesService, monkeypatch: MonkeyPatch
+    ) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                UploadSessionDetailList(
+                    total=0,
+                    has_more=False,
+                    data=[],
+                ),
+            ]
+        )
+
+        monkeypatch.setattr(file_service._upload_sessions, "list", mocked_list_paginated)
+
+        upload_session_batches: List[List[UploadSessionDetail]] = []
+        async for file_batch in file_service.list_upload_sessions(
+            workspace_name="test_workspace", batch_size=10, timeout_s=2
+        ):
+            upload_session_batches.append(file_batch)
+
+        assert upload_session_batches == []
+
+    async def test_list_all_upload_sessions_with_timeout(
+        self, file_service: FilesService, monkeypatch: MonkeyPatch
+    ) -> None:
+        mocked_list_paginated = AsyncMock(
+            return_value=UploadSessionDetailList(
+                total=2,
+                has_more=True,
+                data=[
+                    UploadSessionDetail(
+                        session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                        created_by=UserInfo(
+                            user_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            given_name="Fake",
+                            family_name="User",
+                        ),
+                        expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                        created_at=datetime.datetime.fromisoformat("2022-06-21T16:10:00.634653+00:00"),
+                        write_mode=UploadSessionWriteModeEnum.KEEP,
+                        status=UploadSessionStatusEnum.OPEN,
+                    )
+                ],
+            )
+        )
+
+        monkeypatch.setattr(file_service._upload_sessions, "list", mocked_list_paginated)
+
+        with pytest.raises(TimeoutError):
+            async for _ in file_service.list_upload_sessions(
+                workspace_name="test_workspace", batch_size=10, timeout_s=0
+            ):
+                pass
+
+
+@pytest.mark.asyncio
+class TestGetUploadSessionStatusService:
+    async def test_get_upload_session(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
+        returned_upload_session_status = UploadSessionStatus(
+            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+            documentation_url="https://docs.deepset.ai",
+            ingestion_status=UploadSessionIngestionStatus(
+                failed_files=0,
+                finished_files=1,
+            ),
+        )
+        mocked_list_paginated = AsyncMock(return_value=returned_upload_session_status)
+
+        monkeypatch.setattr(file_service._upload_sessions, "status", mocked_list_paginated)
+
+        upload_session_status = await file_service.get_upload_session(
+            workspace_name="test_workspace", session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10")
+        )
+        assert upload_session_status == returned_upload_session_status
 
 
 @pytest.mark.asyncio

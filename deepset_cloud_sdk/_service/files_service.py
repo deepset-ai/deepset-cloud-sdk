@@ -18,7 +18,9 @@ from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.files import File, FilesAPI
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
+    UploadSessionDetail,
     UploadSessionsAPI,
+    UploadSessionStatus,
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3
@@ -388,3 +390,53 @@ class FilesService:
             after_value = response.data[-1].created_at
             after_file_id = response.data[-1].file_id
             yield response.data
+
+    async def list_upload_sessions(
+        self,
+        workspace_name: str,
+        is_expired: Optional[bool] = False,
+        batch_size: int = 100,
+        timeout_s: int = 20,
+    ) -> AsyncGenerator[List[UploadSessionDetail], None]:  # noqa: F821
+        """List all upload sessions files in a workspace.
+
+        Returns an async generator that yields lists of files. The generator is finished when all files are listed.
+        You can specify the batch size per number of returned files using `batch_size`.
+
+        :param workspace_name: Name of the workspace whose files you want to list.
+        :param is_expired: Whether to list expired upload sessions.
+        :param batch_size: Number of files to return per request.
+        :param timeout_s: Timeout in seconds for the listing.
+        :raises TimeoutError: If the listing takes longer than timeout_s.
+        """
+        start = time.time()
+        has_more = True
+
+        page_number: int = 1
+        while has_more:
+            if time.time() - start > timeout_s:
+                raise TimeoutError(f"Listing all upload sessions files in workspace {workspace_name} timed out.")
+            response = await self._upload_sessions.list(
+                workspace_name,
+                is_expired=is_expired,
+                limit=batch_size,
+                page_number=page_number,
+            )
+            has_more = response.has_more
+            if not response.data:
+                return
+
+            page_number += 1
+            yield response.data
+
+    async def get_upload_session(self, workspace_name: str, session_id: UUID) -> UploadSessionStatus:
+        """Get the status of an upload session.
+
+        :param workspace_name: Name of the workspace whose upload session you want to get.
+        :param session_id: ID of the upload session.
+        :return: UploadSessionStatus object.
+        """
+        upload_session_status: UploadSessionStatus = await self._upload_sessions.status(
+            workspace_name=workspace_name, session_id=session_id
+        )
+        return upload_session_status

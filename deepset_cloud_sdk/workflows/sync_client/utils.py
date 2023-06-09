@@ -14,11 +14,11 @@ def iter_over_async(ait: AsyncIterator[T], loop: AbstractEventLoop) -> Generator
     """
     # Taken from
     # https://stackoverflow.com/questions/63587660/yielding-asyncio-generator-data-back-from-event-loop-possible/63595496#63595496
-    ait = ait.__aiter__()
+    ait = ait.__aiter__()  # pylint: disable=unnecessary-dunder-call
 
     async def get_next() -> Tuple[bool, Optional[T]]:
         try:
-            obj = await ait.__anext__()
+            obj = await ait.__anext__()  # pylint: disable=unnecessary-dunder-call
             return False, obj
         except StopAsyncIteration:
             return True, None

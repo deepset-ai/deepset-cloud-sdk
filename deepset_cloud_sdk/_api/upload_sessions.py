@@ -3,7 +3,7 @@
 import datetime
 import enum
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 from uuid import UUID
 
 import structlog
@@ -224,7 +224,9 @@ class UploadSessionsAPI:
         wait=wait_fixed(1),
         reraise=True,
     )
-    async def list(self, workspace_name: str, limit: int = 10, page_number: int = 1) -> UploadSessionDetailList:
+    async def list(
+        self, workspace_name: str, is_expired: Optional[bool] = False, limit: int = 10, page_number: int = 1
+    ) -> UploadSessionDetailList:
         """List upload sessions.
 
         This method lists all upload sessions for a given workspace.
@@ -235,10 +237,14 @@ class UploadSessionsAPI:
         :raises FailedToSendUploadSessionRequest: If the list could not be fetched.
         :return: UploadSessionDetailList object.
         """
+        params = {"limit": limit, "page_number": page_number}
+        if is_expired:
+            params["is_expired"] = is_expired
+
         response = await self._deepset_cloud_api.get(
             workspace_name=workspace_name,
             endpoint="upload_sessions",
-            params={"limit": limit, "page_number": page_number},
+            params=params,
         )
         if response.status_code != codes.OK:
             logger.error(
