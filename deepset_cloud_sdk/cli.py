@@ -1,12 +1,14 @@
 """The CLI for the deepset Cloud SDK."""
 import os
-from typing import Optional
+from dataclasses import fields
+from typing import List, Optional
 
 import typer
 from tabulate import tabulate
 
 from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
+from deepset_cloud_sdk._api.upload_sessions import UploadSessionDetail
 from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
 from deepset_cloud_sdk.workflows.sync_client.files import (
     list_upload_sessions as sync_list_upload_sessions,
@@ -104,8 +106,8 @@ def list_upload_sessions(
     :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     """
-    headers = ["file_id", "url", "name", "size", "created_at", "meta"]  # Assuming the first row contains the headers
-    for files in sync_list_upload_sessions(
+    headers: List[str] = [field.name for field in fields(UploadSessionDetail)]
+    for upload_sessions in sync_list_upload_sessions(
         api_key=api_key,
         api_url=api_url,
         workspace_name=workspace_name,
@@ -113,9 +115,9 @@ def list_upload_sessions(
         batch_size=batch_size,
         timeout_s=timeout_s,
     ):
-        table = tabulate(files, headers, tablefmt="grid")  # type: ignore
+        table = tabulate(upload_sessions, headers, tablefmt="grid")  # type: ignore
         typer.echo(table)
-        if len(files) > 0:
+        if len(upload_sessions) > 0:
             prompt_input = typer.prompt("Print more results ?", default="y")
             if prompt_input != "y":
                 break
