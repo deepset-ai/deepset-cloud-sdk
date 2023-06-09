@@ -163,7 +163,7 @@ class S3:
         try:
             await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
-        except Exception as exception:  # pylint: disable=bare-except
+        except Exception as exception:  # pylint: disable=bare-except, disable=broad-exception-caught
             logger.warn(
                 "Could not upload a file to S3",
                 file_name=file_name,
