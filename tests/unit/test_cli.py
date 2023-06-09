@@ -192,7 +192,7 @@ class TestCLIMethods:
             result = runner.invoke(cli_app, ["list-upload-sessions"])
             assert result.exit_code == 0
             assert (
-                "cd16435f-f6eb-423f-bf6f-994dc8a36a10 | UserInfo(user_id=UUID('cd16435f-f6eb-423f-bf6f-994dc8a36a10'), given_name='Fake', family_name='User') | 2022-06-21 16:10:00.634653+00:00 | 2022-06-21 16:40:00.634653+00:00 | KEEP         | OPEN"
+                "cd16435f-f6eb-423f-bf6f-994dc8a36a10 | Fake User    | 2022-06-21 16:10:00.634653+00:00 | 2022-06-21 16:40:00.634653+00:00 | KEEP         | OPEN"
                 in result.stdout
             )
 
