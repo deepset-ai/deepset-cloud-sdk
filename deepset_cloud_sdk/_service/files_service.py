@@ -20,6 +20,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
     UploadSessionDetail,
     UploadSessionsAPI,
+    UploadSessionStatus,
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3
@@ -426,3 +427,15 @@ class FilesService:
 
             page_number += 1
             yield response.data
+
+    async def get_upload_session(self, workspace_name: str, session_id: UUID) -> UploadSessionStatus:
+        """Get the status of an upload session.
+
+        :param workspace_name: Name of the workspace whose upload session you want to get.
+        :param session_id: ID of the upload session.
+        :return: UploadSessionStatus object.
+        """
+        upload_session_status: UploadSessionStatus = await self._upload_sessions.status(
+            workspace_name=workspace_name, session_id=session_id
+        )
+        return upload_session_status

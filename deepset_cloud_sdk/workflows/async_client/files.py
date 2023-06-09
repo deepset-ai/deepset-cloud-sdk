@@ -2,6 +2,7 @@
 """This module contains async functions for uploading files and folders to deepset Cloud."""
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional
+from uuid import UUID
 
 from sniffio import AsyncLibraryNotFoundError
 
@@ -12,7 +13,11 @@ from deepset_cloud_sdk._api.config import (
     CommonConfig,
 )
 from deepset_cloud_sdk._api.files import File
-from deepset_cloud_sdk._api.upload_sessions import UploadSessionDetail, WriteMode
+from deepset_cloud_sdk._api.upload_sessions import (
+    UploadSessionDetail,
+    UploadSessionStatus,
+    WriteMode,
+)
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 
 
@@ -82,6 +87,27 @@ async def list_upload_sessions(
     except AsyncLibraryNotFoundError:
         # since we are using asyncio.run() in the sync wrapper, we need to catch this error
         pass
+
+
+async def get_upload_session(
+    session_id: UUID,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+) -> UploadSessionStatus:
+    """Get the status of an upload session.
+
+    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to list the files from.
+    :param batch_size: Batch size for the listing.
+    :return: List of files.
+    """
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+        return await file_service.get_upload_session(
+            workspace_name=workspace_name,
+            session_id=session_id,
+        )
 
 
 async def upload_file_paths(

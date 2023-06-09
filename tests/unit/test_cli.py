@@ -11,6 +11,8 @@ from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionDetail,
+    UploadSessionIngestionStatus,
+    UploadSessionStatus,
     UploadSessionStatusEnum,
     UploadSessionWriteModeEnum,
 )
@@ -226,6 +228,31 @@ class TestCLIMethods:
             result = runner.invoke(cli_app, ["list-upload-sessions", "--batch-size", "1"], input="n")
             assert result.exit_code == 0
             assert "Not In There" not in result.stdout
+
+    class TestGetUploadSession:
+        @patch("deepset_cloud_sdk.cli.sync_get_upload_session")
+        def test_get_upload_session(self, sync_get_upload_session: AsyncMock) -> None:
+            def mocked_get_upload_session(
+                *args: Any,
+                **kwargs: Any,
+            ) -> UploadSessionStatus:
+                return UploadSessionStatus(
+                    session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                    expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                    documentation_url="https://docs.deepset.ai",
+                    ingestion_status=UploadSessionIngestionStatus(
+                        failed_files=0,
+                        finished_files=1,
+                    ),
+                )
+
+            sync_get_upload_session.side_effect = mocked_get_upload_session
+            result = runner.invoke(cli_app, ["get-upload-session", "cd16435f-f6eb-423f-bf6f-994dc8a36a10"])
+            assert result.exit_code == 0
+            assert (
+                result.stdout
+                == '{\n    "session_id": "cd16435f-f6eb-423f-bf6f-994dc8a36a10",\n    "expires_at": "2022-06-21 16:40:00.634653+00:00",\n    "documentation_url": "https://docs.deepset.ai",\n    "ingestion_status": {\n        "failed_files": 0,\n        "finished_files": 1\n    }\n}\n'
+            )
 
 
 class TestCLIUtils:

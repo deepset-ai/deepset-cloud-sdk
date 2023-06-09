@@ -8,6 +8,8 @@ from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionDetail,
+    UploadSessionIngestionStatus,
+    UploadSessionStatus,
     UploadSessionStatusEnum,
     UploadSessionWriteModeEnum,
     WriteMode,
@@ -15,6 +17,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.models import UserInfo
 from deepset_cloud_sdk.workflows.sync_client.files import (
+    get_upload_session,
     list_files,
     list_upload_sessions,
     upload,
@@ -163,3 +166,27 @@ def test_list_upload_sessions() -> None:
                 status=UploadSessionStatusEnum.CLOSED,
             )
         ]
+
+
+def test_get_upload_session() -> None:
+    existing_upload_session = UploadSessionStatus(
+        session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+        expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+        documentation_url="https://docs.deepset.ai",
+        ingestion_status=UploadSessionIngestionStatus(
+            failed_files=0,
+            finished_files=1,
+        ),
+    )
+
+    async def mocked_async_get_upload_session(*args: Any, **kwargs: Any) -> UploadSessionStatus:
+        return existing_upload_session
+
+    with patch(
+        "deepset_cloud_sdk.workflows.sync_client.files.async_get_upload_session", new=mocked_async_get_upload_session
+    ):
+        returned_upload_session = get_upload_session(
+            workspace_name="my_workspace",
+            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+        )
+        returned_upload_session == existing_upload_session

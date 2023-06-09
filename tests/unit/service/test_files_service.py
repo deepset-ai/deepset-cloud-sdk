@@ -491,6 +491,28 @@ class TestLisUploadSessionService:
 
 
 @pytest.mark.asyncio
+class TestGetUploadSessionStatusService:
+    async def test_get_upload_session(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
+        returned_upload_session_status = UploadSessionStatus(
+            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+            expires_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+            documentation_url="https://docs.deepset.ai",
+            ingestion_status=UploadSessionIngestionStatus(
+                failed_files=0,
+                finished_files=1,
+            ),
+        )
+        mocked_list_paginated = AsyncMock(return_value=returned_upload_session_status)
+
+        monkeypatch.setattr(file_service._upload_sessions, "status", mocked_list_paginated)
+
+        upload_session_status = await file_service.get_upload_session(
+            workspace_name="test_workspace", session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10")
+        )
+        assert upload_session_status == returned_upload_session_status
+
+
+@pytest.mark.asyncio
 class TestValidateFilePaths:
     @pytest.mark.parametrize(
         "file_paths",

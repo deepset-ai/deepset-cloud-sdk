@@ -2,13 +2,21 @@
 import asyncio
 from pathlib import Path
 from typing import Generator, List, Optional
+from uuid import UUID
 
 import structlog
 
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk._api.files import File
-from deepset_cloud_sdk._api.upload_sessions import UploadSessionDetail, WriteMode
+from deepset_cloud_sdk._api.upload_sessions import (
+    UploadSessionDetail,
+    UploadSessionStatus,
+    WriteMode,
+)
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
+from deepset_cloud_sdk.workflows.async_client.files import (
+    get_upload_session as async_get_upload_session,
+)
 from deepset_cloud_sdk.workflows.async_client.files import (
     list_files as async_list_files,
 )
@@ -126,6 +134,24 @@ def upload_texts(
             timeout_s=timeout_s,
             show_progress=show_progress,
         )
+    )
+
+
+def get_upload_session(
+    session_id: UUID,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+) -> UploadSessionStatus:
+    """Get the status of an upload session.
+
+    :param session_id: ID of the upload session to get the status for.
+    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to upload the files to.
+    """
+    return asyncio.run(
+        async_get_upload_session(session_id=session_id, api_key=api_key, api_url=api_url, workspace_name=workspace_name)
     )
 
 
