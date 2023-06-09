@@ -137,7 +137,7 @@ def list_upload_sessions(
                         "created_by": f"{el.created_by.given_name} {el.created_by.family_name}",
                         "created_at": str(el.created_at),
                         "expires_at": str(el.expires_at),
-                        "write_mode": el.write_mode,
+                        "write_mode": el.write_mode.name,
                         "status": el.status,
                     }
                     for el in upload_sessions
