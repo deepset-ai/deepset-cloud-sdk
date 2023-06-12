@@ -6,23 +6,10 @@ on:
       - main
     tags:
       - "*"
-    inputs:
-      api_url:
-        required: true
-        default: https://api.cloud.deepset.ai
-        type: string
+  pull_request:
 
-
-  [workflow_dispatch, workflow_call, pull_request]:
-    inputs:
-      api_url:
-        required: true
-        default: https://api.cloud.deepset.ai
-        type: string
-      slack_notification_title:
-        required: true
-        default: "Prod SDK Integration Tests"
-        type: string
+  workflow_dispatch:
+  workflow_call:
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
@@ -39,4 +26,4 @@ jobs:
         uses: ./.github/actions/integration_tests
         with:
           API_KEY: "${{secrets.API_KEY}}"
-          API_URL: "${{inputs.api_url}}"
+          API_URL: "https://api.cloud.deepset.ai"
