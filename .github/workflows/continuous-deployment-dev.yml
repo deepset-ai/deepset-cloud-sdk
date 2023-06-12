@@ -6,15 +6,12 @@ on:
       - main
     tags:
       - "*"
+
   workflow_dispatch:
     inputs:
       api_url:
         required: true
         default: https://api.dev.cloud.dpst.dev
-        type: string
-      slack_notification_title:
-        required: true
-        default: "Dev SDK Integration Tests"
         type: string
 
 env:
