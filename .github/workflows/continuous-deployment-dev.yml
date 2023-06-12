@@ -6,8 +6,7 @@ on:
       - main
     tags:
       - "*"
-  pull_request:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       api_url:
         required: true
