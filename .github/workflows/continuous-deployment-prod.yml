@@ -6,7 +6,14 @@ on:
       - main
     tags:
       - "*"
-  workflow_dispatch:
+    inputs:
+      api_url:
+        required: true
+        default: https://api.cloud.deepset.ai
+        type: string
+
+
+  [workflow_dispatch, workflow_call, pull_request]:
     inputs:
       api_url:
         required: true
