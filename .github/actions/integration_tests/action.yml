@@ -14,6 +14,12 @@ outputs: {}
 runs:
   using: "composite"
   steps:
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.8"
+    - name: Install Hatch
+      run: pip install hatch==${{ env.HATCH_VERSION }}
+    # we are using the "automated-tests" organization with predefined users and workspaces
     - name: Run SDK Tests
       shell: bash
       run: |

@@ -1,0 +1,38 @@
+name: CD - Prod Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+  workflow_call:
+    inputs:
+      api_url:
+        required: true
+        default: https://api.cloud.deepset.ai
+        type: string
+      slack_notification_title:
+        required: true
+        default: "Prod SDK Integration Tests"
+
+
+
+env:
+  HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
+
+
+jobs:
+
+  tests:
+    name: Tests
+    environment: PROD
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run integration tests
+        uses: ./.github/actions/integration_tests
+        with:
+          API_KEY: "${{secrets.API_KEY}}"
+          API_URL: "${{inputs.api_url}}"
