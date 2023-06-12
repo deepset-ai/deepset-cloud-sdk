@@ -1,0 +1,11 @@
+name: 'Integration Tests'
+description: 'Runs the Integration tests '
+
+outputs: {}
+runs:
+  using: "composite"
+  steps:
+    - name: Run SDK Tests
+      shell: bash
+      run: |
+        API_KEY=${{secrets.API_KEY}} API_URL=https://api.dev.cloud.dpst.dev/api/v1  hatch run test:integration
