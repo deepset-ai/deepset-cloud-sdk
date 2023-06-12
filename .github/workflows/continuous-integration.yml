@@ -118,16 +118,16 @@ jobs:
       # the API_KEY is stored as a secret in the repository
       # we are using the "automated-tests" organization with predefined users and workspaces
 
-integration_tests:
-  name: Integration Tests
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v3
-    - name: Run integration tests
-      uses: ./.github/actions/integration_tests
-      with:
-        API_KEY: "${{secrets.API_KEY}}"
-        API_URL: "https://api.dev.cloud.dpst.dev/api/v1"
+  integration_tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run integration tests
+        uses: ./.github/actions/integration_tests
+        with:
+          API_KEY: "${{secrets.API_KEY}}"
+          API_URL: "https://api.dev.cloud.dpst.dev/api/v1"
 
   build:
     name: Build package

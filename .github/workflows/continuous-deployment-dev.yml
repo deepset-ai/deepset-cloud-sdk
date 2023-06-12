@@ -16,6 +16,7 @@ on:
       slack_notification_title:
         required: true
         default: "Dev SDK Integration Tests"
+        type: string
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
