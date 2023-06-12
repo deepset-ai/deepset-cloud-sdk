@@ -26,4 +26,4 @@ jobs:
         uses: ./.github/actions/integration_tests
         with:
           API_KEY: "${{secrets.API_KEY}}"
-          API_URL: "https://api.cloud.deepset.ai"
+          API_URL: "https://api.cloud.deepset.ai/api/v1"
