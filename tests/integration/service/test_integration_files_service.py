@@ -18,12 +18,14 @@ def workspace_name() -> str:
 class TestUploadsFileService:
     async def test_upload(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
+            timeout = 120 if "dev.cloud.dpst.dev" in integration_config.api_url else 300
+
             await file_service.upload(
                 workspace_name=workspace_name,
                 paths=[Path("./tests/test_data/msmarco.10")],
                 blocking=True,
                 write_mode=WriteMode.KEEP,
-                timeout_s=120,
+                timeout_s=timeout,
             )
 
     async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:

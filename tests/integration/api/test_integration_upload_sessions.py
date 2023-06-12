@@ -26,10 +26,8 @@ class TestCreateUploadSessions:
             assert result.documentation_url is not None
             assert result.expires_at is not None
 
-            assert (
-                result.aws_prefixed_request_config.url
-                == "https://dc-dev-euc1-034167606153-user-files-upload.s3.amazonaws.com/"
-            )
+            assert "-user-files-upload.s3.amazonaws.com/" in result.aws_prefixed_request_config.url
+
             assert result.aws_prefixed_request_config.fields["key"] is not None
 
             await upload_session_client.close(workspace_name=workspace_name, session_id=result.session_id)

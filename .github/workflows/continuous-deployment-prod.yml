@@ -1,0 +1,27 @@
+name: CD - Prod Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+
+  workflow_dispatch:
+
+env:
+  HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
+
+jobs:
+
+  tests:
+    name: Tests
+    environment: PROD
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run integration tests
+        uses: ./.github/actions/integration_tests
+        with:
+          API_KEY: "${{secrets.API_KEY}}"
+          API_URL: "https://api.cloud.deepset.ai/api/v1"
