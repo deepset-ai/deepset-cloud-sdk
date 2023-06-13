@@ -5,12 +5,13 @@ import os
 import sys
 import typing as t
 import warnings
-from pathlib import Path
 
 import docspec
 import requests
 from pydoc_markdown.contrib.renderers.markdown import MarkdownRenderer
 from pydoc_markdown.interfaces import Context, Renderer
+
+import deepset_cloud_sdk.__about__ as about
 
 README_FRONTMATTER = """---
 title: {title}
@@ -53,8 +54,7 @@ class ReadmeRenderer(Renderer):
         """
         Returns the docs version.
         """
-        root = Path(__file__).absolute().parent.parent.parent
-        full_version = (root / "VERSION.txt").read_text()
+        full_version = about.__version__
         major, minor = full_version.split(".")[:2]
         if "rc0" in full_version:
             return f"v{major}.{minor}-unstable"
