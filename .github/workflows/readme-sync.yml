@@ -1,4 +1,4 @@
-name: Sync docs with Readme
+name: Docs
 
 on:
   pull_request:
@@ -41,17 +41,6 @@ jobs:
         shell: bash
         run: echo "__version__=$(grep -oP '__version__ = \"\K[0-9]+\.[0-9]+\.[0-9]+' __about__.py)" >> "$GITHUB_ENV"
 
-      - name: Sync docs with unstable release
-        # Instead of putting more logic into the previous step, let's just assume that commits on `main`
-        # will always be synced to the current `X.Y-unstable` version on Readme
-        id: sync-main
-        if: github.ref_name == 'main' && github.event_name == 'push'
-        uses: readmeio/rdme@8.3.1
-        env:
-          README_API_KEY: ${{ secrets.README_API_KEY }}
-        with:
-          rdme: docs ./docs/pydoc/temp --key="$README_API_KEY" --version=${{ steps.current-version.outputs.minor }}-unstable
-
       - name: Sync docs with current release
         # Mutually exclusive with the previous one, this step is supposed to only run on version branches.
         # Sync the current Haystack version `X.Y.Z` with its corresponding Readme version `X.Y`.
@@ -61,4 +50,4 @@ jobs:
         env:
           README_API_KEY: ${{ secrets.README_API_KEY }}
         with:
-          rdme: docs ./docs/pydoc/temp --key="$README_API_KEY" --version=${{ steps.current-version.outputs.minor }}
+          rdme: sdk-docs ./docs/pydoc/temp --key="$README_API_KEY" --version=${{ steps.current-version.outputs.minor }}
