@@ -166,7 +166,7 @@ cython_debug/
 #.idea/
 
 .vscode
-
+temp
 requirements.txt
 .idea
 .python-version
