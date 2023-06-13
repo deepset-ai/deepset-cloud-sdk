@@ -39,8 +39,7 @@ jobs:
         id: current-version
         if: github.event_name == 'push'
         shell: bash
-        # We only need `major.minor` in Readme so we cut the full version string to the first two tokens
-        run: echo "minor=$(cut -d "." -f 1,2 < VERSION.txt)" >> "$GITHUB_OUTPUT"
+        run: echo "__version__=$(grep -oP '__version__ = \"\K[0-9]+\.[0-9]+\.[0-9]+' __about__.py)" >> "$GITHUB_ENV"
 
       - name: Sync docs with unstable release
         # Instead of putting more logic into the previous step, let's just assume that commits on `main`
