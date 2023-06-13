@@ -37,7 +37,7 @@ jobs:
 
       - name: Get current version
         id: current-version
-        if: github.event_name == 'push'
+        # if: github.event_name == 'push'
         shell: bash
         run: echo "__version__=$(grep -oP '__version__ = \"\K[0-9]+\.[0-9]+\.[0-9]+' __about__.py)" >> "$GITHUB_ENV"
 
