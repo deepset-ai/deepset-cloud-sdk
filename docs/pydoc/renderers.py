@@ -77,7 +77,10 @@ class ReadmeRenderer(Renderer):
         # if not res.ok:
         #    sys.exit(f"Error requesting {version} categories")
 
-        return {c["slug"]: c["id"] for c in res.json()}
+        return {
+            "async_client": "1",
+            "sync_client": "2",
+        }  # {c["slug"]: c["id"] for c in res.json()}
 
     def render(self, modules: t.List[docspec.Module]) -> None:
         if self.markdown.filename is None:
@@ -91,7 +94,7 @@ class ReadmeRenderer(Renderer):
     def _frontmatter(self) -> str:
         return README_FRONTMATTER.format(
             title=self.title,
-            category=self.categories[self.category_slug],
+            category="asdf",  # self.categories[self.category_slug],
             excerpt=self.excerpt,
             slug=self.slug,
             order=self.order,
