@@ -56,8 +56,6 @@ class ReadmeRenderer(Renderer):
         """
         full_version = about.__version__
         major, minor = full_version.split(".")[:2]
-        if "rc0" in full_version:
-            return f"v{major}.{minor}-unstable"
         return f"v{major}.{minor}"
 
     def _readme_categories(self, version: str) -> t.Dict[str, str]:
@@ -76,8 +74,8 @@ class ReadmeRenderer(Renderer):
 
         res = requests.get("https://dash.readme.com/api/v1/categories", headers=headers, timeout=60)
 
-        if not res.ok:
-            sys.exit(f"Error requesting {version} categories")
+        # if not res.ok:
+        #    sys.exit(f"Error requesting {version} categories")
 
         return {c["slug"]: c["id"] for c in res.json()}
 
