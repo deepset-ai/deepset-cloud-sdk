@@ -3,4 +3,4 @@ pydoc-markdown==4.6.4
 docspec-python<2.1.0
 requests==2.31.0
 # installs the SDK to sync the version
--e ../../
+-e .
