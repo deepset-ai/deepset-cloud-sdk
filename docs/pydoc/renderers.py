@@ -74,13 +74,10 @@ class ReadmeRenderer(Renderer):
 
         res = requests.get("https://dash.readme.com/api/v1/categories", headers=headers, timeout=60)
 
-        # if not res.ok:
-        #    sys.exit(f"Error requesting {version} categories")
+        if not res.ok:
+            sys.exit(f"Error requesting {version} categories")
 
-        return {
-            "async_client": "1",
-            "sync_client": "2",
-        }  # {c["slug"]: c["id"] for c in res.json()}
+        return {c["slug"]: c["id"] for c in res.json()}
 
     def render(self, modules: t.List[docspec.Module]) -> None:
         if self.markdown.filename is None:
