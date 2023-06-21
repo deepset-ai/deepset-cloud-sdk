@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix/dev-api-url-cd
     tags:
       - "*"
 
@@ -23,8 +24,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Set API URL
+        run: |-
+          echo "API_URL=$(
+          if [ ! -z ${{ inputs.api_url }} ]; then
+            echo ${{ inputs.api_url }}
+          else
+            echo "https://api.dev.cloud.dpst.dev/api/v1"
+          fi
+          )" >> $GITHUB_ENV
       - name: Run integration tests
         uses: ./.github/actions/integration_tests
         with:
           API_KEY: "${{secrets.API_KEY}}"
-          API_URL: "${{inputs.api_url}}"
+          API_URL: "${{env.API_URL}}"
