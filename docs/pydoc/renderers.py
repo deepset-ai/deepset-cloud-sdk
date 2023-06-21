@@ -11,8 +11,6 @@ import requests
 from pydoc_markdown.contrib.renderers.markdown import MarkdownRenderer
 from pydoc_markdown.interfaces import Context, Renderer
 
-import deepset_cloud_sdk.__about__ as about
-
 README_FRONTMATTER = """---
 title: {title}
 excerpt: {excerpt}
