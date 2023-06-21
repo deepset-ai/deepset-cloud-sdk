@@ -95,7 +95,7 @@ class ReadmeRenderer(Renderer):
     def _frontmatter(self) -> str:
         return README_FRONTMATTER.format(
             title=self.title,
-            category="asdf",  # self.categories[self.category_slug],
+            category=self.categories[self.category_slug],
             excerpt=self.excerpt,
             slug=self.slug,
             order=self.order,
