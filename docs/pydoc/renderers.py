@@ -54,9 +54,13 @@ class ReadmeRenderer(Renderer):
         """
         Returns the docs version.
         """
-        full_version = about.__version__
-        major, minor = full_version.split(".")[:2]
-        return f"v{major}.{minor}"
+        # full_version = about.__version__
+        # major, minor = full_version.split(".")[:2]
+        # return f"v{major}.{minor}"
+
+        # The readme.io version is hardcoded for now to manually maintain the guides
+        # within the same documentation page as the deepset Cloud Docs.
+        return "v1.0"
 
     def _readme_categories(self, version: str) -> t.Dict[str, str]:
         """
