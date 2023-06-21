@@ -74,12 +74,25 @@ class ReadmeRenderer(Renderer):
         token = base64.b64encode(f"{README_API_KEY}:".encode()).decode()
         headers = {"authorization": f"Basic {token}", "x-readme-version": version}
 
-        res = requests.get("https://dash.readme.com/api/v1/categories", headers=headers, timeout=60)
+        page = 1
+        results = {}
 
-        if not res.ok:
-            sys.exit(f"Error requesting {version} categories")
+        while True:
+            res = requests.get(
+                "https://dash.readme.com/api/v1/categories", params={"page": page}, headers=headers, timeout=60
+            )
+            if not res.ok:
+                sys.exit("Error requesting categories")
 
-        return {c["slug"]: c["id"] for c in res.json()}
+            data = res.json()
+            if not data:
+                break
+
+            results.update({c["slug"]: c["id"] for c in data})
+            page += 1
+
+        print(results)
+        return results
 
     def render(self, modules: t.List[docspec.Module]) -> None:
         if self.markdown.filename is None:
