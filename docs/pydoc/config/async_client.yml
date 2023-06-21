@@ -14,7 +14,7 @@ processors:
 renderer:
   type: renderers.ReadmeRenderer
   excerpt: An asynchronous client for the Deepset Cloud API.
-  category_slug: deepset-cloud-sdk-classes
+  category_slug: open-source-sdk-methods
   title: Asynchronous Client
   slug: async_client
   order: 0

@@ -14,7 +14,7 @@ processors:
 renderer:
   type: renderers.ReadmeRenderer
   excerpt: A synchronous client for the Deepset Cloud API.
-  category_slug: deepset-cloud-sdk-classes
+  category_slug: open-source-sdk-methods
   title: Synchronous Client
   slug: sync_client
   order: 0

@@ -69,7 +69,7 @@ class ReadmeRenderer(Renderer):
         README_API_KEY = os.getenv("README_API_KEY")
         if not README_API_KEY:
             warnings.warn("README_API_KEY env var is not set, using a placeholder category ID")
-            return {"hdeepset-cloud-sdk-classes": "ID"}
+            return {"open-source-sdk-methods": "ID"}
 
         token = base64.b64encode(f"{README_API_KEY}:".encode()).decode()
         headers = {"authorization": f"Basic {token}", "x-readme-version": version}
