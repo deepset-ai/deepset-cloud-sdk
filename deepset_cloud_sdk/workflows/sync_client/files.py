@@ -167,8 +167,6 @@ def list_files(
 ) -> Generator[List[File], None, None]:
     """List files in deepset Cloud.
 
-    WARNING: This only works for workspaces with up to 1000 files.
-
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from.
@@ -205,8 +203,6 @@ def list_upload_sessions(
     timeout_s: int = 300,
 ) -> Generator[List[UploadSessionDetail], None, None]:
     """List files in deepset Cloud.
-
-    WARNING: This only works for workspaces with up to 1000 files.
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
