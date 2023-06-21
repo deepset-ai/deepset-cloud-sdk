@@ -91,7 +91,6 @@ class ReadmeRenderer(Renderer):
             results.update({c["slug"]: c["id"] for c in data})
             page += 1
 
-        print(results)
         return results
 
     def render(self, modules: t.List[docspec.Module]) -> None:
