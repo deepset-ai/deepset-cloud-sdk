@@ -124,7 +124,6 @@ jobs:
   # we are using the "automated-tests" organization with predefined users and workspaces
   integration_tests:
     name: Integration Tests (CI)
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
     environment: test
     runs-on: ubuntu-latest
     steps:
