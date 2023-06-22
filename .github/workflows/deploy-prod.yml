@@ -1,18 +1,18 @@
 name: Deploy to Prod PyPi
 
 on:
-  push:
-    branches:
-      - main
-
+  release:
+    types:
+      - published
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with continuous-integration.yml
-  API_KEY: ${{secrets.API_KEY}}
 
 jobs:
   deploy-prod:
     uses: ./.github/workflows/deploy.yml
+    environment: PROD
     with:
       deployment_env: release
+      api_url: "https://api.cloud.deepset.ai/api/v1"
     secrets:
       API_KEY: ${{ secrets.API_KEY }}

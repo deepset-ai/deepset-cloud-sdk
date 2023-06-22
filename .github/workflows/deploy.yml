@@ -6,6 +6,11 @@ on:
       deployment_env:
         required: true
         type: string
+      api_url:
+        required: true
+        default: https://api.dev.cloud.dpst.dev/api/v1
+        type: string
+
     secrets:
       API_KEY:
         required: true
@@ -19,6 +24,8 @@ env:
 jobs:
   ci:
     uses: ./.github/workflows/continuous-integration.yml
+    with:
+      api_url: ${{ inputs.api_url }}
     secrets:
       API_KEY: ${{ secrets.API_KEY }}
 

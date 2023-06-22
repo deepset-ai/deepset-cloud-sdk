@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "*"
   pull_request:
   workflow_call:
+    inputs:
+      api_url:
+        required: true
+        type: string
     secrets:
       API_KEY:
         required: true
@@ -120,6 +122,7 @@ jobs:
 
   integration_tests:
     name: Integration Tests
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -128,6 +131,18 @@ jobs:
         with:
           API_KEY: "${{secrets.API_KEY}}"
           API_URL: "https://api.dev.cloud.dpst.dev/api/v1"
+
+  integration_tests_for_deploy:
+    name: Integration Tests
+    if: github.event_name == 'workflow_call'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run integration tests
+        uses: ./.github/actions/integration_tests
+        with:
+          API_KEY: "${{secrets.API_KEY}}"
+          API_URL: "${{ inputs.api_url }}"
 
   build:
     name: Build package

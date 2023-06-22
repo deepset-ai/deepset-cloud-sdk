@@ -1,12 +1,6 @@
 name: CD - Dev Integration Tests
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - "*"
-
   workflow_dispatch:
     inputs:
       api_url:
@@ -23,15 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set API URL
-        run: |-
-          echo "API_URL=$(
-          if [ ! -z ${{ inputs.api_url }} ]; then
-            echo ${{ inputs.api_url }}
-          else
-            echo "https://api.dev.cloud.dpst.dev/api/v1"
-          fi
-          )" >> $GITHUB_ENV
       - name: Run integration tests
         uses: ./.github/actions/integration_tests
         with:
