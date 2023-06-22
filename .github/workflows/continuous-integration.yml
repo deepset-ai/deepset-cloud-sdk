@@ -10,6 +10,9 @@ on:
       api_url:
         required: true
         type: string
+      deployment_env:
+        required: true
+        type: string
     secrets:
       API_KEY:
         required: true
@@ -124,6 +127,7 @@ jobs:
   # we are using the "automated-tests" organization with predefined users and workspaces
   integration_tests:
     name: Integration Tests (CI)
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     environment: test
     runs-on: ubuntu-latest
     steps:
@@ -133,6 +137,18 @@ jobs:
         with:
           API_KEY: "${{secrets.API_KEY}}"
           API_URL: "https://api.dev.cloud.dpst.dev/api/v1"
+
+  integration_tests_for_deploy:
+    name: Integration Tests for deployment
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run integration tests
+        uses: ./.github/actions/integration_tests
+        with:
+          API_KEY: "${{secrets.TEST_API_KEY}}"
+          API_URL: "${{ inputs.api_url }}"
 
   build:
     name: Build package

@@ -17,4 +17,4 @@ jobs:
       deployment_env: "test"
       api_url: "https://api.dev.cloud.dpst.dev/api/v1"
     secrets:
-      API_KEY: ${{ secrets.API_KEY }}
+      TEST_API_KEY: ${{ secrets.API_KEY }}
