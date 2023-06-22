@@ -148,7 +148,7 @@ jobs:
         uses: ./.github/actions/integration_tests
         with:
           API_KEY: "${{ inputs.deployment_env == 'release' && secrets.API_KEY_PROD || secrets.API_KEY}}"
-          API_URL: "${{ inputs.api_url }}"
+          API_URL: "${{ inputs.api_url || 'https://api.dev.cloud.dpst.dev/api/v1'}}"
 
   build:
     name: Build package
