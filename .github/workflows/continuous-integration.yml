@@ -102,6 +102,8 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     environment: test
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
