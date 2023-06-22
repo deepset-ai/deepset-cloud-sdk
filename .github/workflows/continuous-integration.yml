@@ -10,9 +10,6 @@ on:
       api_url:
         required: true
         type: string
-      deployment_env:
-        required: true
-        type: string
     secrets:
       API_KEY:
         required: true
