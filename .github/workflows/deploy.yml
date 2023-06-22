@@ -10,11 +10,6 @@ on:
         required: true
         default: https://api.dev.cloud.dpst.dev/api/v1
         type: string
-
-    secrets:
-      API_KEY:
-        required: true
-
 permissions:
   id-token: write
 
