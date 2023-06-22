@@ -10,13 +10,12 @@ on:
       api_url:
         required: true
         type: string
-    secrets:
-      API_KEY:
+      deployment_env:
         required: true
+        type: string
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
-  API_KEY: ${{secrets.API_KEY}}
 
 jobs:
   format-black:
@@ -116,10 +115,10 @@ jobs:
         uses: py-cov-action/python-coverage-comment-action@48708266a6e77ebf564b50d9cff2b7df9a25b458
         with:
           GITHUB_TOKEN: ${{ github.token }}
-      # Integration tests are running against the dev environment
-      # the API_KEY is stored as a secret in the repository
-      # we are using the "automated-tests" organization with predefined users and workspaces
 
+  # Integration tests are running against the dev environment
+  # the API_KEY is stored as a secret in the repository
+  # we are using the "automated-tests" organization with predefined users and workspaces
   integration_tests:
     name: Integration Tests
     if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -136,6 +135,7 @@ jobs:
     name: Integration Tests
     if: github.event_name == 'workflow_call'
     runs-on: ubuntu-latest
+    environment: ${{ inputs.deployment_env }}
     steps:
       - uses: actions/checkout@v3
       - name: Run integration tests

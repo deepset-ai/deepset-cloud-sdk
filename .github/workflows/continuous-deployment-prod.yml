@@ -3,11 +3,7 @@ name: CD - Prod Integration Tests
 on:
   workflow_dispatch:
 
-env:
-  HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
-
 jobs:
-
   tests:
     name: Tests
     environment: PROD

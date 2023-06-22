@@ -12,3 +12,4 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       deployment_env: test
+      api_url: "https://api.dev.cloud.dpst.dev/api/v1"
