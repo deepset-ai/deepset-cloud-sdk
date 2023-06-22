@@ -14,3 +14,5 @@ jobs:
     with:
       deployment_env: "release"
       api_url: "https://api.cloud.deepset.ai/api/v1"
+    secrets:
+      API_KEY: ${{ secrets.API_KEY }}
