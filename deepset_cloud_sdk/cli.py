@@ -27,6 +27,7 @@ cli_app.command()(upload)
 @cli_app.command()
 def login() -> None:
     """Log in to deepset Cloud. This command creates an .ENV file with your deepset Cloud API key and the default workspace used for all operations.
+
     Run this command before performing any tasks in deepset Cloud using the SDK or CLI, unless you already created the .ENV file.
 
     Example:
@@ -122,7 +123,7 @@ def list_upload_sessions(
     batch_size: int = 10,
     timeout_s: int = 300,
 ) -> None:
-    """Lists the details of all upload sessions for the specified workspace, including closed sessions.
+    """List the details of all upload sessions for the specified workspace, including closed sessions.
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
@@ -175,8 +176,7 @@ def get_upload_session(
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
 ) -> None:
-    """Fetch an upload session from deepset Cloud. This method is useful for
-    checking the status of an upload session after uploading files to deepset Cloud.
+    """Fetch an upload session from deepset Cloud. This method is useful for checking the status of an upload session after uploading files to deepset Cloud.
 
     :param session_id: ID of the upload session whose status you want to check.
     :param api_key: deepset Cloud API key to use for authentication.
