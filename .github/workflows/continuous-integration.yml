@@ -147,7 +147,7 @@ jobs:
       - name: Run integration tests
         uses: ./.github/actions/integration_tests
         with:
-          API_KEY: "${{secrets.API_KEY}}"
+          API_KEY: "${{ inputs.deployment_env == 'release' && secrets.API_KEY_PROD || secrets.API_KEY}}"
           API_URL: "${{ inputs.api_url }}"
 
   build:
