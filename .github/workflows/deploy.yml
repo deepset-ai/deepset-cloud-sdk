@@ -22,7 +22,7 @@ jobs:
     uses: ./.github/workflows/continuous-integration.yml
     with:
       api_url: ${{ inputs.api_url }}
-      deployment_env: ${{ github.event.inputs.deployment_env }}
+      deployment_env: ${{ inputs.deployment_env }}
   build-and-deploy:
     needs: ci
     runs-on: ubuntu-latest

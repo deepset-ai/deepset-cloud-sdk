@@ -12,5 +12,5 @@ jobs:
   deploy-prod:
     uses: ./.github/workflows/deploy.yml
     with:
-      deployment_env: release
+      deployment_env: "release"
       api_url: "https://api.cloud.deepset.ai/api/v1"
