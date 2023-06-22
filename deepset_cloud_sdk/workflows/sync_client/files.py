@@ -50,9 +50,10 @@ def upload_file_paths(
     :param file_paths: List of file paths to upload.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter`.
+    :param show_progress: Shows the upload progress.
     """
     asyncio.run(
         async_upload_file_paths(
@@ -85,9 +86,11 @@ def upload(
     deepset Cloud supports TXT and PDF files.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param blocking: Whether to wait for the files to be uploaded and displayed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
+    :param show_progress: Shows the upload progress.
+    :recursive: Uploads files from subfolders as well.
     """
     asyncio.run(
         async_upload(
@@ -119,9 +122,15 @@ def upload_texts(
     :param files: List of DeepsetCloudFiles to upload.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+    Possible options are:
+    KEEP - uploads the file with the same name and keeps both files in the workspace.
+    OVERWRITE - overwrites the file that is in the workspace.
+    FAIL - fails to upload the file with the same name.
     :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
+    :param show_progress: Shows the upload progress.
     """
     asyncio.run(
         async_upload_texts(
@@ -165,11 +174,11 @@ def list_files(
     batch_size: int = 100,
     timeout_s: int = 300,
 ) -> Generator[List[File], None, None]:
-    """List files in deepset Cloud.
+    """List files in a deepset Cloud workspace.
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to list the files from.
+    :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
     :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
@@ -202,14 +211,14 @@ def list_upload_sessions(
     batch_size: int = 100,
     timeout_s: int = 300,
 ) -> Generator[List[UploadSessionDetail], None, None]:
-    """List files in deepset Cloud.
+    """List the details of all upload sessions, including the closed ones.
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to list the files from.
-    :param is_expired: Name of the file to odata_filter for.
-    :param batch_size: Batch size to use for the file list.
-    :param timeout_s: Timeout in seconds for the API requests.
+    :param workspace_name: Name of the workspace whose sessions you want to list. It uses the workspace from the .ENV file by default.
+    :param is_expired: Lists expired sessions.
+    :param batch_size: Batch size to use for the session list.
+    :param timeout_s: Timeout in seconds for the API request.
     """
     loop = asyncio.new_event_loop()
 

@@ -26,7 +26,15 @@ cli_app.command()(upload)
 
 @cli_app.command()
 def login() -> None:
-    """Log in to deepset Cloud."""
+    """Log in to deepset Cloud. This command creates an .ENV file with your deepset Cloud API key and the default workspace used for all operations.
+
+    Run this command before performing any tasks in deepset Cloud using the SDK or CLI, unless you already created the .ENV file.
+
+    Example:
+    `deepset-cloud login`
+
+    This prompts you to provide your deepset Cloud API key and workspace name.
+    """
     typer.echo("Log in to deepset Cloud")
     passed_api_key = typer.prompt("Your deepset Cloud API_KEY", hide_input=True)
     passed_default_workspace_name = typer.prompt("Your DEFAULT_WORKSPACE_NAME", default="default")
@@ -45,7 +53,11 @@ def login() -> None:
 
 @cli_app.command()
 def logout() -> None:
-    """Log out of deepset Cloud."""
+    """Log out of deepset Cloud. This command deletes the .ENV file created during login.
+
+    Example:
+    `deepset-cloud logout`
+    """
     typer.echo("Log out of deepset Cloud")
     config_file_exists = os.path.exists(ENV_FILE_PATH)
     if not config_file_exists:
@@ -66,17 +78,19 @@ def list_files(
     batch_size: int = 10,
     timeout_s: int = 300,
 ) -> None:
-    """List files in deepset Cloud.
-
-    A CLI method to list files that exist in deepset Cloud.
+    """List files that exist in the specified deepset Cloud workspace.
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to list the files from.
+    :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .EVN file by default.
     :param name: Name of the file to odata_filter for.
     :param content: Content of the file to odata_filter for.
-    :param odata_filter: odata_filter to apply to the file list.
+    :param odata_filter: odata_filter to apply to the file list..
     :param batch_size: Batch size to use for the file list.
+    :param timeout_s: The timeout for this request, in seconds.
+
+    Example:
+    `deepset-cloud list-files --batch-size 10`
     """
     try:
         headers = [
@@ -109,16 +123,17 @@ def list_upload_sessions(
     batch_size: int = 10,
     timeout_s: int = 300,
 ) -> None:
-    """List files in deepset Cloud.
-
-    A CLI method to list files that exist in deepset Cloud.
+    """List the details of all upload sessions for the specified workspace, including closed sessions.
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to list the files from.
+    :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .EVN file by default.
     :param is_expired: Whether to list expired upload sessions.
     :param batch_size: Batch size to use for the file list.
     :param timeout_s: Timeout in seconds for the API requests.
+
+    Example:
+    `deepset-cloud list-upload-sessions --workspace-name default`
     """
     headers: List[str] = ["session_id", "created_by", "created_at", "expires_at", "write_mode", "status"]
     try:
@@ -147,7 +162,7 @@ def list_upload_sessions(
             )
             typer.echo(table)
             if len(upload_sessions) > 0:
-                prompt_input = typer.prompt("Print more results ?", default="y")
+                prompt_input = typer.prompt("Print more results?", default="y")
                 if prompt_input != "y":
                     break
     except TimeoutError:
@@ -160,16 +175,17 @@ def get_upload_session(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
-) -> None:
-    """Get an upload session from deepset Cloud.
+) -> None:  # noqa: D400, D205
+    """Fetch an upload session from deepset Cloud. This method is useful for checking
+    the status of an upload session after uploading files to deepset Cloud.
 
-    A CLI method to get an upload session from deepset Cloud. This method is useful to
-    check the status of an upload session after uploading files to deepset Cloud.
-
-    :param session_id: ID of the upload session to get the status for.
+    :param session_id: ID of the upload session whose status you want to check.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to.
+    :param workspace_name: Name of the workspace where you upload your files. Uses the workspace from the .EVN file by default.
+
+    Example:
+    `deepset-cloud get-upload-session --workspace-name default`
     """
     session = sync_get_upload_session(
         session_id=session_id, api_key=api_key, api_url=api_url, workspace_name=workspace_name
@@ -191,9 +207,12 @@ def get_upload_session(
 
 
 def version_callback(value: bool) -> None:
-    """Show the version and exit.
+    """Show the SDK version and exit.
 
     :param value: Value of the version option.
+
+    Example:
+    `deepset-cloud --version`
     """
     if value:
         typer.echo(f"deepset Cloud SDK version: {__version__}")
@@ -213,6 +232,9 @@ def run_packaged() -> None:
     """Run the packaged CLI.
 
     This is the entrypoint for the package to enable running the CLI using typer.
+
+    Example:
+    `deepset cloud run-packaged`
     """
     cli_app()
 

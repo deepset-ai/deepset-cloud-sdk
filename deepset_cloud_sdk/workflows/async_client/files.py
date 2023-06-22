@@ -39,7 +39,11 @@ async def list_files(
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to list the files from.
+    :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
+    :param name: Name of the file to odata_filter for.
+    :param content: Content of the file to odata_filter for.
+    :param odata_filter: The odata_filter to apply to the file list.
+    :param timeout_s: The timeout in seconds for this API call.
     :param batch_size: Batch size for the listing.
     :return: List of files.
     """
@@ -67,11 +71,11 @@ async def list_upload_sessions(
     batch_size: int = 100,
     timeout_s: int = 300,
 ) -> AsyncGenerator[List[UploadSessionDetail], None]:
-    """List all files in a workspace.
+    """List the details of all upload sessions for a given workspace, including the closed sessions.
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to list the files from.
+    :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
     :param is_expired: Whether to list expired upload sessions.
     :param batch_size: Batch size for the listing.
     :param timeout_s: Timeout in seconds for the API requests.
@@ -127,9 +131,10 @@ async def upload_file_paths(
     :param file_paths: List of file paths to upload.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param blocking: Whether to wait for the upload to finish.
     :param timeout_s: Timeout in seconds for the upload.
+    :param show_progress: Shows the upload progress.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         await file_service.upload_file_paths(
@@ -155,13 +160,20 @@ async def upload(
 ) -> None:
     """Upload a folder to deepset Cloud.
 
-    :param paths: Path to the folder to upload. If the folder contains unsupported files, they're skipped
+    :param paths: Path to the folder to upload. If the folder contains unsupported files, they're skipped.
     during the upload. Supported file formats are TXT and PDF.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+    Possible options are:
+    KEEP - uploads the file with the same name and keeps both files in the workspace.
+    OVERWRITE - overwrites the file that is in the workspace.
+    FAIL - fails to upload the file with the same name.
     :param blocking: Whether to wait for the upload to finish.
     :param timeout_s: Timeout in seconds for the upload.
+    :param show_progress: Shows the upload progress.
+    :param recursive: Uploads files from subdirectories as well.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         await file_service.upload(
@@ -185,15 +197,21 @@ async def upload_texts(
     timeout_s: int = 300,
     show_progress: bool = True,
 ) -> None:
-    """Upload texts to deepset Cloud.
+    """Upload raw texts to deepset Cloud.
 
     :param files: List of DeepsetCloudFiles to upload.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+    Possible options are:
+    KEEP - uploads the file with the same name and keeps both files in the workspace.
+    OVERWRITE - overwrites the file that is in the workspace.
+    FAIL - fails to upload the file with the same name.
     :param blocking: Whether to wait for the files to be listed and displayed in deepset Cloud.
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
+    :param show_progress: Shows the upload progress.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         await file_service.upload_texts(
