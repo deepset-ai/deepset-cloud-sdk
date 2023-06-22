@@ -25,7 +25,6 @@ jobs:
     uses: ./.github/workflows/continuous-integration.yml
     with:
       api_url: ${{ inputs.api_url }}
-      deployment_env: ${{ inputs.deployment_env }}
     secrets:
       API_KEY: ${{ secrets.API_KEY }}
   build-and-deploy:
