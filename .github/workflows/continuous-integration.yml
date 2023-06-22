@@ -121,7 +121,7 @@ jobs:
   # the API_KEY is stored as a secret in the repository
   # we are using the "automated-tests" organization with predefined users and workspaces
   integration_tests:
-    name: Integration Tests
+    name: Integration Tests (CI)
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     environment: test
     runs-on: ubuntu-latest
@@ -134,7 +134,7 @@ jobs:
           API_URL: "https://api.dev.cloud.dpst.dev/api/v1"
 
   integration_tests_for_deploy:
-    name: Integration Tests
+    name: Integration Tests for deployment
     if: github.event_name == 'workflow_call'
     runs-on: ubuntu-latest
     environment: ${{ inputs.deployment_env }}
