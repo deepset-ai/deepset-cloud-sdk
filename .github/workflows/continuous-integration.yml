@@ -141,6 +141,8 @@ jobs:
     environment: ${{ inputs.deployment_env }}
     steps:
       - uses: actions/checkout@v3
+      - name: test
+        run: echo "${{inputs.deployment_env}}, ${{github.event.inputs.deployment_env}}, ${{github.event_name}}"
       - name: Run integration tests
         if: "${{ github.event.inputs.deployment_env != '' }}"
         uses: ./.github/actions/integration_tests
