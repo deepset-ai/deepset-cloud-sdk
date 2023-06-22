@@ -136,7 +136,7 @@ jobs:
 
   integration_tests_for_deploy:
     name: Integration Tests for deployment
-    if: github.event_name == 'workflow_call'
+    if: startsWith(github.event.ref, 'refs/tags/version-')
     runs-on: ubuntu-latest
     environment: ${{ inputs.deployment_env }}
     steps:
