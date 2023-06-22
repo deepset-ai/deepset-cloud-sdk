@@ -8,6 +8,9 @@ on:
         default: https://api.dev.cloud.dpst.dev/api/v1
         type: string
 
+env:
+  HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
+
 jobs:
   tests:
     name: Tests

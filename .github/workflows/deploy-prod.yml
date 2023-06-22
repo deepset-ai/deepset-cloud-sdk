@@ -5,6 +5,9 @@ on:
     types:
       - published
 
+env:
+  HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
+
 jobs:
   deploy-prod:
     uses: ./.github/workflows/deploy.yml

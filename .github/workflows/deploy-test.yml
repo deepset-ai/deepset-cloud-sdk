@@ -6,6 +6,9 @@ on:
       - labeled
   workflow_dispatch:
 
+env:
+  HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
+
 jobs:
   deploy-test:
     if: ${{ github.event.label.name == 'test-deploy' }}`
