@@ -175,8 +175,9 @@ def get_upload_session(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
-) -> None:
-    """Fetch an upload session from deepset Cloud. This method is useful for checking the status of an upload session after uploading files to deepset Cloud.
+) -> None:  # noqa: D400, D205
+    """Fetch an upload session from deepset Cloud. This method is useful for checking
+    the status of an upload session after uploading files to deepset Cloud.
 
     :param session_id: ID of the upload session whose status you want to check.
     :param api_key: deepset Cloud API key to use for authentication.

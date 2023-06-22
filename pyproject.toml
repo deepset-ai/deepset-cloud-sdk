@@ -142,7 +142,7 @@ disallow_incomplete_defs = true
 disallow_untyped_defs = true
 
 [tool.pylint.'MESSAGES CONTROL']
-max-line-length=120
+max-line-length=150
 disable = [
   "fixme",
   "c-extension-no-member",
