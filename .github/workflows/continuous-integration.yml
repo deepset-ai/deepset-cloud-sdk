@@ -101,9 +101,8 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
-    environment: test
     env:
-      API_KEY: ${{ secrets.API_KEY }}
+      API_KEY: "not-a-real-api-key"
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
