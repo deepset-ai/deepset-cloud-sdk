@@ -10,6 +10,9 @@ on:
       api_url:
         required: true
         type: string
+      deployment_env:
+        required: true
+        type: string
     secrets:
       API_KEY:
         required: true
@@ -138,13 +141,14 @@ jobs:
   integration_tests_for_deploy:
     name: Integration Tests for deployment
     if: github.event_name == 'release'
+    environment: ${{ inputs.deployment_env }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Run integration tests
         uses: ./.github/actions/integration_tests
         with:
-          API_KEY: "${{secrets.TEST_API_KEY}}"
+          API_KEY: "${{secrets.API_KEY}}"
           API_URL: "${{ inputs.api_url }}"
 
   build:
