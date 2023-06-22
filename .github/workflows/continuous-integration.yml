@@ -137,7 +137,7 @@ jobs:
 
   integration_tests_for_deploy:
     name: Integration Tests for deployment
-    if: "${{ inputs.deployment_env != '' }}"
+    if: "${{ github.event.inputs.deployment_env == 'release' }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.deployment_env }}
     steps:
