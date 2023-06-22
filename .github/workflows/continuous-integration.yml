@@ -141,7 +141,7 @@ jobs:
   integration_tests_for_deploy:
     name: Integration Tests for deployment
     if: github.event_name == 'release'
-    environment: ${{ github.environment.inputs.deployment_env }}
+    environment: ${{ github.event.inputs.deployment_env }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
