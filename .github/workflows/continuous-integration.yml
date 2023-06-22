@@ -113,6 +113,7 @@ jobs:
       - name: Run unit tests
         run: hatch run test:unit-with-cov
       - name: Coverage comment
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         id: coverage_comment
         uses: py-cov-action/python-coverage-comment-action@48708266a6e77ebf564b50d9cff2b7df9a25b458
         with:
