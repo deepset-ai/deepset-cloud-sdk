@@ -51,6 +51,9 @@ def upload_file_paths(
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param write_mode: The write mode determines how to handle uploading a file if it's already in the workspace.
+        Your options are: keep the file with the same name, make the request fail if a file with the same name already
+        exists, or overwrite the file. If you choose to overwrite, all files with the same name are overwritten.
     :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter`.
     :param show_progress: Shows the upload progress.
@@ -87,10 +90,13 @@ def upload(
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param write_mode: The write mode determines how to handle uploading a file if it's already in the workspace.
+        Your options are: keep the file with the same name, make the request fail if a file with the same name already
+        exists, or overwrite the file. If you choose to overwrite, all files with the same name are overwritten.
     :param blocking: Whether to wait for the files to be uploaded and displayed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
-    :recursive: Uploads files from subfolders as well.
+    :param recursive: Uploads files from subfolders as well.
     """
     asyncio.run(
         async_upload(

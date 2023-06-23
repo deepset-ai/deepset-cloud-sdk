@@ -61,3 +61,13 @@ class TestListFiles:
             ],
             has_more=False,
         )
+        mocked_deepset_cloud_api.get.assert_called_once_with(
+            "test_workspace",
+            "files",
+            params={
+                "limit": 10,
+                "name": "things_1",
+                "content": "silly",
+                "filter": "created_at eq '2022-06-21T16:40:00.634653+00:00' ",
+            },
+        )
