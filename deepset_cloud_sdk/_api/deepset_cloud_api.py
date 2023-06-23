@@ -184,7 +184,6 @@ class DeepsetCloudAPI:
         :param timeout_s: Timeout in seconds.
         :return: Response object.
         """
-
         response = await self.client.put(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
