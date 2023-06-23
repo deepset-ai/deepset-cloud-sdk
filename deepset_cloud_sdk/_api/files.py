@@ -108,7 +108,7 @@ class FilesAPI:
 
         # odata odata_filter for file meta
         if odata_filter:
-            params["odata_filter"] = odata_filter
+            params["filter"] = odata_filter
 
         response = await self._deepset_cloud_api.get(workspace_name, "files", params=params)
         assert response.status_code == codes.OK, f"Failed to list files: {response.text}"
