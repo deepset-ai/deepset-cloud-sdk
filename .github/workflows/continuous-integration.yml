@@ -4,17 +4,21 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "*"
   pull_request:
   workflow_call:
+    inputs:
+      api_url:
+        required: true
+        type: string
+      deployment_env:
+        required: true
+        type: string
     secrets:
       API_KEY:
         required: true
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
-  API_KEY: ${{secrets.API_KEY}}
 
 jobs:
   format-black:
@@ -100,6 +104,8 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
+    env:
+      API_KEY: "not-a-real-api-key"
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -110,24 +116,25 @@ jobs:
       - name: Run unit tests
         run: hatch run test:unit-with-cov
       - name: Coverage comment
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         id: coverage_comment
         uses: py-cov-action/python-coverage-comment-action@48708266a6e77ebf564b50d9cff2b7df9a25b458
         with:
           GITHUB_TOKEN: ${{ github.token }}
-      # Integration tests are running against the dev environment
-      # the API_KEY is stored as a secret in the repository
-      # we are using the "automated-tests" organization with predefined users and workspaces
 
+  # the API_KEYs are stored as a secret in the repository
+  # we are using the "automated-tests" organization with predefined users and workspaces
   integration_tests:
-    name: Integration Tests
+    name: Integration Tests for deployment
+    environment: ${{ github.event.inputs.deployment_env }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Run integration tests
         uses: ./.github/actions/integration_tests
         with:
-          API_KEY: "${{secrets.API_KEY}}"
-          API_URL: "https://api.dev.cloud.dpst.dev/api/v1"
+          API_KEY: "${{ inputs.deployment_env == 'release' && secrets.API_KEY_PROD || secrets.API_KEY}}"
+          API_URL: "${{ inputs.api_url || 'https://api.dev.cloud.dpst.dev/api/v1'}}"
 
   build:
     name: Build package

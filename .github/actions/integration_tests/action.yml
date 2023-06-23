@@ -9,7 +9,6 @@ inputs:
     description: 'The API_URL for deepset Cloud'
     required: true
 
-
 outputs: {}
 runs:
   using: "composite"

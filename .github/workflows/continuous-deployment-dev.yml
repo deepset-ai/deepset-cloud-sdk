@@ -1,18 +1,13 @@
 name: CD - Dev Integration Tests
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - "*"
-
   workflow_dispatch:
     inputs:
       api_url:
         required: true
         default: https://api.dev.cloud.dpst.dev/api/v1
         type: string
+        description: "The API URL for the test run"
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
