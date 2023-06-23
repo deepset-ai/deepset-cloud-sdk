@@ -14,9 +14,18 @@ pip install hatch=="v1.7.0"
 hatch run code-quality:hooks
 ```
 
+## CI
+Code quality checks, unit tests, and integration tests (against dev) are performed on the creation of a PR, and subsequent pushes for that PR.
+Code quality checks, unit tests, and integration tests (against dev) are performed on a push to main.
+Code quality checks, unit tests, and integration tests (against prod) are performed on the publishing of a release tag.
+
 ## Deploy to test PyPi
 
 When you create a PR in the deepset-cloud-sdk repository, add the 'test-deploy' label to trigger deployment to the test PyPi repository.
+
+## Publishing to PyPi
+
+To publish a new version of the SDK you will need to create and publish a new release tag.
 
 
 ## Software design
