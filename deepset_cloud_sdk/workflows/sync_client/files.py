@@ -188,6 +188,7 @@ def list_files(
     :param name: Name of the file to odata_filter for.
     :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
+    For example, `odata_filter="category eq 'news'" lists files with metadata `{"meta": {"category": "news"}}.
     :param batch_size: Batch size to use for the file list.
     :param timeout_s: Timeout in seconds for the API requests.
     """

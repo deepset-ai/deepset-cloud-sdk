@@ -85,12 +85,15 @@ def list_files(
     :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .EVN file by default.
     :param name: Name of the file to odata_filter for.
     :param content: Content of the file to odata_filter for.
-    :param odata_filter: odata_filter to apply to the file list..
+    :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     :param timeout_s: The timeout for this request, in seconds.
 
     Example:
     `deepset-cloud list-files --batch-size 10`
+
+    Example using an odata filter to show only files whose category is "news":
+    `deepset-cloud list-files --odata-filter 'category eq "news"'`
     """
     try:
         headers = [
