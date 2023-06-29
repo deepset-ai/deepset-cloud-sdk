@@ -43,7 +43,7 @@ jobs:
         # Sync the current Haystack version `X.Y.Z` with its corresponding Readme version `X.Y`.
         # See https://docs.github.com/en/actions/learn-github-actions/contexts#steps-context for the condition used
         if: github.ref == 'refs/heads/main'
-        uses: readmeio/rdme@8.3.1
+        uses: readmeio/rdme@8.6.4
         env:
           README_API_KEY: ${{ secrets.README_API_KEY }}
         with:
