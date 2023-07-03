@@ -22,7 +22,7 @@ jobs:
         with:
           key: ${{ github.ref }}
           path: .cache
-            
+
       - name: Install dependencies
         run: |
             python -m pip install --upgrade pip
@@ -36,17 +36,5 @@ jobs:
             README_API_KEY: ${{ secrets.README_API_KEY }}
         run: ./.github/utils/pydoc-markdown.sh
 
-      - name: Sync docs with current release
-        # Mutually exclusive with the previous one, this step is supposed to only run on version branches.
-        # Sync the current Haystack version `X.Y.Z` with its corresponding Readme version `X.Y`.
-        # See https://docs.github.com/en/actions/learn-github-actions/contexts#steps-context for the condition used
-        if: github.ref == 'refs/heads/main'
-        uses: readmeio/rdme@8.6.4
-        env:
-            README_API_KEY: ${{ secrets.README_API_KEY }}
-        with:
-            rdme: docs ./docs/pydoc/temp --key="$README_API_KEY" --version=${{ env.README_DOCS_VERSION }}
-
       - run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin
-
       - run: mkdocs gh-deploy --force
