@@ -5,6 +5,8 @@ theme:
   name: material
   features:
     - content.code.copy
+  palette:
+    primary: custom
 
 plugins:
   - search
