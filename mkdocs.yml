@@ -36,7 +36,7 @@ extra_javascript:
   - extra-loader.js
 
 extra_css:
-  - stylesheets/extra.css
+  - _stylesheets/extra.css
 
 # mkdocs uses the `docs` folder as root folder
 nav:
