@@ -1,5 +1,5 @@
 site_name: deepset Cloud SDK
-site_url: https://deepset-ai.github.io/dc-sdk/
+site_url: https://deepset-ai.github.io/deepset-cloud-sdk/
 
 theme:
   name: material
