@@ -32,6 +32,9 @@ extra_javascript:
   - https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js
   - extra-loader.js
 
+extra_css:
+  - stylesheets/extra.css
+
 # mkdocs uses the `docs` folder as root folder
 nav:
   - Get Started: index.md
