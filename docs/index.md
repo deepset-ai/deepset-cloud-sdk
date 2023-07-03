@@ -43,13 +43,7 @@ Instead of calling the cli from the build package, you can call it directly from
 python3 -m deepset_cloud_sdk.cli --help
 ```
 
-## Contributing
-We welcome contributions from the open source community to enhance the deepset Cloud SDK. If you would like to contribute, have a look at [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and instructions on how to get started.
-We appreciate your contributions, whether they're bug fixes, new features, or documentation improvements.
-
-
 ---
-
 ## Interested in deepset Cloud?
 If you are interested in exploring deepset Cloud, visit cloud.deepset.ai.
 deepset Cloud provides a range of NLP capabilities and services to help you build and deploy powerful
