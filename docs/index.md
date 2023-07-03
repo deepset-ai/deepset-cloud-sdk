@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://cloud.deepset.ai/"><img src="/assets/logo.png"  alt="deepset Cloud SDK"></a>
+  <a href="https://cloud.deepset.ai/"><img src="https://raw.githubusercontent.com/deepset-ai/deepset-cloud-sdk/main/assets/logo.png"  alt="deepset Cloud SDK"></a>
 </p>
 
 [![Coverage badge](https://github.com/deepset-ai/deepset-cloud-sdk/raw/python-coverage-comment-action-data/badge.svg)](https://github.com/deepset-ai/deepset-cloud-sdk/tree/python-coverage-comment-action-data)
@@ -28,7 +28,7 @@ deepset-cloud --help
 ```
 
 <p align="center">
-  <a href="https://cloud.deepset.ai/"><img src="/assets/cli.gif"  alt="deepset Cloud CLI"></a>
+  <a href="https://cloud.deepset.ai/"><img src="https://raw.githubusercontent.com/deepset-ai/deepset-cloud-sdk/main/assets/cli.gif"  alt="deepset Cloud CLI"></a>
 </p>
 
 ### Development Installation
