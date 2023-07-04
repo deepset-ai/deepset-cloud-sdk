@@ -37,4 +37,6 @@ jobs:
         run: ./.github/utils/pydoc-markdown.sh
 
       - run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
-      - run: mkdocs gh-deploy --force
+      - run: |
+          VERSION=$(sed -n 's/__version__ = "\(.*\)"/\1/p' ./deepset_cloud_sdk/__about__.py) \
+          mike deploy --push --update-aliases $VERSION latest
