@@ -47,9 +47,9 @@ jobs:
 
       - name: Publish docs
         run: |
-          git pull &&\
-          git reset --hard gh-pages &&\
-          git pull origin gh-pages &&\
+          # git pull &&\
+          # git reset --hard gh-pages &&\
+          # git pull origin gh-pages &&\
           VERSION=$(sed -n 's/__version__ = "\(.*\)"/\1/p' ./deepset_cloud_sdk/__about__.py) && \
           mike deploy --push --update-aliases ${VERSION} && \
           mike set-default --push ${VERSION}
