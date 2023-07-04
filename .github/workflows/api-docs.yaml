@@ -36,5 +36,5 @@ jobs:
             README_API_KEY: ${{ secrets.README_API_KEY }}
         run: ./.github/utils/pydoc-markdown.sh
 
-      - run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mkdocs-mike-plugin
+      - run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
       - run: mkdocs gh-deploy --force
