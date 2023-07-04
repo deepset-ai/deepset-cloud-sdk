@@ -5,12 +5,11 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<link href="https://deepset-ai.github.io/deepset-cloud-sdk/0.0.28/examples/cli/" rel="canonical"/>
-<link href="../.." rel="prev"/>
-<link href="../sdk/" rel="next"/>
+<link href="https://deepset-ai.github.io/deepset-cloud-sdk/0.0.27/examples/sdk/" rel="canonical"/>
+<link href="../cli/" rel="prev"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
 <meta content="mkdocs-1.4.3, mkdocs-material-9.1.18" name="generator"/>
-<title>CLI - deepset Cloud SDK</title>
+<title>SDK - deepset Cloud SDK</title>
 <link href="../../assets/stylesheets/main.26e3688c.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.ecc896b0.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -25,7 +24,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#deepset-cloud-cli">
+<a class="md-skip" href="#examples">
           Skip to content
         </a>
 </div>
@@ -51,7 +50,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              CLI
+              SDK
             
           </span>
 </div>
@@ -140,14 +139,19 @@
           Examples
         </label>
 <ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+        CLI
+      </a>
+</li>
 <li class="md-nav__item md-nav__item--active">
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
 <label class="md-nav__link md-nav__link--active" for="__toc">
-          CLI
+          SDK
           <span class="md-nav__icon md-icon"></span>
 </label>
 <a class="md-nav__link md-nav__link--active" href="./">
-        CLI
+        SDK
       </a>
 <nav aria-label="Table of contents" class="md-nav md-nav--secondary">
 <label class="md-nav__title" for="__toc">
@@ -156,56 +160,27 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#installation">
-    Installation
+<a class="md-nav__link" href="#upload-files-to-deepset-cloud">
+    Upload files to deepset Cloud
   </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#configuration">
-    Configuration
+<a class="md-nav__link" href="#authentication">
+    Authentication
   </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#usage">
-    Usage
+<a class="md-nav__link" href="#example-1-upload-all-files-from-a-folder">
+    Example 1: Upload all files from a folder
   </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#example-commands">
-    Example Commands
-  </a>
-<nav aria-label="Example Commands" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#upload-files-and-folders">
-    Upload Files and Folders
-  </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#list-files">
-    List files
-  </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#documentation">
-    Documentation
-  </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#support">
-    Support
+<a class="md-nav__link" href="#example-2-upload-raw-texts">
+    Example 2: Upload raw texts
   </a>
 </li>
 </ul>
 </nav>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="../sdk/">
-        SDK
-      </a>
 </li>
 </ul>
 </nav>
@@ -223,17 +198,17 @@
         </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../_pydoc/temp/cli/">
+<a class="md-nav__link" href="../../_pydoc/temp/cli.md">
         CLI
       </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../_pydoc/temp/sync_client/">
+<a class="md-nav__link" href="../../_pydoc/temp/sync_client.md">
         Synchronous SDK
       </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="../../_pydoc/temp/async_client/">
+<a class="md-nav__link" href="../../_pydoc/temp/async_client.md">
         Asynchronous SDK
       </a>
 </li>
@@ -255,48 +230,24 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#installation">
-    Installation
+<a class="md-nav__link" href="#upload-files-to-deepset-cloud">
+    Upload files to deepset Cloud
   </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#configuration">
-    Configuration
+<a class="md-nav__link" href="#authentication">
+    Authentication
   </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#usage">
-    Usage
+<a class="md-nav__link" href="#example-1-upload-all-files-from-a-folder">
+    Example 1: Upload all files from a folder
   </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#example-commands">
-    Example Commands
+<a class="md-nav__link" href="#example-2-upload-raw-texts">
+    Example 2: Upload raw texts
   </a>
-<nav aria-label="Example Commands" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#upload-files-and-folders">
-    Upload Files and Folders
-  </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#list-files">
-    List files
-  </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#documentation">
-    Documentation
-  </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#support">
-    Support
-  </a>
-</li>
-</ul>
-</nav>
 </li>
 </ul>
 </nav>
@@ -305,50 +256,45 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="deepset-cloud-cli">deepset Cloud CLI</h1>
-<p>The deepset Cloud CLI is a command-line interface tool that you can use to interact with the deepset Cloud SDK and perform various operations, such as uploading files and folders to your deepset Cloud workspace.</p>
-<h2 id="installation">Installation</h2>
-<p>To install the deepset Cloud CLI, use <code>pip</code>:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>pip3<span class="w"> </span>install<span class="w"> </span>deepset-cloud-sdk
+<h1 id="examples">Examples</h1>
+<h2 id="upload-files-to-deepset-cloud">Upload files to deepset Cloud</h2>
+<p>You can upload files in three different ways:
+1. Upload multiple files by providing explicit file paths.
+2. Upload all files from a folder.
+3. Upload raw text.</p>
+<p>For uploading files from your local machine to deepset Cloud, you can use <code>upload</code>.</p>
+<h2 id="authentication">Authentication</h2>
+<p>You will need to either explicitly pass an api_key to the <code>upload</code> function or set the environment variable
+<code>DEEPSET_CLOUD_API_KEY</code> to your api key.
+By running <code>deepset-cloud login</code> you can also store your api key globally on your machine.
+This will allow you to omit the api_key parameter in the following examples.</p>
+<h2 id="example-1-upload-all-files-from-a-folder">Example 1: Upload all files from a folder</h2>
+<p>Uploads all files from a folder to the default workspace.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="n">upload</span><span class="p">(</span>
+</span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="c1"># workspace_name="my_workspace",  # optional, by default the environment variable "DEFAULT_WORKSPACE_NAME" is used</span>
+</span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a>    <span class="n">paths</span><span class="o">=</span><span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="s2">"./examples/data"</span><span class="p">)],</span>
+</span><span id="__span-0-4"><a href="#__codelineno-0-4" id="__codelineno-0-4" name="__codelineno-0-4"></a>    <span class="n">blocking</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># optional, by default True</span>
+</span><span id="__span-0-5"><a href="#__codelineno-0-5" id="__codelineno-0-5" name="__codelineno-0-5"></a>    <span class="n">timeout_s</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>  <span class="c1"># optional, by default 300</span>
+</span><span id="__span-0-6"><a href="#__codelineno-0-6" id="__codelineno-0-6" name="__codelineno-0-6"></a>    <span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># optional, by default True</span>
+</span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a>    <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># optional, by default False</span>
+</span><span id="__span-0-8"><a href="#__codelineno-0-8" id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="p">)</span>
 </span></code></pre></div>
-<h2 id="configuration">Configuration</h2>
-<p>Before using the deepset Cloud CLI, log in and provide your credentials. You can do this by running the command:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a>deepset-cloud<span class="w"> </span>login
+<h2 id="example-2-upload-raw-texts">Example 2: Upload raw texts</h2>
+<p>Uploads a list of raw texts to the default workspace.
+This can be useful if you want to process your text first and later upload the content of the files.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="n">upload_texts</span><span class="p">(</span>
+</span><span id="__span-1-2"><a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a>    <span class="c1"># workspace_name="my_workspace",  # optional, by default the environment variable "DEFAULT_WORKSPACE_NAME" is used</span>
+</span><span id="__span-1-3"><a href="#__codelineno-1-3" id="__codelineno-1-3" name="__codelineno-1-3"></a>    <span class="n">files</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-1-4"><a href="#__codelineno-1-4" id="__codelineno-1-4" name="__codelineno-1-4"></a>        <span class="n">DeepsetCloudFile</span><span class="p">(</span>
+</span><span id="__span-1-5"><a href="#__codelineno-1-5" id="__codelineno-1-5" name="__codelineno-1-5"></a>            <span class="n">name</span><span class="o">=</span><span class="s2">"example.txt"</span><span class="p">,</span>
+</span><span id="__span-1-6"><a href="#__codelineno-1-6" id="__codelineno-1-6" name="__codelineno-1-6"></a>            <span class="n">text</span><span class="o">=</span><span class="s2">"this is text"</span><span class="p">,</span>
+</span><span id="__span-1-7"><a href="#__codelineno-1-7" id="__codelineno-1-7" name="__codelineno-1-7"></a>            <span class="n">meta</span><span class="o">=</span><span class="p">{</span><span class="s2">"key"</span><span class="p">:</span> <span class="s2">"value"</span><span class="p">},</span>  <span class="c1"># optional</span>
+</span><span id="__span-1-8"><a href="#__codelineno-1-8" id="__codelineno-1-8" name="__codelineno-1-8"></a>        <span class="p">)</span>
+</span><span id="__span-1-9"><a href="#__codelineno-1-9" id="__codelineno-1-9" name="__codelineno-1-9"></a>    <span class="p">],</span>
+</span><span id="__span-1-10"><a href="#__codelineno-1-10" id="__codelineno-1-10" name="__codelineno-1-10"></a>    <span class="n">blocking</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># optional, by default True</span>
+</span><span id="__span-1-11"><a href="#__codelineno-1-11" id="__codelineno-1-11" name="__codelineno-1-11"></a>    <span class="n">timeout_s</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>  <span class="c1"># optional, by default 300</span>
+</span><span id="__span-1-12"><a href="#__codelineno-1-12" id="__codelineno-1-12" name="__codelineno-1-12"></a><span class="p">)</span>
 </span></code></pre></div>
-<p>This command prompts you to enter your API key and default workspace name. Once you provide these details, the CLI stores your credentials in the <code>~/.deepset-cloud/.env</code> file. This file is used as the default configuration for subsequent CLI commands.</p>
-<p>Alternatively, to use a different environment file for your configuration, you can create an <code>.env</code> file in the local directory. Additionally, you have the flexibility to provide the credentials directly as command-line arguments or set them programmatically in your code.</p>
-<h2 id="usage">Usage</h2>
-<p>You can use the deepset Cloud CLI by running the following command:
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a>deepset-cloud<span class="w"> </span>&lt;command&gt;
-</span></code></pre></div>
-Replace <command/> with one of the supported commands. To list all available commands, run: <code>deepset-cloud --help</code>.</p>
-<h2 id="example-commands">Example Commands</h2>
-<h3 id="upload-files-and-folders">Upload Files and Folders</h3>
-<p>This command uploads the file example.txt to your deepset Cloud workspace.</p>
-<p><div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a href="#__codelineno-3-1" id="__codelineno-3-1" name="__codelineno-3-1"></a>deepset-cloud<span class="w"> </span>upload<span class="w"> </span>./examples/data/example.txt
-</span></code></pre></div>
-This command uploads the entire data folder, located in the examples directory, to your deepset Cloud workspace.
-Note that the paths provided in the above examples are relative to the current working directory.
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a href="#__codelineno-4-1" id="__codelineno-4-1" name="__codelineno-4-1"></a>deepset-cloud<span class="w"> </span>upload<span class="w"> </span>./examples/data
-</span></code></pre></div></p>
-<p>If you want to overwrite existing files in your project, you can use the <code>--write-mode</code> flag. For example:
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a href="#__codelineno-5-1" id="__codelineno-5-1" name="__codelineno-5-1"></a>deepset-cloud<span class="w"> </span>upload<span class="w"> </span>./examples/data<span class="w"> </span>--write-mode<span class="w"> </span>OVERWRITE
-</span></code></pre></div>
-This syncs your local files with the files in your deepset Cloud workspace without having to manually delete the files in your workspace.</p>
-<h3 id="list-files">List files</h3>
-<p>You can run the <code>list-files</code> operation to search files in your deepset Cloud workspace. For example:
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-6-1"><a href="#__codelineno-6-1" id="__codelineno-6-1" name="__codelineno-6-1"></a>deepset-cloud<span class="w"> </span>list-files
-</span></code></pre></div>
-with optional arguments:
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-7-1"><a href="#__codelineno-7-1" id="__codelineno-7-1" name="__codelineno-7-1"></a>--name<span class="w"> </span><span class="s2">"&lt;your-file-name&gt;"</span><span class="w">  </span><span class="c1"># search by file name</span>
-</span><span id="__span-7-2"><a href="#__codelineno-7-2" id="__codelineno-7-2" name="__codelineno-7-2"></a>--content<span class="w"> </span><span class="s2">"content"</span><span class="w"> </span><span class="c1"># search by file content</span>
-</span><span id="__span-7-3"><a href="#__codelineno-7-3" id="__codelineno-7-3" name="__codelineno-7-3"></a>--odata-filter<span class="w"> </span><span class="s2">"key eq 'value'"</span><span class="w"> </span><span class="c1"># search by odata filter</span>
-</span></code></pre></div></p>
-<h3 id="documentation">Documentation</h3>
-<p>For more information and detailed usage instructions, see the deepset Cloud SDK documentation.</p>
-<h3 id="support">Support</h3>
-<p>If you encounter any issues or have any questions, feel free to reach out to our team on <a href="https://discord.com/invite/qZxjM4bAHU">discord</a>.</p>
-<p>We hope you find the deepset Cloud CLI useful in your projects. Happy coding!</p>
 </article>
 </div>
 </div>
