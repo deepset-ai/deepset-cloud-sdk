@@ -29,11 +29,6 @@ jobs:
             pip install -r docs/_pydoc/requirements.txt
 
       - name: Generate API docs
-        env:
-            # This is necessary to fetch the documentation categories
-            # from Readme.io as we need them to associate the slug
-            # in config files with their id.
-            README_API_KEY: ${{ secrets.README_API_KEY }}
         run: ./.github/utils/pydoc-markdown.sh
 
       - run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
