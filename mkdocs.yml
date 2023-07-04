@@ -8,8 +8,8 @@ edit_uri: ""
 
 theme:
   name: material
-  favicon: images/favicon.png
-  logo: images/favicon.png
+  favicon: _images/favicon.png
+  logo: _images/favicon.png
   features:
     - content.code.copy
   palette:
