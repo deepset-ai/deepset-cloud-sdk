@@ -1,6 +1,11 @@
 site_name: deepset Cloud SDK
 site_url: https://deepset-ai.github.io/deepset-cloud-sdk/
 
+# Repository
+repo_name: deepset-ai/deepset-cloud-sdk
+repo_url: https://github.com/deepset-ai/deepset-cloud-sdk
+edit_uri: ""
+
 theme:
   name: material
   features:
@@ -12,7 +17,6 @@ plugins:
   - search
   - mermaid2
   - mkdocstrings
-  - mike
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -27,11 +31,6 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-
-mike:
-  versions:
-    - "1.0"
-    - "2.0"
 
 extra:
   version:
