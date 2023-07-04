@@ -44,5 +44,5 @@ jobs:
       - name: Publish docs
         run: |
           VERSION=$(sed -n 's/__version__ = "\(.*\)"/\1/p' ./deepset_cloud_sdk/__about__.py) \
-          mike deploy --push --force --update-aliases 0.6  #$VERSION latest
-          mike set-default --push 0.6
+          mike deploy --push --force --update-aliases $VERSION
+          mike set-default --push $VERSION
