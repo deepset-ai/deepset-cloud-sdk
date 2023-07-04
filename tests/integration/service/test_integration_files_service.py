@@ -54,6 +54,7 @@ class TestListFilesService:
             async for file_batch in file_service.list_all(
                 workspace_name="sdk_read",
                 batch_size=11,
+                timeout_s=120,
             ):
                 file_batches.append(file_batch)
 
