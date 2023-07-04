@@ -27,6 +27,10 @@ markdown_extensions:
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
 
+extra:
+  version:
+    provider: mike
+
 extra_javascript:
   - optionalConfig.js
   - https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js
