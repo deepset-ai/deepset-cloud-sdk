@@ -12,6 +12,7 @@ plugins:
   - search
   - mermaid2
   - mkdocstrings
+  - mike
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -26,6 +27,11 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+
+mike:
+  versions:
+    - "1.0"
+    - "2.0"
 
 extra:
   version:
