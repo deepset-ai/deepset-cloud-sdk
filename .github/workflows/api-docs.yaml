@@ -45,7 +45,7 @@ jobs:
           git config --global user.name docs-bot
           git config --global user.email docs@bot.com
           git config pull.rebase false
-          git pull origin gh-pages
+          git pull --allow-unrelated-histories origin gh-pages
         
       - name: Publish docs
         run: |
