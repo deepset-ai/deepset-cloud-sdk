@@ -5,6 +5,12 @@ on:
     branches:
       - main
       - feat/docsPage
+# on:
+#   release:
+#     types:
+#       - published
+#   workflow_dispatch:
+
 
 permissions:
   contents: write
@@ -41,7 +47,7 @@ jobs:
 
       - name: Publish docs
         run: |
-          git reset --hard origin/gh-pages &&\
+          git reset --hard gh-pages &&\
           git pull origin gh-pages &&\
           VERSION=$(sed -n 's/__version__ = "\(.*\)"/\1/p' ./deepset_cloud_sdk/__about__.py) && \
           mike deploy --push --update-aliases ${VERSION} && \
