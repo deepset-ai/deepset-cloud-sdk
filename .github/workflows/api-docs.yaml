@@ -1,15 +1,14 @@
 name: API Docs
 
-on:
-  push:
-    branches:
-      - main
-      - feat/docsPage
 # on:
-#   release:
-#     types:
-#       - published
-#   workflow_dispatch:
+#   push:
+#     branches:
+#       - <your-branch>
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
 
 
 permissions:
