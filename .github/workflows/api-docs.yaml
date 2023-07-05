@@ -1,0 +1,52 @@
+name: API Docs
+
+# on:
+#   push:
+#     branches:
+#       - <your-branch>
+on:
+  release:
+    types:
+      - published
+
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - uses: actions/cache@v2
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+
+      - name: Install dependencies for doc generation
+        run: |
+            python -m pip install --upgrade pip
+            pip install -r docs/_pydoc/requirements.txt
+
+      - name: Generate API docs
+        run: ./.github/utils/pydoc-markdown.sh
+
+      - name: Install dependencies for doc deployment
+        run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
+
+      - name: Configure git to push docs
+        run: |
+          git config --global user.name docs-bot
+          git config --global user.email docs@bot.com
+          git config pull.rebase false
+          git pull --allow-unrelated-histories origin gh-pages
+        
+      - name: Publish docs
+        run: |
+          VERSION=$(sed -n 's/__version__ = "\(.*\)"/\1/p' ./deepset_cloud_sdk/__about__.py) && \
+          mike deploy --push --update-aliases ${VERSION} && \
+          mike set-default --push ${VERSION}
