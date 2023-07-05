@@ -1,13 +1,13 @@
 name: API Docs
 
-# on:
-#   push:
-#     branches:
-#       - <your-branch>
 on:
-  release:
-    types:
-      - published
+  push:
+    branches:
+      - feat/docsPage 
+# on:
+#   release:
+#     types:
+#       - published
 
 
 permissions:
