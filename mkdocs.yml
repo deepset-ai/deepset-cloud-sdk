@@ -1,4 +1,5 @@
-site_name: ""
+site_name: deepset Cloud SDK
+site_description: deepset Cloud SDK Documentation
 site_url: https://deepset-ai.github.io/deepset-cloud-sdk/
 
 # Repository
