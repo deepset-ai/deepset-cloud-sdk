@@ -1,4 +1,5 @@
 site_name: deepset Cloud SDK
+site_description: deepset Cloud SDK Documentation
 site_url: https://deepset-ai.github.io/deepset-cloud-sdk/
 
 # Repository
@@ -9,7 +10,7 @@ edit_uri: ""
 theme:
   name: material
   favicon: _images/favicon.svg
-  logo: _images/favicon.svg
+  logo: _images/white-logo.svg
   features:
     - content.code.copy
   palette:
