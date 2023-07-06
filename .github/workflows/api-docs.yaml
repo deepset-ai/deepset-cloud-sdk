@@ -1,13 +1,13 @@
 name: API Docs
 
-# on:
-#   push:
-#     branches:
-#       - <your-branch>
 on:
-  release:
-    types:
-      - published
+  push:
+    branches:
+      - chore/whiteLogo
+# on:
+#   release:
+#     types:
+#       - published
 
 
 permissions:

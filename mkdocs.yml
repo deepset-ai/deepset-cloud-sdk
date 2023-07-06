@@ -9,7 +9,7 @@ edit_uri: ""
 theme:
   name: material
   favicon: _images/favicon.svg
-  logo: _images/favicon.svg
+  logo: _images/white-logo.svg
   features:
     - content.code.copy
   palette:
