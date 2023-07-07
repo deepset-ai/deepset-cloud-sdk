@@ -10,8 +10,8 @@
 The deepset Cloud SDK is an open source software development kit that provides convenient access to and integration with deepset Cloud, a powerful cloud offering for various natural language processing (NLP) tasks.
 This README provides an overview of the SDK and its features, and information on contributing to the project and exploring related resources.
 
-[Official SDK Docs](https://deepset-ai.github.io/deepset-cloud-sdk/)
-[deepset Cloud Documentation](https://docs.cloud.deepset.ai/)
+- [Official SDK Docs](https://sdk.cloud.deepset.ai)
+- [deepset Cloud Documentation](https://docs.cloud.deepset.ai/)
 
 # Supported Features
 
