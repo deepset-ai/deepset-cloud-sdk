@@ -8,6 +8,7 @@ on:
         default: https://api.dev.cloud.dpst.dev/api/v1
         type: string
         description: "The API URL for the test run"
+  pull_request:
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
