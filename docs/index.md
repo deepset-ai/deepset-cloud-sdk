@@ -7,8 +7,7 @@
 [![Deploy PyPi](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/deploy-prod.yml/badge.svg)](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/deploy-prod.yml)
 [![Compliance Checks](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/compliance.yml/badge.svg)](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/compliance.yml)
 
-The deepset Cloud SDK is an open source software development kit that provides convenient access and integration with deepset Cloud, a powerful cloud offering for various natural language processing (NLP) tasks.
-This README provides an overview of the SDK and its features, and information on contributing to the project and exploring related resources.
+The deepset Cloud SDK is an open source software development kit that provides convenient access and integration with deepset Cloud, a powerful cloud offering for various natural language processing (NLP) tasks. To learn more about deepset Cloud, please have a look at the [official Documentation](https://docs.cloud.deepset.ai/).
 
 # Supported Features
 The following examples demonstrate how to use the deepset Cloud SDK to interact with deepset Cloud using Python.
