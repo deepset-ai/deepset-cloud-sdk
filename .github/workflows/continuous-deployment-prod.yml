@@ -10,7 +10,7 @@ jobs:
   tests:
     name: Tests
     environment: PROD
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - uses: actions/checkout@v3
       - name: Run integration tests

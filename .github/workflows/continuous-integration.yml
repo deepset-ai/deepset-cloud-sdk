@@ -23,7 +23,7 @@ env:
 jobs:
   format-black:
     name: Format black
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -37,7 +37,7 @@ jobs:
 
   mypy:
     name: MyPy
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -50,7 +50,7 @@ jobs:
 
   lint:
     name: Lint Code
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -63,7 +63,7 @@ jobs:
 
   isort:
     name: Sort imports
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -76,7 +76,7 @@ jobs:
 
   pydocstyle:
     name: Check docstrings
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -89,7 +89,7 @@ jobs:
 
   scan-for-secrets:
     name: Scan for secrets
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - uses: actions/checkout@v3
         with:
@@ -103,7 +103,7 @@ jobs:
 
   tests:
     name: Tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     env:
       API_KEY: "not-a-real-api-key"
     steps:
@@ -127,7 +127,7 @@ jobs:
   integration_tests:
     name: Integration Tests for deployment
     environment: ${{ github.event.inputs.deployment_env }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - uses: actions/checkout@v3
       - name: Run integration tests
@@ -139,7 +139,7 @@ jobs:
   build:
     name: Build package
     needs: [format-black, mypy, lint, tests]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

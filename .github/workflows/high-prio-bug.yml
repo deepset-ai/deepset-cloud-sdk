@@ -12,7 +12,7 @@ env:
 jobs:
   add-comment:
     if: github.event.label.name == 'high'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-dc
     steps:
       - name: Send Slack alert for high priority bug
         uses: act10ns/slack@ed1309ab9862e57e9e583e51c7889486b9a00b0f
