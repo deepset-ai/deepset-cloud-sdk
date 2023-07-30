@@ -15,7 +15,10 @@ import structlog
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from tqdm.asyncio import tqdm
 
-from deepset_cloud_sdk._api.upload_sessions import UploadSession
+from deepset_cloud_sdk._api.upload_sessions import (
+    AWSPrefixedRequestConfig,
+    UploadSession,
+)
 from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
@@ -97,16 +100,29 @@ class S3:
         aws_safe_name = make_safe_file_name(file_name)
         aws_config = upload_session.aws_prefixed_request_config
 
-        file_data = aiohttp.FormData()
-        for key in aws_config.fields:
-            file_data.add_field(key, aws_config.fields[key])
-        file_data.add_field("file", content, filename=aws_safe_name, content_type="text/plain")
+        file_data = self._build_file_data(content, aws_safe_name, aws_config)
         try:
             async with client_session.post(
                 aws_config.url,
                 data=file_data,
+                allow_redirects=False,
             ) as response:
                 response.raise_for_status()
+
+                if response.status == HTTPStatus.TEMPORARY_REDIRECT:
+                    # Sometimes we get a redirect to a different URL from S3 (e.g. the region was added to the URL).
+                    # We need to rebuild the file data as FormData does not support multiple requests,
+                    # for example during automatic redirects. See https://github.com/aio-libs/aiohttp/issues/5577
+                    redirect_url = response.headers["Location"]
+                    file_data = self._build_file_data(content, aws_safe_name, aws_config)
+                    async with client_session.post(
+                        redirect_url,
+                        data=file_data,
+                        allow_redirects=False,
+                    ) as response:
+                        response.raise_for_status()
+                        return response
+
                 return response
         except aiohttp.ClientResponseError as cre:
             if cre.status in [
@@ -118,6 +134,15 @@ class S3:
             ]:
                 raise RetryableHttpError(cre) from cre
             raise
+
+    def _build_file_data(
+        self, content: Any, aws_safe_name: str, aws_config: AWSPrefixedRequestConfig
+    ) -> aiohttp.FormData:
+        file_data = aiohttp.FormData()
+        for key in aws_config.fields:
+            file_data.add_field(key, aws_config.fields[key])
+        file_data.add_field("file", content, filename=aws_safe_name, content_type="text/plain")
+        return file_data
 
     async def upload_from_file(
         self,
