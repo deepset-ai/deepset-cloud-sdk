@@ -17,10 +17,10 @@ This README provides an overview of the SDK and its features, and information on
 
 In its current shape, the SDK offers a suite of tools for seamless data upload to deepset Cloud. 
 The following examples demonstrate how to use the deepset Cloud SDK to interact with deepset Cloud using Python.
-You can use the deepset Cloud SDK in the command line as well. For more information, see the [CLI documentation](/examples/cli/README.md).
+You can use the deepset Cloud SDK in the command line as well. For more information, see the [CLI documentation](docs/examples/cli/README.md).
 
--   [SDK Examples - Upload datasets](/examples/sdk/upload.py)
--   [CLI Examples - Upload datasets](/examples/cli/README.md)
+-   [SDK Examples - Upload datasets](/docs/examples/sdk/upload.py)
+-   [CLI Examples - Upload datasets](/docs/examples/cli/README.md)
 
 ## Installation
 The deepset Cloud SDK is available on PyPI and you can install it using pip:
