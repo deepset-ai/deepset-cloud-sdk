@@ -12,6 +12,9 @@ This README provides an overview of the SDK and its features, and information on
 
 - [Official SDK Docs](https://sdk.cloud.deepset.ai)
 - [deepset Cloud Documentation](https://docs.cloud.deepset.ai/)
+- Tutorials: 
+    - [Uploading with CLI](https://docs.cloud.deepset.ai/docs/tutorial-uploading-files-with-cli) 
+    - [Uploading with Python Methods](https://docs.cloud.deepset.ai/docs/tutorial-uploading-files-with-python-methods)
 
 # Supported Features
 
@@ -23,7 +26,7 @@ You can use the deepset Cloud SDK in the command line as well. For more informat
 -   [CLI Examples - Upload datasets](/examples/cli/README.md)
 
 ## Installation
-The deepset Cloud SDK is available on PyPI and you can install it using pip:
+The deepset Cloud SDK is available on [PyPI](https://pypi.org/project/deepset-cloud-sdk/) and you can install it using pip:
 ```bash
 pip install deepset-cloud-sdk
 ```

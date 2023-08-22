@@ -49,3 +49,6 @@ upload_texts(
     timeout_s=300,  # optional, by default 300
 )
 ```
+## Collab Notebook
+
+We created this collab notebook with different upload scenarios that you can test out: [Upload files with SDK in Collab](https://colab.research.google.com/drive/1y2KMB606h-57BafCkhuiaXFWo4gDKtG3?usp=sharing#scrollTo=vPAktGZxKsbJ).

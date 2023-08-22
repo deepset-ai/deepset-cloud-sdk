@@ -13,7 +13,7 @@ processors:
   - type: crossref
 renderer:
   type: renderers.ReadmeRenderer
-  excerpt: An asynchronous client for the Deepset Cloud API.
+  excerpt: An asynchronous client for the deepset Cloud API.
   category_slug: sdk-10
   title: Asynchronous Client
   slug: async_client
