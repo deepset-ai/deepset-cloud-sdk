@@ -50,6 +50,7 @@ extra_css:
 # mkdocs uses the `docs` folder as root folder
 nav:
   - Get Started: index.md
+  - Upload Files: upload_files.md
   - Examples:
       - CLI: examples/cli/README.md
       - SDK: examples/sdk/README.md
