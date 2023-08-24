@@ -58,9 +58,6 @@ with optional arguments:
 --odata-filter "key eq 'value'" # search by odata filter
 ```
 
-### Documentation
-For more information and detailed usage instructions, see the deepset Cloud SDK documentation.
-
 ### Support
 If you encounter any issues or have any questions, feel free to reach out to our team on [discord](https://discord.com/invite/qZxjM4bAHU).
 

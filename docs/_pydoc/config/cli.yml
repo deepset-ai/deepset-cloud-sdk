@@ -13,9 +13,9 @@ processors:
   - type: crossref
 renderer:
   type: renderers.ReadmeRenderer
-  excerpt: A cli tool for the Deepset Cloud API.
+  excerpt: A cli tool for the deepset Cloud API.
   category_slug: sdk-10
-  title: Deepset Cloud CLI
+  title: deepset Cloud CLI
   slug: cli
   order: 0
   markdown:
