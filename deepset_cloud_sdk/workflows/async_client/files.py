@@ -18,6 +18,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionStatus,
     WriteMode,
 )
+from deepset_cloud_sdk._s3.upload import S3UploadSummary
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 
 
@@ -158,7 +159,7 @@ async def upload(
     timeout_s: int = 300,
     show_progress: bool = True,
     recursive: bool = False,
-) -> None:
+) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported files, they're skipped.
@@ -177,7 +178,7 @@ async def upload(
     :param recursive: Uploads files from subdirectories as well.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        await file_service.upload(
+        return await file_service.upload(
             workspace_name=workspace_name,
             paths=paths,
             write_mode=write_mode,
@@ -215,7 +216,7 @@ async def upload_texts(
     :param show_progress: Shows the upload progress.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        await file_service.upload_texts(
+        return await file_service.upload_texts(
             workspace_name=workspace_name,
             files=files,
             write_mode=write_mode,

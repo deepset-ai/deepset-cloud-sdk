@@ -167,6 +167,7 @@ class FilesService:
                 timeout_s=timeout_s,
                 show_progress=show_progress,
             )
+        return upload_summary 
 
     @staticmethod
     def _get_file_paths(paths: List[Path], recursive: bool = False) -> List[Path]:
@@ -344,6 +345,7 @@ class FilesService:
                 timeout_s=timeout_s,
                 show_progress=show_progress,
             )
+        return upload_summary
 
     async def list_all(
         self,
