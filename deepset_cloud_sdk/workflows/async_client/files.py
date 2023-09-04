@@ -198,7 +198,7 @@ async def upload_texts(
     blocking: bool = True,
     timeout_s: int = 300,
     show_progress: bool = True,
-) -> None:
+) -> S3UploadSummary:
     """Upload raw texts to deepset Cloud.
 
     :param files: List of DeepsetCloudFiles to upload.

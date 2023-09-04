@@ -192,7 +192,7 @@ class TestUploadsFileService:
                     finished_files=1,
                 ),
             )
-            await file_service.upload_texts(
+            result = await file_service.upload_texts(
                 workspace_name="test_workspace",
                 files=files,
                 write_mode=WriteMode.OVERWRITE,
