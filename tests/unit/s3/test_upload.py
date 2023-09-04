@@ -139,9 +139,9 @@ class TestUploadsS3:
                 assert results.successful_upload_count == 0
                 assert results.failed_upload_count == 3
                 assert len(results.failed) == 3
-                
+
                 assert [f.file_name for f in results.failed] == [
-                   "one.txt",
+                    "one.txt",
                     "two.txt",
                     "three.txt",
                 ]
@@ -164,7 +164,7 @@ class TestUploadsS3:
                 assert results.failed_upload_count == 6
                 assert len(results.failed) == 6
                 assert [f.file_name for f in results.failed] == [
-                  "one.txt",
+                    "one.txt",
                     "one.txt.meta.json",
                     "two.txt",
                     "two.txt.meta.json",
