@@ -1,0 +1,10 @@
+:root {
+    --md-primary-fg-color: #2b2f55;
+    --md-accent-fg-color: #1890ff;
+    /* accent is used for over*/
+}
+
+/* Hide the title deepset Cloud SDK, but still show the name in the tab */
+.md-ellipsis {
+    display: none;
+}
