@@ -118,37 +118,6 @@ async def get_upload_session(
         )
 
 
-async def upload_file_paths(
-    file_paths: List[Path],
-    api_key: Optional[str] = None,
-    api_url: Optional[str] = None,
-    workspace_name: str = DEFAULT_WORKSPACE_NAME,
-    write_mode: WriteMode = WriteMode.KEEP,
-    blocking: bool = True,
-    timeout_s: int = 300,
-    show_progress: bool = True,
-) -> None:
-    """Upload files to deepset Cloud.
-
-    :param file_paths: List of file paths to upload.
-    :param api_key: deepset Cloud API key to use for authentication.
-    :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-    :param blocking: Whether to wait for the upload to finish.
-    :param timeout_s: Timeout in seconds for the upload.
-    :param show_progress: Shows the upload progress.
-    """
-    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        await file_service.upload_file_paths(
-            workspace_name=workspace_name,
-            file_paths=file_paths,
-            write_mode=write_mode,
-            blocking=blocking,
-            timeout_s=timeout_s,
-            show_progress=show_progress,
-        )
-
-
 async def upload(
     paths: List[Path],
     api_key: Optional[str] = None,
