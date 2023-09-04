@@ -10,7 +10,7 @@
 | deepset\_cloud\_sdk/\_api/files.py                          |       49 |        2 |       18 |        5 |     90% |34->33, 96-99, 102->106, 106->110, 110->113 |
 | deepset\_cloud\_sdk/\_api/upload\_sessions.py               |       90 |        0 |       28 |        2 |     98% |188->182, 227->221 |
 | deepset\_cloud\_sdk/\_s3/\_\_init\_\_.py                    |        0 |        0 |        0 |        0 |    100% |           |
-| deepset\_cloud\_sdk/\_s3/upload.py                          |      116 |        5 |       40 |        7 |     91% |85->79, 105->exit, 116-124, 160->exit, 161->160, 251->exit, 269->exit |
+| deepset\_cloud\_sdk/\_s3/upload.py                          |      116 |        5 |       40 |        7 |     91% |85->79, 105->exit, 116-124, 160->exit, 161->160, 252->exit, 270->exit |
 | deepset\_cloud\_sdk/\_service/files\_service.py             |      144 |        0 |       86 |       14 |     94% |46->48, 47->46, 48->47, 55->exit, 95->102, 107->106, 147->161, 161->exit, 172->171, 192->191, 236->235, 286->292, 327->339, 339->exit |
 | deepset\_cloud\_sdk/\_utils/\_\_init\_\_.py                 |        0 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/cli.py                                  |       72 |        1 |       32 |        8 |     91% |28->27, 48->51, 55->54, 71->70, 121->120, 167->143, 176->175, 226->225, 242 |
