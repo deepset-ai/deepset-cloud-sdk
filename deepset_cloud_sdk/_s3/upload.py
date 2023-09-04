@@ -33,22 +33,22 @@ class RetryableHttpError(Exception):
 
 
 @dataclass
-class S3UploadSummary:
-    """A summary of the S3 upload results."""
-
-    total_files: int
-    successful_upload_count: int
-    failed_upload_count: int
-    failed: List[str]
-
-
-@dataclass
 class S3UploadResult:
     """Stores the result of an upload to S3."""
 
     file_name: str
     success: bool
     exception: Optional[Exception] = None
+
+
+@dataclass
+class S3UploadSummary:
+    """A summary of the S3 upload results."""
+
+    total_files: int
+    successful_upload_count: int
+    failed_upload_count: int
+    failed: List[S3UploadResult]
 
 
 def make_safe_file_name(file_name: str) -> str:
@@ -221,13 +221,13 @@ class S3:
             failed_files=[r for r in results if not r.success],
         )
 
-        failed: List[str] = []
+        failed: List[S3UploadResult] = []
         successfully_uploaded = 0
         for result in results:
             if result.success:
                 successfully_uploaded += 1
             else:
-                failed.append(result.file_name)
+                failed.append(result)
 
         result_summary = S3UploadSummary(
             successful_upload_count=successfully_uploaded,
