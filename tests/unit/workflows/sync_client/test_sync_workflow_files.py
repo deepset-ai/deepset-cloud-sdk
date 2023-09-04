@@ -21,27 +21,8 @@ from deepset_cloud_sdk.workflows.sync_client.files import (
     list_files,
     list_upload_sessions,
     upload,
-    upload_file_paths,
     upload_texts,
 )
-
-
-@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_file_paths")
-def test_upload_file_paths(async_file_upload_mock: AsyncMock) -> None:
-    upload_file_paths(
-        file_paths=[Path("./tests/data/example.txt")],
-        write_mode=WriteMode.FAIL,
-    )
-    async_file_upload_mock.assert_called_once_with(
-        file_paths=[Path("./tests/data/example.txt")],
-        api_key=None,
-        api_url=None,
-        workspace_name=DEFAULT_WORKSPACE_NAME,
-        write_mode=WriteMode.FAIL,
-        blocking=True,
-        timeout_s=300,
-        show_progress=True,
-    )
 
 
 @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")

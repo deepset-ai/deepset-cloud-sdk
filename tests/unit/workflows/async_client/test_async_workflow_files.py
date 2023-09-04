@@ -25,30 +25,12 @@ from deepset_cloud_sdk.workflows.async_client.files import (
     list_files,
     list_upload_sessions,
     upload,
-    upload_file_paths,
     upload_texts,
 )
 
 
 @pytest.mark.asyncio
 class TestUploadFiles:
-    async def test_upload_file_paths(self, monkeypatch: MonkeyPatch) -> None:
-        mocked_upload_file_paths = AsyncMock(return_value=None)
-
-        monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
-        await upload_file_paths(
-            file_paths=[Path("./tests/data/example.txt")], write_mode=WriteMode.OVERWRITE, show_progress=False
-        )
-
-        mocked_upload_file_paths.assert_called_once_with(
-            workspace_name=DEFAULT_WORKSPACE_NAME,
-            file_paths=[Path("./tests/data/example.txt")],
-            write_mode=WriteMode.OVERWRITE,
-            blocking=True,
-            timeout_s=300,
-            show_progress=False,
-        )
-
     async def test_upload_show_progress(self, monkeypatch: MonkeyPatch) -> None:
         paths = [Path("./tests/data/example.txt")]
         mocked_preprocess = AsyncMock(return_value=paths)
