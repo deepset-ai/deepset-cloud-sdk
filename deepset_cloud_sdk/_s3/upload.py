@@ -164,13 +164,14 @@ class S3:
                 try:
                     await self._upload_file_with_retries(file_name, upload_session, content, client_session)
                     return S3UploadResult(file_name=file_name, success=True)
-                except:  # pylint: disable=bare-except
-                    logger.warn(
+                except Exception as exception:  # pylint: disable=broad-exception-caught
+                    logger.error(
                         "Could not upload a file to deepset Cloud",
                         file_name=file_name,
                         session_id=upload_session.session_id,
+                        exception=str(exception),
                     )
-                    return S3UploadResult(file_name=file_name, success=False)
+                    return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
     async def upload_from_string(
         self,
