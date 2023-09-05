@@ -11,17 +11,17 @@
 | deepset\_cloud\_sdk/\_api/upload\_sessions.py               |       90 |        0 |       28 |        2 |     98% |188->182, 227->221 |
 | deepset\_cloud\_sdk/\_s3/\_\_init\_\_.py                    |        0 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/\_s3/upload.py                          |      116 |        5 |       40 |        7 |     91% |85->79, 105->exit, 116-124, 160->exit, 161->160, 252->exit, 270->exit |
-| deepset\_cloud\_sdk/\_service/files\_service.py             |      144 |        0 |       86 |       14 |     94% |46->48, 47->46, 48->47, 55->exit, 95->102, 107->106, 147->161, 161->exit, 172->171, 192->191, 236->235, 286->292, 327->339, 339->exit |
+| deepset\_cloud\_sdk/\_service/files\_service.py             |      146 |        0 |       86 |       14 |     94% |46->48, 47->46, 48->47, 55->exit, 95->102, 107->106, 147->161, 161->170, 173->172, 193->192, 237->236, 287->293, 328->340, 340->348 |
 | deepset\_cloud\_sdk/\_utils/\_\_init\_\_.py                 |        0 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/cli.py                                  |       72 |        1 |       32 |        8 |     91% |28->27, 48->51, 55->54, 71->70, 121->120, 167->143, 176->175, 226->225, 242 |
 | deepset\_cloud\_sdk/models.py                               |       13 |        0 |        4 |        0 |    100% |           |
 | deepset\_cloud\_sdk/workflows/\_\_init\_\_.py               |        0 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/workflows/async\_client/\_\_init\_\_.py |        0 |        0 |        0 |        0 |    100% |           |
-| deepset\_cloud\_sdk/workflows/async\_client/files.py        |       37 |        0 |       16 |        8 |     85% |52->exit, 53->52, 86->exit, 87->86, 113->exit, 140->exit, 179->exit, 217->exit |
+| deepset\_cloud\_sdk/workflows/async\_client/files.py        |       35 |        0 |       14 |        7 |     86% |53->exit, 54->53, 87->exit, 88->87, 114->exit, 149->exit, 187->exit |
 | deepset\_cloud\_sdk/workflows/sync\_client/\_\_init\_\_.py  |        0 |        0 |        0 |        0 |    100% |           |
-| deepset\_cloud\_sdk/workflows/sync\_client/files.py         |       37 |        0 |        0 |        0 |    100% |           |
+| deepset\_cloud\_sdk/workflows/sync\_client/files.py         |       35 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/workflows/sync\_client/utils.py         |       16 |        1 |        2 |        0 |     94% |        26 |
-|                                                   **TOTAL** |  **654** |   **11** |  **250** |   **51** | **93%** |           |
+|                                                   **TOTAL** |  **652** |   **11** |  **248** |   **50** | **93%** |           |
 
 
 ## Setup coverage badge
