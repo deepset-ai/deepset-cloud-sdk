@@ -13,6 +13,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionStatus,
     WriteMode,
 )
+from deepset_cloud_sdk._s3.upload import S3UploadSummary
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.workflows.async_client.files import (
     get_upload_session as async_get_upload_session,
@@ -25,51 +26,11 @@ from deepset_cloud_sdk.workflows.async_client.files import (
 )
 from deepset_cloud_sdk.workflows.async_client.files import upload as async_upload
 from deepset_cloud_sdk.workflows.async_client.files import (
-    upload_file_paths as async_upload_file_paths,
-)
-from deepset_cloud_sdk.workflows.async_client.files import (
     upload_texts as async_upload_texts,
 )
 from deepset_cloud_sdk.workflows.sync_client.utils import iter_over_async
 
 logger = structlog.get_logger(__name__)
-
-
-def upload_file_paths(
-    file_paths: List[Path],
-    api_key: Optional[str] = None,
-    api_url: Optional[str] = None,
-    workspace_name: str = DEFAULT_WORKSPACE_NAME,
-    write_mode: WriteMode = WriteMode.KEEP,
-    blocking: bool = True,
-    timeout_s: int = 300,
-    show_progress: bool = True,
-) -> None:
-    """Upload files to deepset Cloud.
-
-    :param file_paths: List of file paths to upload.
-    :param api_key: deepset Cloud API key to use for authentication.
-    :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-    :param write_mode: The write mode determines how to handle uploading a file if it's already in the workspace.
-        Your options are: keep the file with the same name, make the request fail if a file with the same name already
-        exists, or overwrite the file. If you choose to overwrite, all files with the same name are overwritten.
-    :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
-    :param timeout_s: Timeout in seconds for the `blocking` parameter`.
-    :param show_progress: Shows the upload progress.
-    """
-    asyncio.run(
-        async_upload_file_paths(
-            file_paths=file_paths,
-            api_key=api_key,
-            api_url=api_url,
-            workspace_name=workspace_name,
-            write_mode=write_mode,
-            blocking=blocking,
-            timeout_s=timeout_s,
-            show_progress=show_progress,
-        )
-    )
 
 
 def upload(
@@ -82,7 +43,7 @@ def upload(
     timeout_s: int = 300,
     show_progress: bool = True,
     recursive: bool = False,
-) -> None:
+) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped.
@@ -98,7 +59,7 @@ def upload(
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
     """
-    asyncio.run(
+    return asyncio.run(
         async_upload(
             paths=paths,
             api_key=api_key,
@@ -122,7 +83,7 @@ def upload_texts(
     blocking: bool = True,
     timeout_s: int = 300,
     show_progress: bool = True,
-) -> None:
+) -> S3UploadSummary:
     """Upload texts to deepset Cloud.
 
     :param files: List of DeepsetCloudFiles to upload.
@@ -138,7 +99,7 @@ def upload_texts(
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
     """
-    asyncio.run(
+    return asyncio.run(
         async_upload_texts(
             files=files,
             api_key=api_key,
