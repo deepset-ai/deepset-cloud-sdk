@@ -23,7 +23,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionStatus,
     WriteMode,
 )
-from deepset_cloud_sdk._s3.upload import S3
+from deepset_cloud_sdk._s3.upload import S3, S3UploadSummary
 from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
@@ -128,7 +128,7 @@ class FilesService:
         blocking: bool = True,
         timeout_s: int = 300,
         show_progress: bool = True,
-    ) -> None:
+    ) -> S3UploadSummary:
         """Upload a list of files to a workspace.
 
         Upload a list of files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset Cloud.
@@ -167,6 +167,7 @@ class FilesService:
                 timeout_s=timeout_s,
                 show_progress=show_progress,
             )
+        return upload_summary
 
     @staticmethod
     def _get_file_paths(paths: List[Path], recursive: bool = False) -> List[Path]:
@@ -263,7 +264,7 @@ class FilesService:
         timeout_s: int = 300,
         show_progress: bool = True,
         recursive: bool = False,
-    ) -> None:
+    ) -> S3UploadSummary:
         """Upload a list of file or folder paths to a workspace.
 
         Upload files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset Cloud.
@@ -289,7 +290,7 @@ class FilesService:
         else:
             file_paths = self._preprocess_paths(paths, recursive=recursive)
 
-        await self.upload_file_paths(
+        return await self.upload_file_paths(
             workspace_name=workspace_name,
             file_paths=file_paths,
             write_mode=write_mode,
@@ -306,7 +307,7 @@ class FilesService:
         blocking: bool = True,
         timeout_s: int = 300,
         show_progress: bool = True,
-    ) -> None:  # noqa
+    ) -> S3UploadSummary:  # noqa
         """
         Upload a list of raw texts to a workspace using upload sessions. This method accepts a list of DeepsetCloudFiles
         which contain raw text, file name, and optional metadata.
@@ -344,6 +345,7 @@ class FilesService:
                 timeout_s=timeout_s,
                 show_progress=show_progress,
             )
+        return upload_summary
 
     async def list_all(
         self,

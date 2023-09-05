@@ -20,13 +20,17 @@ class TestUploadsFileService:
         async with FilesService.factory(integration_config) as file_service:
             timeout = 120 if "dev.cloud.dpst.dev" in integration_config.api_url else 300
 
-            await file_service.upload(
+            result = await file_service.upload(
                 workspace_name=workspace_name,
                 paths=[Path("./tests/test_data/msmarco.10")],
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
             )
+            assert result.total_files == 20
+            assert result.successful_upload_count == 20
+            assert result.failed_upload_count == 0
+            assert len(result.failed) == 0
 
     async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
@@ -37,13 +41,17 @@ class TestUploadsFileService:
                 DeepsetCloudFile("file4", "file4.txt", {"which": 4}),
                 DeepsetCloudFile("file5", "file5.txt", {"which": 5}),
             ]
-            await file_service.upload_texts(
+            result = await file_service.upload_texts(
                 workspace_name=workspace_name,
                 files=files,
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=120,
             )
+            assert result.total_files == 10
+            assert result.successful_upload_count == 10
+            assert result.failed_upload_count == 0
+            assert len(result.failed) == 0
 
 
 @pytest.mark.asyncio
