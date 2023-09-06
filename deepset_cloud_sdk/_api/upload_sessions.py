@@ -112,7 +112,7 @@ class FailedToSendUploadSessionFilesRequest(Exception):
 
 
 class FileIngestionStatus(str, enum.Enum):
-    """Enum for File Ingestion Status"""
+    """Enum for File Ingestion Status."""
 
     PENDING = "PENDING"
     FAILED = "FAILED"
@@ -120,7 +120,7 @@ class FileIngestionStatus(str, enum.Enum):
 
 
 class FileIngestionStatusReason(str, enum.Enum):
-    """Enum for File Ingestion Status Reason"""
+    """Enum for File Ingestion Status Reason."""
 
     EMPTY_FILE = "EMPTY_FILE"
     FILE_NOT_FOUND = "FILE_NOT_FOUND"
@@ -131,7 +131,7 @@ class FileIngestionStatusReason(str, enum.Enum):
 
 @dataclass
 class UploadSessionFile:
-    """Upload session files details"""
+    """Upload session files details."""
 
     file_ingestion_id: UUID
     ingestion_status: FileIngestionStatus
@@ -141,6 +141,8 @@ class UploadSessionFile:
 
 @dataclass
 class UploadSessionFileList:
+    """Upload session files list."""
+
     data: List[UploadSessionFile]
     has_more: bool
     total: int

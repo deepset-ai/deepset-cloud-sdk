@@ -218,7 +218,7 @@ def list_upload_session_files(
     batch_size: int = 100,
     timeout_s: int = 300,
 ) -> Generator[List[UploadSessionFileList], None, None]:
-    """List the details of all upload sessions, including the closed ones.
+    """List the all the files in an upload session.
     :param session_id: The upload session's id
     :param ingestion_status: Filters by the ingestion status.
     :param api_key: deepset Cloud API key to use for authentication.
@@ -227,6 +227,7 @@ def list_upload_session_files(
     :param batch_size: Batch size to use for the session list.
     :param timeout_s: Timeout in seconds for the API request.
     """
+
     loop = asyncio.new_event_loop()
 
     async_list_files_generator = async_list_upload_session_files(
