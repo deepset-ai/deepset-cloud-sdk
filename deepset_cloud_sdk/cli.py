@@ -29,6 +29,9 @@ cli_app.command()(upload)
 def download(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[str] = None,
+    name: Optional[str] = None,
+    content: Optional[str] = None,
+    odata_filter: Optional[str] = None,
     include_meta: bool = True,
     batch_size: int = 50,
     api_key: Optional[str] = None,
@@ -40,6 +43,9 @@ def download(
     :param workspace_name: Name of the workspace to download the files from. Uses the workspace from the .ENV file by default.
     :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
     during the upload. Supported file formats are TXT and PDF.
+    :param name: Name of the file to odata_filter for.
+    :param content: Content of the file to odata_filter for.
+    :param odata_filter: odata_filter to apply to the file list.
     :param include_meta: Whether to include the file meta in the folder.
     :param batch_size: Batch size for the listing.
     :param api_key: API key to use for authentication.
@@ -49,6 +55,9 @@ def download(
     sync_download(
         workspace_name=workspace_name,
         file_dir=file_dir,
+        name=name,
+        content=content,
+        odata_filter=odata_filter,
         include_meta=include_meta,
         batch_size=batch_size,
         api_key=api_key,

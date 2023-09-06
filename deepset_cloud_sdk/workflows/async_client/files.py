@@ -161,11 +161,15 @@ async def upload(
 async def download(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[Union[Path, str]] = None,
+    name: Optional[str] = None,
+    content: Optional[str] = None,
+    odata_filter: Optional[str] = None,
     include_meta: bool = True,
     batch_size: int = 50,
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     show_progress: bool = True,
+    timeout_s: Optional[int] = None,
 ) -> None:
     """Download a folder to deepset Cloud.
 
@@ -184,9 +188,13 @@ async def download(
         await file_service.download(
             workspace_name=workspace_name,
             file_dir=file_dir,
+            name=name,
+            content=content,
+            odata_filter=odata_filter,
             include_meta=include_meta,
             batch_size=batch_size,
             show_progress=show_progress,
+            timeout_s=timeout_s,
         )
 
 

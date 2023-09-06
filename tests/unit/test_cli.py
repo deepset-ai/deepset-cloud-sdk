@@ -18,6 +18,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
 )
 from deepset_cloud_sdk.cli import cli_app
 from deepset_cloud_sdk.models import UserInfo
+from deepset_cloud_sdk.workflows.sync_client.files import download as sync_download
 
 logger = structlog.get_logger(__name__)
 runner = CliRunner()
@@ -44,6 +45,25 @@ class TestCLIMethods:
         )
         result = runner.invoke(cli_app, ["upload", "./test/data/upload_folder/example.txt"])
         assert result.exit_code == 1
+
+    class TestDownloadFiles:
+        @patch("deepset_cloud_sdk.cli.sync_download")
+        def test_download_files(self, sync_download_mock: AsyncMock) -> None:
+            sync_download_mock.side_effect = Mock(spec=sync_download)
+            result = runner.invoke(cli_app, ["download"])
+            assert result.exit_code == 0
+            sync_download_mock.assert_called_once_with(
+                workspace_name="default",
+                file_dir=None,
+                name=None,
+                content=None,
+                odata_filter=None,
+                include_meta=True,
+                batch_size=50,
+                api_key=None,
+                api_url=None,
+                show_progress=True,
+            )
 
     class TestListFiles:
         @patch("deepset_cloud_sdk.cli.sync_list_files")

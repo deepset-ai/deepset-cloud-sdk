@@ -78,11 +78,15 @@ def upload(
 def download(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[Union[Path, str]] = None,
+    name: Optional[str] = None,
+    content: Optional[str] = None,
+    odata_filter: Optional[str] = None,
     include_meta: bool = True,
     batch_size: int = 50,
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     show_progress: bool = True,
+    timeout_s: Optional[int] = None,
 ) -> None:
     """Download a folder to deepset Cloud.
 
@@ -96,16 +100,21 @@ def download(
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
+    :param timeout_s: Timeout in seconds for the API requests.
     """
     asyncio.run(
         async_download(
             api_key=api_key,
             api_url=api_url,
             workspace_name=workspace_name,
+            name=name,
+            content=content,
+            odata_filter=odata_filter,
             file_dir=file_dir,
             include_meta=include_meta,
             batch_size=batch_size,
             show_progress=show_progress,
+            timeout_s=timeout_s,
         )
     )
 
