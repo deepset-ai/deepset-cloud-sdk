@@ -6,7 +6,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional
+from typing import AsyncGenerator, List, Optional, Union
 from uuid import UUID
 
 import structlog
@@ -302,7 +302,7 @@ class FilesService:
     async def download(
         self,
         workspace_name: str,
-        dir: Optional[Path] = None,
+        dir: Optional[Union[Path, str]] = None,
         include_meta: bool = True,
         batch_size: int = 50,
         show_progress: bool = True,

@@ -9,7 +9,7 @@ from tabulate import tabulate
 
 from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
-from deepset_cloud_sdk.workflows.sync_client.files import download
+from deepset_cloud_sdk.workflows.sync_client.files import download as sync_download
 from deepset_cloud_sdk.workflows.sync_client.files import (
     get_upload_session as sync_get_upload_session,
 )
@@ -23,7 +23,38 @@ cli_app = typer.Typer(pretty_exceptions_show_locals=False)
 
 # cli commands
 cli_app.command()(upload)
-cli_app.command()(download)
+
+
+@cli_app.command()
+def download(
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    dir: Optional[str] = None,
+    include_meta: bool = True,
+    batch_size: int = 50,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    show_progress: bool = True,
+) -> None:
+    """Download files from deepset Cloud to your local machine.
+
+    :param workspace_name: Name of the workspace to download the files from. Uses the workspace from the .ENV file by default.
+    :param dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
+    during the upload. Supported file formats are TXT and PDF.
+    :param include_meta: Whether to include the file meta in the folder.
+    :param batch_size: Batch size for the listing.
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param show_progress: Shows the upload progress.
+    """
+    sync_download(
+        workspace_name=workspace_name,
+        dir=dir,
+        include_meta=include_meta,
+        batch_size=batch_size,
+        api_key=api_key,
+        api_url=api_url,
+        show_progress=show_progress,
+    )
 
 
 @cli_app.command()
@@ -84,7 +115,7 @@ def list_files(
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .EVN file by default.
+    :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
     :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
@@ -132,7 +163,7 @@ def list_upload_sessions(
 
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .EVN file by default.
+    :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .ENV file by default.
     :param is_expired: Whether to list expired upload sessions.
     :param batch_size: Batch size to use for the file list.
     :param timeout_s: Timeout in seconds for the API requests.
@@ -187,7 +218,7 @@ def get_upload_session(
     :param session_id: ID of the upload session whose status you want to check.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace where you upload your files. Uses the workspace from the .EVN file by default.
+    :param workspace_name: Name of the workspace where you upload your files. Uses the workspace from the .ENV file by default.
 
     Example:
     `deepset-cloud get-upload-session --workspace-name default`

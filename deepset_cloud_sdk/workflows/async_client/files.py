@@ -1,7 +1,7 @@
 # pylint:disable=too-many-arguments
 """This module contains async functions for uploading files and folders to deepset Cloud."""
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional
+from typing import AsyncGenerator, List, Optional, Union
 from uuid import UUID
 
 from sniffio import AsyncLibraryNotFoundError
@@ -160,7 +160,7 @@ async def upload(
 
 async def download(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
-    dir: Optional[Path] = None,
+    dir: Optional[Union[Path, str]] = None,
     include_meta: bool = True,
     batch_size: int = 50,
     api_key: Optional[str] = None,

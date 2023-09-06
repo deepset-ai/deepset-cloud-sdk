@@ -1,7 +1,7 @@
 """Sync client for files workflow."""
 import asyncio
 from pathlib import Path
-from typing import Generator, List, Optional
+from typing import Generator, List, Optional, Union
 from uuid import UUID
 
 import structlog
@@ -77,7 +77,7 @@ def upload(
 
 def download(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
-    dir: Optional[Path] = None,
+    dir: Optional[Union[Path, str]] = None,
     include_meta: bool = True,
     batch_size: int = 50,
     api_key: Optional[str] = None,
