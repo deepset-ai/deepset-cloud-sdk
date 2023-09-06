@@ -1,14 +1,18 @@
 import datetime
 from pathlib import Path
 from typing import List
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, call
 from uuid import UUID
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from deepset_cloud_sdk._api.config import CommonConfig
-from deepset_cloud_sdk._api.files import File, FileList
+from deepset_cloud_sdk._api.files import (
+    File,
+    FileList,
+    FileNotFoundInDeepsetCloudException,
+)
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
     UploadSessionDetail,
@@ -357,6 +361,142 @@ class TestListFilesService:
         with pytest.raises(TimeoutError):
             async for _ in file_service.list_all(workspace_name="test_workspace", batch_size=10, timeout_s=0):
                 pass
+
+
+@pytest.mark.asyncio
+class TestDownloadFilesService:
+    async def test_download_all_files(self, file_service: FilesService, monkeypatch: MonkeyPatch) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                FileList(
+                    total=2,
+                    data=[],
+                    has_more=True,
+                ),
+                FileList(
+                    total=2,
+                    data=[
+                        File(
+                            file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a11"),
+                            url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a11",
+                            name="silly_things_1.txt",
+                            size=611,
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            meta={},
+                        )
+                    ],
+                    has_more=True,
+                ),
+                FileList(
+                    total=2,
+                    data=[
+                        File(
+                            file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                            name="silly_things_2.txt",
+                            size=611,
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            meta={},
+                        )
+                    ],
+                    has_more=False,
+                ),
+            ]
+        )
+
+        monkeypatch.setattr(file_service._files, "list_paginated", mocked_list_paginated)
+
+        mocked_download = AsyncMock(return_value=None)
+        monkeypatch.setattr(file_service._files, "download", mocked_download)
+
+        await file_service.download(workspace_name="test_workspace")
+
+        assert mocked_download.mock_calls == [
+            call(
+                workspace_name="test_workspace",
+                file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a11"),
+                file_name="silly_things_1.txt",
+                file_dir=None,
+                include_meta=True,
+            ),
+            call(
+                workspace_name="test_workspace",
+                file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                file_name="silly_things_2.txt",
+                file_dir=None,
+                include_meta=True,
+            ),
+        ]
+
+    async def test_download_all_files_with_file_not_found(
+        self, file_service: FilesService, monkeypatch: MonkeyPatch
+    ) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                FileList(
+                    total=2,
+                    data=[],
+                    has_more=True,
+                ),
+                FileList(
+                    total=2,
+                    data=[
+                        File(
+                            file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                            name="silly_things_2.txt",
+                            size=611,
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            meta={},
+                        )
+                    ],
+                    has_more=False,
+                ),
+            ]
+        )
+
+        monkeypatch.setattr(file_service._files, "list_paginated", mocked_list_paginated)
+
+        mocked_download = AsyncMock(side_effect=[FileNotFoundInDeepsetCloudException])
+        monkeypatch.setattr(file_service._files, "download", mocked_download)
+
+        # This should not raise an exception
+        await file_service.download(workspace_name="test_workspace")
+
+    async def test_download_all_files_with_unknown_exception(
+        self, file_service: FilesService, monkeypatch: MonkeyPatch
+    ) -> None:
+        mocked_list_paginated = AsyncMock(
+            side_effect=[
+                FileList(
+                    total=2,
+                    data=[],
+                    has_more=True,
+                ),
+                FileList(
+                    total=2,
+                    data=[
+                        File(
+                            file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                            url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                            name="silly_things_2.txt",
+                            size=611,
+                            created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                            meta={},
+                        )
+                    ],
+                    has_more=False,
+                ),
+            ]
+        )
+
+        monkeypatch.setattr(file_service._files, "list_paginated", mocked_list_paginated)
+
+        mocked_download = AsyncMock(side_effect=[Exception])
+        monkeypatch.setattr(file_service._files, "download", mocked_download)
+
+        # This should not raise an exception
+        await file_service.download(workspace_name="test_workspace")
 
 
 @pytest.mark.asyncio

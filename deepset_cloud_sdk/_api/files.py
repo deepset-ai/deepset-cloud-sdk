@@ -21,7 +21,7 @@ from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 logger = structlog.get_logger(__name__)
 
 
-class FileNotFound(Exception):
+class FileNotFoundInDeepsetCloudException(Exception):
     """Exception raised when a file is not found."""
 
 
@@ -182,7 +182,7 @@ class FilesAPI:
 
         response = await self._deepset_cloud_api.get(workspace_name, f"files/{file_id}")
         if response.status_code == codes.NOT_FOUND:
-            raise FileNotFound(f"Failed to download raw file: {response.text}")
+            raise FileNotFoundInDeepsetCloudException(f"Failed to download raw file: {response.text}")
         if response.status_code != codes.OK:
             raise Exception(f"Failed to download raw file: {response.text}")
         new_local_file_name: str = await self._save_to_disk(
@@ -192,7 +192,7 @@ class FilesAPI:
         if include_meta:
             response = await self._deepset_cloud_api.get(workspace_name, f"files/{file_id}/meta")
             if response.status_code == codes.NOT_FOUND:
-                raise FileNotFound(f"Failed to download raw file: {response.text}")
+                raise FileNotFoundInDeepsetCloudException(f"Failed to download raw file: {response.text}")
             if response.status_code != codes.OK:
                 raise Exception(f"Failed to download raw file: {response.text}")
             await self._save_to_disk(

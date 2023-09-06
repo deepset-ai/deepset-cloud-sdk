@@ -8,7 +8,12 @@ from uuid import UUID
 import httpx
 import pytest
 
-from deepset_cloud_sdk._api.files import File, FileList, FileNotFound, FilesAPI
+from deepset_cloud_sdk._api.files import (
+    File,
+    FileList,
+    FileNotFoundInDeepsetCloudException,
+    FilesAPI,
+)
 
 
 @pytest.fixture
@@ -83,7 +88,7 @@ class TestDownloadFile:
             mocked_deepset_cloud_api.get.return_value = httpx.Response(
                 status_code=httpx.codes.NOT_FOUND,
             )
-            with pytest.raises(FileNotFound):
+            with pytest.raises(FileNotFoundInDeepsetCloudException):
                 await files_api.download(
                     workspace_name="test_workspace",
                     file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
@@ -177,7 +182,7 @@ class TestDownloadFile:
                 )
 
             mocked_deepset_cloud_api.get.side_effect = mock_response
-            with pytest.raises(FileNotFound):
+            with pytest.raises(FileNotFoundInDeepsetCloudException):
                 await files_api.download(
                     workspace_name="test_workspace",
                     file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),

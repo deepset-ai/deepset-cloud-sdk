@@ -15,7 +15,11 @@ from yaspin import yaspin
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk._api.files import File, FilesAPI
+from deepset_cloud_sdk._api.files import (
+    File,
+    FileNotFoundInDeepsetCloudException,
+    FilesAPI,
+)
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
     UploadSessionDetail,
@@ -299,6 +303,27 @@ class FilesService:
             show_progress=show_progress,
         )
 
+    async def _download_and_log_errors(
+        self,
+        workspace_name: str,
+        file_id: UUID,
+        file_name: str,
+        file_dir: Optional[Union[Path, str]],
+        include_meta: bool,
+    ) -> None:
+        try:
+            await self._files.download(
+                workspace_name=workspace_name,
+                file_id=file_id,
+                file_name=file_name,
+                file_dir=file_dir,
+                include_meta=include_meta,
+            )
+        except FileNotFoundInDeepsetCloudException as e:
+            logger.error("File was listed in deepset Cloud but could not be downloaded.", file_id=file_id, error=e)
+        except Exception as e:
+            logger.error("Failed to download file.", file_id=file_id, error=e)
+
     async def download(
         self,
         workspace_name: str,
@@ -334,11 +359,13 @@ class FilesService:
                 has_more = response.has_more
                 if not response.data:
                     return
+
                 after_value = response.data[-1].created_at
                 after_file_id = response.data[-1].file_id
+
                 await asyncio.gather(
                     *[
-                        self._files.download(
+                        self._download_and_log_errors(
                             workspace_name=workspace_name,
                             file_id=_file.file_id,
                             file_name=_file.name,
@@ -350,7 +377,6 @@ class FilesService:
                 )
                 if pbar is not None:
                     pbar.update(batch_size)
-
         finally:
             if pbar is not None:
                 pbar.close()
