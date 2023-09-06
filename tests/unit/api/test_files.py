@@ -89,7 +89,7 @@ class TestDownloadFile:
                     file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                     file_name="silly_things_1.txt",
                     include_meta=False,
-                    dir=Path(tmp_dir),
+                    file_dir=Path(tmp_dir),
                 )
 
     async def test_download_file_with_unexpected_error(
@@ -105,7 +105,7 @@ class TestDownloadFile:
                     file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                     file_name="silly_things_1.txt",
                     include_meta=False,
-                    dir=Path(tmp_dir),
+                    file_dir=Path(tmp_dir),
                 )
 
     async def test_download(self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock) -> None:
@@ -119,7 +119,7 @@ class TestDownloadFile:
                 file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                 file_name="silly_things_1.txt",
                 include_meta=False,
-                dir=Path(tmp_dir),
+                file_dir=Path(tmp_dir),
             )
             with Path.open(Path(tmp_dir + "/silly_things_1.txt"), encoding="UTF-8") as file:
                 assert file.read() == "some content"
@@ -150,7 +150,7 @@ class TestDownloadFile:
                 file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                 file_name="silly_things_1.txt",
                 include_meta=True,
-                dir=Path(tmp_dir),
+                file_dir=Path(tmp_dir),
             )
             with Path.open(Path(tmp_dir + "/silly_things_1.txt"), encoding="UTF-8") as file:
                 assert file.read() == "some content"
@@ -183,7 +183,7 @@ class TestDownloadFile:
                     file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                     file_name="silly_things_1.txt",
                     include_meta=True,
-                    dir=Path(tmp_dir),
+                    file_dir=Path(tmp_dir),
                 )
 
     async def test_download_with_metadata_unexpected_error(
@@ -210,7 +210,7 @@ class TestDownloadFile:
                     file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                     file_name="silly_things_1.txt",
                     include_meta=True,
-                    dir=Path(tmp_dir),
+                    file_dir=Path(tmp_dir),
                 )
 
     async def test_download_file_with_name_collsion_for_raw_file(
@@ -233,7 +233,7 @@ class TestDownloadFile:
                 file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                 file_name="silly_things_1.txt",
                 include_meta=False,
-                dir=Path(tmp_dir),
+                file_dir=Path(tmp_dir),
             )
             with Path.open(Path(tmp_dir + "/silly_things_1.txt"), encoding="UTF-8") as file:
                 assert file.read() == "first content"
@@ -273,7 +273,7 @@ class TestDownloadFile:
                 file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
                 file_name="silly_things_1.txt",
                 include_meta=True,
-                dir=Path(tmp_dir),
+                file_dir=Path(tmp_dir),
             )
             with Path.open(Path(tmp_dir + "/silly_things_1.txt")) as _file:
                 assert _file.read() == "first content"

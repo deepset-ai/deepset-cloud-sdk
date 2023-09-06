@@ -302,7 +302,7 @@ class FilesService:
     async def download(
         self,
         workspace_name: str,
-        dir: Optional[Union[Path, str]] = None,
+        file_dir: Optional[Union[Path, str]] = None,
         include_meta: bool = True,
         batch_size: int = 50,
         show_progress: bool = True,
@@ -310,7 +310,7 @@ class FilesService:
         """Download a folder to deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-        :param dir: Path to the folder to download. If None, the current working directory is used.
+        :param file_dir: Path to the folder to download. If None, the current working directory is used.
         :param include_meta: If True, downloads the metadata files as well.
         :param batch_size: Batch size for the listing.
         :param show_progress: Shows the upload progress.
@@ -342,7 +342,7 @@ class FilesService:
                             workspace_name=workspace_name,
                             file_id=_file.file_id,
                             file_name=_file.name,
-                            dir=dir,
+                            file_dir=file_dir,
                             include_meta=include_meta,
                         )
                         for _file in response.data

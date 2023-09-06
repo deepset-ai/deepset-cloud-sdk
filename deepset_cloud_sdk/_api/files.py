@@ -134,27 +134,28 @@ class FilesAPI:
             new_filename = f"{base}{suffix}{ext}"
         return new_filename
 
-    async def _save_to_disk(self, dir: Path, file_name: str, content: bytes) -> str:
-        """
-        Saves the given content to disk. If there is a collision, the file name is changed to avoid overwriting.
+    async def _save_to_disk(self, file_dir: Path, file_name: str, content: bytes) -> str:
+        """Save the given content to disk.
+
+        If there is a collision, the file name is changed to avoid overwriting.
         This new name is returned by the function.
 
-        :param dir: Path to the file.
+        :param file_dir: Path to the file.
         :param file_name: Name of the file.
         :param content: Content of the file.
         :return: The new file name.
         """
         # Check if the directory exists, and create it if necessary
-        directory = os.path.dirname(dir)
+        directory = os.path.dirname(file_dir)
         if not os.path.exists(directory):
             os.makedirs(directory)
 
         new_filename: str = file_name
-        file_path = Path(dir / file_name)
-        if Path(dir / file_name).exists():
+        file_path = Path(file_dir / file_name)
+        if Path(file_dir / file_name).exists():
             new_filename = self._available_file_name(file_path)
 
-        with Path.open(dir / new_filename, "wb") as file:
+        with Path.open(file_dir / new_filename, "wb") as file:
             file.write(content)
         return new_filename
 
@@ -164,28 +165,29 @@ class FilesAPI:
         file_id: UUID,
         file_name: str,
         include_meta: bool = True,
-        dir: Optional[Union[Path, str]] = None,
+        file_dir: Optional[Union[Path, str]] = None,
     ) -> None:
-        """
-        Downloads a single file from a workspace.
+        """Download a single file from a workspace.
 
         :param workspace_name: Name of the workspace to use.
         :param file_id: ID of the file to download.
         :param include_meta: Whether to include the file meta in the folder.
         """
-        if dir is None:
-            dir = Path.cwd()
+        if file_dir is None:
+            file_dir = Path.cwd()
 
-        if isinstance(dir, str):
+        if isinstance(file_dir, str):
             # format dir to Path and take relative path into account
-            dir = Path(dir).resolve()
+            file_dir = Path(file_dir).resolve()
 
         response = await self._deepset_cloud_api.get(workspace_name, f"files/{file_id}")
         if response.status_code == codes.NOT_FOUND:
             raise FileNotFound(f"Failed to download raw file: {response.text}")
         if response.status_code != codes.OK:
             raise Exception(f"Failed to download raw file: {response.text}")
-        new_local_file_name: str = await self._save_to_disk(dir=dir, file_name=file_name, content=response.content)
+        new_local_file_name: str = await self._save_to_disk(
+            file_dir=file_dir, file_name=file_name, content=response.content
+        )
 
         if include_meta:
             response = await self._deepset_cloud_api.get(workspace_name, f"files/{file_id}/meta")
@@ -194,7 +196,7 @@ class FilesAPI:
             if response.status_code != codes.OK:
                 raise Exception(f"Failed to download raw file: {response.text}")
             await self._save_to_disk(
-                dir=dir,
+                file_dir=file_dir,
                 file_name=f"{new_local_file_name}.meta.json",
                 content=response.content,
             )

@@ -77,7 +77,7 @@ def upload(
 
 def download(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
-    dir: Optional[Union[Path, str]] = None,
+    file_dir: Optional[Union[Path, str]] = None,
     include_meta: bool = True,
     batch_size: int = 50,
     api_key: Optional[str] = None,
@@ -89,7 +89,7 @@ def download(
     Downloads all files from a workspace to a local folder.
 
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-    :param dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
+    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
     during the upload. Supported file formats are TXT and PDF.
     :param include_meta: Whether to include the file meta in the folder.
     :param batch_size: Batch size for the listing.
@@ -102,7 +102,7 @@ def download(
             api_key=api_key,
             api_url=api_url,
             workspace_name=workspace_name,
-            dir=dir,
+            file_dir=file_dir,
             include_meta=include_meta,
             batch_size=batch_size,
             show_progress=show_progress,
