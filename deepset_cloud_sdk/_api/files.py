@@ -7,7 +7,9 @@ deleting files.
 
 import datetime
 import inspect
+import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
@@ -17,6 +19,10 @@ from httpx import codes
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 
 logger = structlog.get_logger(__name__)
+
+
+class FileNotFound(Exception):
+    """Exception raised when a file is not found."""
 
 
 @dataclass
@@ -117,3 +123,75 @@ class FilesAPI:
         data = response_body["data"]
         has_more = response_body["has_more"]
         return FileList(total=total, data=[File.from_dict(d) for d in data], has_more=has_more)
+
+    @staticmethod
+    def _available_file_name(file_path: Path, suffix: str = "_1") -> str:
+        base, ext = os.path.splitext(str(file_path))
+        new_filename = f"{base}{suffix}{ext}"
+        while os.path.exists(new_filename):
+            suffix = f"_{int(suffix[1:]) + 1}"
+            new_filename = f"{base}{suffix}{ext}"
+        return new_filename
+
+    async def _save_to_disk(self, file_path_prefix: Path, file_name: str, content: bytes) -> str:
+        """
+        Saves the given content to disk. If there is a collision, the file name is changed to avoid overwriting.
+        This new name is returned by the function.
+
+        :param file_path_prefix: Path to the file.
+        :param file_name: Name of the file.
+        :param content: Content of the file.
+        :return: The new file name.
+        """
+        # Check if the directory exists, and create it if necessary
+        directory = os.path.dirname(file_path_prefix)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        new_filename: str = file_name
+        file_path = Path(file_path_prefix / file_name)
+        if Path(file_path_prefix / file_name).exists():
+            new_filename = self._available_file_name(file_path)
+
+        with Path.open(file_path_prefix / new_filename, "wb") as file:
+            file.write(content)
+        return new_filename
+
+    async def download(
+        self,
+        workspace_name: str,
+        file_id: UUID,
+        file_name: str,
+        include_meta: bool = True,
+        file_path_prefix: Optional[Path] = None,
+    ) -> None:
+        """
+        Downloads a single file from a workspace.
+
+        :param workspace_name: Name of the workspace to use.
+        :param file_id: ID of the file to download.
+        :param include_meta: Whether to include the file meta in the folder.
+        """
+        if file_path_prefix is None:
+            file_path_prefix = Path.cwd()
+
+        response = await self._deepset_cloud_api.get(workspace_name, f"files/{file_id}")
+        if response.status_code == codes.NOT_FOUND:
+            raise FileNotFound(f"Failed to download raw file: {response.text}")
+        if response.status_code != codes.OK:
+            raise Exception(f"Failed to download raw file: {response.text}")
+        new_local_file_name: str = await self._save_to_disk(
+            file_path_prefix=file_path_prefix, file_name=file_name, content=response.content
+        )
+
+        if include_meta:
+            response = await self._deepset_cloud_api.get(workspace_name, f"files/{file_id}/meta")
+            if response.status_code == codes.NOT_FOUND:
+                raise FileNotFound(f"Failed to download raw file: {response.text}")
+            if response.status_code != codes.OK:
+                raise Exception(f"Failed to download raw file: {response.text}")
+            await self._save_to_disk(
+                file_path_prefix=file_path_prefix,
+                file_name=f"{new_local_file_name}.meta.json",
+                content=response.content,
+            )
