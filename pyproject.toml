@@ -155,7 +155,7 @@ disable = [
 max-args=9
 
 [tool.pylint.'SIMILARITIES']
-min-similarity-lines=6
+min-similarity-lines=10
 
 [tool.pylint.'BASIC']
 good-names=[

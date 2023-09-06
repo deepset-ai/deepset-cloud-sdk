@@ -75,7 +75,7 @@ def upload(
     )
 
 
-def download(
+def download(  # pylint: disable=too-many-arguments
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[Union[Path, str]] = None,
     name: Optional[str] = None,
