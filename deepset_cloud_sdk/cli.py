@@ -26,7 +26,7 @@ cli_app.command()(upload)
 
 
 @cli_app.command()
-def download(
+def download(  # pylint: disable=too-many-arguments
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[str] = None,
     name: Optional[str] = None,
