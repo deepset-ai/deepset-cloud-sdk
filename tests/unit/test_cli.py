@@ -50,7 +50,7 @@ class TestCLIMethods:
         @patch("deepset_cloud_sdk.cli.sync_download")
         def test_download_files(self, sync_download_mock: AsyncMock) -> None:
             sync_download_mock.side_effect = Mock(spec=sync_download)
-            result = runner.invoke(cli_app, ["download"])
+            result = runner.invoke(cli_app, ["download", "--workspace-name", "default"])
             assert result.exit_code == 0
             sync_download_mock.assert_called_once_with(
                 workspace_name="default",
