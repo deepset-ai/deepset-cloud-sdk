@@ -38,7 +38,13 @@ class TestFilePathsUpload:
         upload_session_response: UploadSession,
         mocked_s3: Mock,
     ) -> None:
-        upload_summary = S3UploadSummary(total_files=1, successful_upload_count=1, failed_upload_count=0, failed=[])
+        upload_summary = S3UploadSummary(
+            total_files=1,
+            successful_upload_count=1,
+            failed_upload_count=0,
+            failed=[],
+            session_id=upload_session_response.session_id,
+        )
         mocked_s3.upload_files_from_paths.return_value = upload_summary
         mocked_upload_sessions_api.create.return_value = upload_session_response
         mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
@@ -181,14 +187,20 @@ class TestUploadTexts:
         upload_session_response: UploadSession,
         mocked_s3: Mock,
     ) -> None:
-        upload_summary = S3UploadSummary(total_files=1, successful_upload_count=1, failed_upload_count=0, failed=[])
+        upload_summary = S3UploadSummary(
+            total_files=1,
+            successful_upload_count=1,
+            failed_upload_count=0,
+            failed=[],
+            session_id=upload_session_response.session_id,
+        )
         mocked_s3.upload_texts.return_value = upload_summary
         files = [
             DeepsetCloudFile(
                 name="test_file.txt",
                 text="test content",
                 meta={"test": "test"},
-            )
+            ),
         ]
         mocked_upload_sessions_api.create.return_value = upload_session_response
         mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
@@ -216,6 +228,78 @@ class TestUploadTexts:
 
         mocked_s3.upload_texts.assert_called_once_with(
             upload_session=upload_session_response, files=files, show_progress=False
+        )
+
+        mocked_upload_sessions_api.close.assert_called_once_with(
+            workspace_name="test_workspace", session_id=upload_session_response.session_id
+        )
+        mocked_upload_sessions_api.status.assert_called_once_with(
+            workspace_name="test_workspace", session_id=upload_session_response.session_id
+        )
+
+    async def test_upload_texts_invalid_file_names(
+        self,
+        file_service: FilesService,
+        mocked_upload_sessions_api: Mock,
+        upload_session_response: UploadSession,
+        mocked_s3: Mock,
+    ) -> None:
+        upload_summary = S3UploadSummary(
+            total_files=1,
+            successful_upload_count=1,
+            failed_upload_count=0,
+            failed=[],
+            session_id=upload_session_response.session_id,
+        )
+        mocked_s3.upload_texts.return_value = upload_summary
+        files = [
+            DeepsetCloudFile(
+                name="test_file.txt",
+                text="valid",
+                meta={"test": "test"},
+            ),
+            DeepsetCloudFile(
+                name="test_file.tx",
+                text="1",
+                meta={"test": "test"},
+            ),
+            DeepsetCloudFile(
+                name="test_file",
+                text="2",
+                meta={"test": "test"},
+            ),
+            DeepsetCloudFile(
+                name="test_file.png",
+                text="3",
+                meta={"test": "test"},
+            ),
+        ]
+        mocked_upload_sessions_api.create.return_value = upload_session_response
+        mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
+            session_id=upload_session_response.session_id,
+            expires_at=upload_session_response.expires_at,
+            documentation_url=upload_session_response.documentation_url,
+            ingestion_status=UploadSessionIngestionStatus(
+                failed_files=0,
+                finished_files=1,
+            ),
+        )
+        result = await file_service.upload_texts(
+            workspace_name="test_workspace",
+            files=files,
+            write_mode=WriteMode.OVERWRITE,
+            blocking=True,
+            timeout_s=300,
+            show_progress=False,
+        )
+        assert result == upload_summary
+
+        mocked_upload_sessions_api.create.assert_called_once_with(
+            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
+        )
+
+        mocked_s3.upload_texts.assert_called_once_with(
+            upload_session=upload_session_response, files=files[:1], show_progress=False
         )
 
         mocked_upload_sessions_api.close.assert_called_once_with(

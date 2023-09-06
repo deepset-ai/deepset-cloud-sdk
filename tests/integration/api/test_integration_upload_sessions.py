@@ -1,10 +1,14 @@
+import uuid
+
 import pytest
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.upload_sessions import (
+    FileIngestionStatus,
     UploadSession,
     UploadSessionDetailList,
+    UploadSessionFileList,
     UploadSessionIngestionStatus,
     UploadSessionsAPI,
 )
@@ -52,3 +56,23 @@ class TestCreateUploadSessions:
             assert result.has_more is True
             assert result.data is not None
             assert len(result.data) == 3
+
+    async def test_list_upload_session_files(self, integration_config: CommonConfig, workspace_name: str) -> None:
+        async with DeepsetCloudAPI.factory(integration_config) as deepset_cloud_api:
+            upload_session_client = UploadSessionsAPI(deepset_cloud_api)
+
+            result: UploadSessionFileList = await upload_session_client.list_session_files(
+                workspace_name="default",
+                limit=3,
+                page_number=3,
+                session_id=uuid.UUID("f5866c26-e0a4-464f-87ed-9a186a984b0e"),
+                ingestion_status=FileIngestionStatus.FINISHED,
+            )
+
+            assert result.total > 0
+            assert result.has_more is True
+            assert result.data is not None
+            assert len(result.data) == 3
+            assert result.data[0].ingestion_status == FileIngestionStatus.FINISHED.name
+            assert result.data[0].file_ingestion_id is not None
+            assert result.data[0].name is not None

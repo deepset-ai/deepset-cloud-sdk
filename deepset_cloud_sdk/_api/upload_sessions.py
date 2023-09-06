@@ -3,7 +3,7 @@
 import datetime
 import enum
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import structlog
@@ -105,6 +105,45 @@ class WriteMode(str, enum.Enum):
 
 class FailedToSendUploadSessionRequest(Exception):
     """Raised if the upload session could not be created."""
+
+
+class FailedToSendUploadSessionFilesRequest(Exception):
+    """Raised if could not get upload session files."""
+
+
+class FileIngestionStatus(str, enum.Enum):
+    """Enum for File Ingestion Status"""
+
+    PENDING = "PENDING"
+    FAILED = "FAILED"
+    FINISHED = "FINISHED"
+
+
+class FileIngestionStatusReason(str, enum.Enum):
+    """Enum for File Ingestion Status Reason"""
+
+    EMPTY_FILE = "EMPTY_FILE"
+    FILE_NOT_FOUND = "FILE_NOT_FOUND"
+    FAILED_TO_PARSE_META = "FAILED_TO_PARSE_META"
+    FILE_ALREADY_EXISTS = "FILE_ALREADY_EXISTS"
+    UNKNOWN_ERROR = "UNKNOWN_ERROR"
+
+
+@dataclass
+class UploadSessionFile:
+    """Upload session files details"""
+
+    file_ingestion_id: UUID
+    ingestion_status: FileIngestionStatus
+    ingestion_status_reason: FileIngestionStatusReason
+    name: str
+
+
+@dataclass
+class UploadSessionFileList:
+    data: List[UploadSessionFile]
+    has_more: bool
+    total: int
 
 
 class UploadSessionsAPI:
@@ -273,5 +312,64 @@ class UploadSessionsAPI:
                     status=UploadSessionStatusEnum(upload_session["status"]),
                 )
                 for upload_session in response_body["data"]
+            ],
+        )
+
+    @retry(
+        retry=retry_if_exception_type(FailedToSendUploadSessionRequest),
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        reraise=True,
+    )
+    async def list_session_files(
+        self,
+        workspace_name: str,
+        session_id: UUID,
+        ingestion_status: FileIngestionStatus,
+        limit: int = 10,
+        page_number: int = 1,
+    ) -> UploadSessionFileList:
+        """List upload sessions.
+
+        This method lists all upload sessions for a given workspace.
+
+        :param workspace_name: Name of the workspace.
+        :param limit: Number of upload sessions to return.
+        :param page_number: Page number of the upload sessions.
+        :raises FailedToSendUploadSessionRequest: If the list could not be fetched.
+        :return: UploadSessionDetailList object.
+        """
+        params: Dict[str, Any] = {"limit": limit, "page_number": page_number}
+        if ingestion_status:
+            params["ingestion_status"] = ingestion_status.name
+
+        logger.info(f"upload_sessions/{str(session_id)}/files", params=params)
+        response = await self._deepset_cloud_api.get(
+            workspace_name=workspace_name,
+            endpoint=f"upload_sessions/{str(session_id)}/files",
+            params=params,
+        )
+
+        if response.status_code != codes.OK:
+            logger.error(
+                "Failed to get details of files in upload session.",
+                status_code=response.status_code,
+                response_body=response.text,
+            )
+            raise FailedToSendUploadSessionFilesRequest(
+                f"Failed to get upload session files. Status code: {response.status_code}."
+            )
+        response_body = response.json()
+        return UploadSessionFileList(
+            total=response_body["total"],
+            has_more=response_body["has_more"],
+            data=[
+                UploadSessionFile(
+                    file_ingestion_id=upload_session_file["file_ingestion_id"],
+                    ingestion_status=upload_session_file["ingestion_status"],
+                    ingestion_status_reason=upload_session_file["ingestion_status_reason"],
+                    name=upload_session_file["name"],
+                )
+                for upload_session_file in response_body["data"]
             ],
         )

@@ -14,7 +14,9 @@ from deepset_cloud_sdk._api.config import (
 )
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import (
+    FileIngestionStatus,
     UploadSessionDetail,
+    UploadSessionFileList,
     UploadSessionStatus,
     WriteMode,
 )
@@ -92,6 +94,41 @@ async def list_upload_sessions(
                 timeout_s=timeout_s,
             ):
                 yield upload_session_batch
+    except AsyncLibraryNotFoundError:
+        # since we are using asyncio.run() in the sync wrapper, we need to catch this error
+        pass
+
+
+async def list_upload_session_files(
+    session_id: UUID,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    ingestion_status: FileIngestionStatus = FileIngestionStatus.FINISHED,
+    batch_size: int = 100,
+    timeout_s: int = 300,
+) -> AsyncGenerator[List[UploadSessionFileList], None]:
+    """List the details of all upload sessions for a given workspace, including the closed sessions.
+
+    :param session_id: the upload session id
+    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
+    :param is_expired: Whether to list expired upload sessions.
+    :param batch_size: Batch size for the listing.
+    :param timeout_s: Timeout in seconds for the API requests.
+    :return: List of files.
+    """
+    try:
+        async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+            async for upload_session_files_batch in file_service.list_upload_session_files(
+                session_id=session_id,
+                workspace_name=workspace_name,
+                ingestion_status=ingestion_status,
+                batch_size=batch_size,
+                timeout_s=timeout_s,
+            ):
+                yield upload_session_files_batch
     except AsyncLibraryNotFoundError:
         # since we are using asyncio.run() in the sync wrapper, we need to catch this error
         pass

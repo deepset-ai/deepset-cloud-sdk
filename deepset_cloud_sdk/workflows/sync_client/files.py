@@ -9,7 +9,9 @@ import structlog
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import (
+    FileIngestionStatus,
     UploadSessionDetail,
+    UploadSessionFileList,
     UploadSessionStatus,
     WriteMode,
 )
@@ -20,6 +22,9 @@ from deepset_cloud_sdk.workflows.async_client.files import (
 )
 from deepset_cloud_sdk.workflows.async_client.files import (
     list_files as async_list_files,
+)
+from deepset_cloud_sdk.workflows.async_client.files import (
+    list_upload_session_files as async_list_upload_session_files,
 )
 from deepset_cloud_sdk.workflows.async_client.files import (
     list_upload_sessions as async_list_upload_sessions,
@@ -195,6 +200,41 @@ def list_upload_sessions(
         api_url=api_url,
         workspace_name=workspace_name,
         is_expired=is_expired,
+        batch_size=batch_size,
+        timeout_s=timeout_s,
+    )
+    try:
+        yield from iter_over_async(async_list_files_generator, loop)
+    finally:
+        loop.close()
+
+
+def list_upload_session_files(
+    session_id: UUID,
+    ingestion_status: FileIngestionStatus,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    batch_size: int = 100,
+    timeout_s: int = 300,
+) -> Generator[List[UploadSessionFileList], None, None]:
+    """List the details of all upload sessions, including the closed ones.
+    :param session_id: The upload session's id
+    :param ingestion_status: Filters by the ingestion status.
+    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace whose sessions you want to list. It uses the workspace from the .ENV file by default.
+    :param batch_size: Batch size to use for the session list.
+    :param timeout_s: Timeout in seconds for the API request.
+    """
+    loop = asyncio.new_event_loop()
+
+    async_list_files_generator = async_list_upload_session_files(
+        session_id=session_id,
+        api_key=api_key,
+        api_url=api_url,
+        workspace_name=workspace_name,
+        ingestion_status=ingestion_status,
         batch_size=batch_size,
         timeout_s=timeout_s,
     )

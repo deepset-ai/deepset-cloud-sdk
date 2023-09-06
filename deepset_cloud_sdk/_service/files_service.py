@@ -17,8 +17,10 @@ from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.files import File, FilesAPI
 from deepset_cloud_sdk._api.upload_sessions import (
+    FileIngestionStatus,
     UploadSession,
     UploadSessionDetail,
+    UploadSessionFileList,
     UploadSessionsAPI,
     UploadSessionStatus,
     WriteMode,
@@ -199,17 +201,20 @@ class FilesService:
         :param file_paths: A list of paths to upload.
         :raises ValueError: If the file paths are invalid.
         """
-        logger.info("Validating file paths and metadata.")
         allowed_suffixes = {".txt", ".json", ".pdf"}
+
         for file_path in file_paths:
             if file_path.suffix.lower() not in allowed_suffixes:
                 raise ValueError(
-                    f"Invalid file extension: {file_path.suffix}. You can upload TXT and PDF files. Metadata files should have the `.meta.json` extension."
+                    f"Invalid file extension: '{file_path.suffix}'. You can upload TXT and PDF files. Metadata files should have the `.meta.json` extension."
                 )
             if file_path.suffix.lower() == ".json" and not str(file_path).endswith(".meta.json"):
                 raise ValueError(
                     f"JSON files are only supported for metadata files. Make sure you follow this naming format for your metadata files: '<file_name>.meta.json'. Got {file_path.name}."
                 )
+
+        logger.info("Validating file paths and metadata.")
+
         meta_file_names = list(
             map(
                 lambda fp: os.path.basename(fp),
@@ -324,10 +329,21 @@ class FilesService:
         :show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
+
+        files_that_can_be_uploaded = []
+        allowed_suffixes = {".txt", ".json", ".pdf"}
+
+        for file in files:
+            file_as_path = Path(file.name)
+            if file_as_path.suffix.lower() in allowed_suffixes:
+                files_that_can_be_uploaded.append(file)
+            else:
+                logger.warning("Skipping file as file extension not allowed, must be .txt or .pdf", filename=file.name)
+
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
             upload_summary = await self._s3.upload_texts(
-                upload_session=upload_session, files=files, show_progress=show_progress
+                upload_session=upload_session, files=files_that_can_be_uploaded, show_progress=show_progress
             )
 
             logger.info(
@@ -341,7 +357,7 @@ class FilesService:
             await self._wait_for_finished(
                 workspace_name=workspace_name,
                 session_id=upload_session.session_id,
-                total_files=len(files),
+                total_files=len(files_that_can_be_uploaded),
                 timeout_s=timeout_s,
                 show_progress=show_progress,
             )
@@ -402,12 +418,12 @@ class FilesService:
     ) -> AsyncGenerator[List[UploadSessionDetail], None]:  # noqa: F821
         """List all upload sessions files in a workspace.
 
-        Returns an async generator that yields lists of files. The generator is finished when all files are listed.
-        You can specify the batch size per number of returned files using `batch_size`.
+        Returns an async generator that yields lists of upload sessions. The generator is finished when all sessions are listed.
+        You can specify the batch size per number of returned sessions using `batch_size`.
 
-        :param workspace_name: Name of the workspace whose files you want to list.
+        :param workspace_name: Name of the workspace whose sessions you want to list.
         :param is_expired: Whether to list expired upload sessions.
-        :param batch_size: Number of files to return per request.
+        :param batch_size: Number of sessions to return per request.
         :param timeout_s: Timeout in seconds for the listing.
         :raises TimeoutError: If the listing takes longer than timeout_s.
         """
@@ -442,3 +458,44 @@ class FilesService:
             workspace_name=workspace_name, session_id=session_id
         )
         return upload_session_status
+
+    async def list_upload_session_files(
+        self,
+        workspace_name: str,
+        session_id: UUID,
+        ingestion_status: FileIngestionStatus,
+        batch_size: int = 100,
+        timeout_s: int = 20,
+    ) -> AsyncGenerator[List[UploadSessionFileList], None]:  # noqa: F821
+        """List all upload sessions files in a workspace.
+
+        Returns an async generator that yields lists of files for an upload session.
+        The generator is finished when all files in the session are listed.
+        You can specify the batch size per number of returned files using `batch_size`.
+
+        :param workspace_name: Name of the workspace whose files you want to list.
+        :param is_expired: Whether to list expired upload sessions.
+        :param batch_size: Number of files to return per request.
+        :param timeout_s: Timeout in seconds for the listing.
+        :raises TimeoutError: If the listing takes longer than timeout_s.
+        """
+        start = time.time()
+        has_more = True
+
+        page_number: int = 1
+        while has_more:
+            if time.time() - start > timeout_s:
+                raise TimeoutError(f"Listing all upload sessions files in workspace {workspace_name} timed out.")
+            response = await self._upload_sessions.list_session_files(
+                workspace_name,
+                session_id=session_id,
+                ingestion_status=ingestion_status,
+                limit=batch_size,
+                page_number=page_number,
+            )
+            has_more = response.has_more
+            if not response.data:
+                return
+
+            page_number += 1
+            yield response.data

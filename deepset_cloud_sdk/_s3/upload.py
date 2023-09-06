@@ -8,6 +8,7 @@ from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Coroutine, List, Optional
 from urllib.parse import quote
+from uuid import UUID
 
 import aiofiles
 import aiohttp
@@ -49,6 +50,7 @@ class S3UploadSummary:
     successful_upload_count: int
     failed_upload_count: int
     failed: List[S3UploadResult]
+    session_id: UUID
 
 
 def make_safe_file_name(file_name: str) -> str:
@@ -201,7 +203,7 @@ class S3:
             return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
     async def _process_results(
-        self, tasks: List[Coroutine[Any, Any, S3UploadResult]], show_progress: bool = True
+        self, tasks: List[Coroutine[Any, Any, S3UploadResult]], session_id: UUID, show_progress: bool = True
     ) -> S3UploadSummary:
         """Summarize the results of the uploads to S3.
 
@@ -234,6 +236,7 @@ class S3:
             failed_upload_count=len(failed),
             failed=failed,
             total_files=len(tasks),
+            session_id=session_id,
         )
         if result_summary.successful_upload_count == 0:
             logger.error("Could not upload any files to S3.")
@@ -255,7 +258,9 @@ class S3:
             for file_path in file_paths:
                 tasks.append(self.upload_from_file(file_path, upload_session, client_session))
 
-            result_summary = await self._process_results(tasks, show_progress=show_progress)
+            result_summary = await self._process_results(
+                tasks, show_progress=show_progress, session_id=upload_session.session_id
+            )
             return result_summary
 
     async def upload_texts(
@@ -281,6 +286,8 @@ class S3:
                     metadata = json.dumps(file.meta)
                     tasks.append(self.upload_from_string(meta_name, upload_session, metadata, client_session))
 
-            result_summary = await self._process_results(tasks, show_progress=show_progress)
+            result_summary = await self._process_results(
+                tasks, session_id=upload_session.session_id, show_progress=show_progress
+            )
 
             return result_summary
