@@ -498,4 +498,4 @@ class FilesService:
                 return
 
             page_number += 1
-            yield response.data
+            yield response
