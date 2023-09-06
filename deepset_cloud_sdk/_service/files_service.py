@@ -323,7 +323,6 @@ class FilesService:
         after_value = None
         after_file_id = None
         has_more: bool = True
-        total_downloaded = 0
         try:
             while has_more:
                 response = await self._files.list_paginated(
@@ -350,7 +349,7 @@ class FilesService:
                     ]
                 )
                 if pbar is not None:
-                    pbar.update(total_downloaded - pbar.n)
+                    pbar.update(batch_size)
 
         finally:
             if pbar is not None:
