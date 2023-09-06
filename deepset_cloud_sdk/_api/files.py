@@ -126,6 +126,7 @@ class FilesAPI:
 
     @staticmethod
     def _available_file_name(file_path: Path, suffix: str = "_1") -> str:
+        logger.warning("File already exists. Renaming file to avoid overwriting.", file_path=str(file_path))
         base, ext = os.path.splitext(str(file_path))
         new_filename = f"{base}{suffix}{ext}"
         while os.path.exists(new_filename):
@@ -133,7 +134,7 @@ class FilesAPI:
             new_filename = f"{base}{suffix}{ext}"
         return new_filename
 
-    async def _save_to_disk(self, file_path_prefix: Path, file_name: str, content: bytes) -> str:
+    async def _save_to_disk(self, dir: Path, file_name: str, content: bytes) -> str:
         """
         Saves the given content to disk. If there is a collision, the file name is changed to avoid overwriting.
         This new name is returned by the function.
@@ -144,16 +145,16 @@ class FilesAPI:
         :return: The new file name.
         """
         # Check if the directory exists, and create it if necessary
-        directory = os.path.dirname(file_path_prefix)
+        directory = os.path.dirname(dir)
         if not os.path.exists(directory):
             os.makedirs(directory)
 
         new_filename: str = file_name
-        file_path = Path(file_path_prefix / file_name)
-        if Path(file_path_prefix / file_name).exists():
+        file_path = Path(dir / file_name)
+        if Path(dir / file_name).exists():
             new_filename = self._available_file_name(file_path)
 
-        with Path.open(file_path_prefix / new_filename, "wb") as file:
+        with Path.open(dir / new_filename, "wb") as file:
             file.write(content)
         return new_filename
 
@@ -163,7 +164,7 @@ class FilesAPI:
         file_id: UUID,
         file_name: str,
         include_meta: bool = True,
-        file_path_prefix: Optional[Path] = None,
+        dir: Optional[Path] = None,
     ) -> None:
         """
         Downloads a single file from a workspace.
@@ -172,17 +173,15 @@ class FilesAPI:
         :param file_id: ID of the file to download.
         :param include_meta: Whether to include the file meta in the folder.
         """
-        if file_path_prefix is None:
-            file_path_prefix = Path.cwd()
+        if dir is None:
+            dir = Path.cwd()
 
         response = await self._deepset_cloud_api.get(workspace_name, f"files/{file_id}")
         if response.status_code == codes.NOT_FOUND:
             raise FileNotFound(f"Failed to download raw file: {response.text}")
         if response.status_code != codes.OK:
             raise Exception(f"Failed to download raw file: {response.text}")
-        new_local_file_name: str = await self._save_to_disk(
-            file_path_prefix=file_path_prefix, file_name=file_name, content=response.content
-        )
+        new_local_file_name: str = await self._save_to_disk(dir=dir, file_name=file_name, content=response.content)
 
         if include_meta:
             response = await self._deepset_cloud_api.get(workspace_name, f"files/{file_id}/meta")
@@ -191,7 +190,7 @@ class FilesAPI:
             if response.status_code != codes.OK:
                 raise Exception(f"Failed to download raw file: {response.text}")
             await self._save_to_disk(
-                file_path_prefix=file_path_prefix,
+                dir=dir,
                 file_name=f"{new_local_file_name}.meta.json",
                 content=response.content,
             )

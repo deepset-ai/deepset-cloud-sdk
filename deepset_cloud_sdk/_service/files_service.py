@@ -299,6 +299,63 @@ class FilesService:
             show_progress=show_progress,
         )
 
+    async def download(
+        self,
+        workspace_name: str,
+        dir: Optional[Path] = None,
+        include_meta: bool = True,
+        batch_size: int = 50,
+        show_progress: bool = True,
+    ) -> None:
+        """Download a folder to deepset Cloud.
+
+        :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+        :param dir: Path to the folder to download. If None, the current working directory is used.
+        :param include_meta: If True, downloads the metadata files as well.
+        :param batch_size: Batch size for the listing.
+        :param show_progress: Shows the upload progress.
+        """
+        logger.info("Start downloading files.", workspace_name=workspace_name)
+        if show_progress:
+            total = (await self._files.list_paginated(workspace_name, limit=1)).total
+            pbar = tqdm(total=total, desc="Download Progress")
+
+        after_value = None
+        after_file_id = None
+        has_more: bool = True
+        total_downloaded = 0
+        try:
+            while has_more:
+                response = await self._files.list_paginated(
+                    workspace_name,
+                    limit=batch_size,
+                    after_file_id=after_file_id,
+                    after_value=after_value,
+                )
+                has_more = response.has_more
+                if not response.data:
+                    return
+                after_value = response.data[-1].created_at
+                after_file_id = response.data[-1].file_id
+                await asyncio.gather(
+                    *[
+                        self._files.download(
+                            workspace_name=workspace_name,
+                            file_id=_file.file_id,
+                            file_name=_file.name,
+                            dir=dir,
+                            include_meta=include_meta,
+                        )
+                        for _file in response.data
+                    ]
+                )
+                if pbar is not None:
+                    pbar.update(total_downloaded - pbar.n)
+
+        finally:
+            if pbar is not None:
+                pbar.close()
+
     async def upload_texts(
         self,
         workspace_name: str,

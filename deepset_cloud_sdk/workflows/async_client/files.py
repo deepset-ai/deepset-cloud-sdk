@@ -158,6 +158,38 @@ async def upload(
         )
 
 
+async def download(
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    dir: Optional[Path] = None,
+    include_meta: bool = True,
+    batch_size: int = 50,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    show_progress: bool = True,
+) -> None:
+    """Download a folder to deepset Cloud.
+
+    Downloads all files from a workspace to a local folder.
+
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
+    during the upload. Supported file formats are TXT and PDF.
+    :param include_meta: Whether to include the file meta in the folder.
+    :param batch_size: Batch size for the listing.
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param show_progress: Shows the upload progress.
+    """
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+        await file_service.download(
+            workspace_name=workspace_name,
+            dir=dir,
+            include_meta=include_meta,
+            batch_size=batch_size,
+            show_progress=show_progress,
+        )
+
+
 async def upload_texts(
     files: List[DeepsetCloudFile],
     api_key: Optional[str] = None,
