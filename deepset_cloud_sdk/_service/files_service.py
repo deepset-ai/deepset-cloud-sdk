@@ -328,19 +328,30 @@ class FilesService:
         self,
         workspace_name: str,
         file_dir: Optional[Union[Path, str]] = None,
+        name: Optional[str] = None,
+        content: Optional[str] = None,
+        odata_filter: Optional[str] = None,
         include_meta: bool = True,
         batch_size: int = 50,
+        timeout_s: Optional[int] = None,
         show_progress: bool = True,
     ) -> None:
         """Download a folder to deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
         :param file_dir: Path to the folder to download. If None, the current working directory is used.
+        :param name: odata_filter by file name.
+        :param content: odata_filter by file content.
+        :param odata_filter: odata_filter by file meta data.
         :param include_meta: If True, downloads the metadata files as well.
         :param batch_size: Batch size for the listing.
+        :param limit: Limit for the listing.
         :param show_progress: Shows the upload progress.
         """
+        start = time.time()
         logger.info("Start downloading files.", workspace_name=workspace_name)
+
+        pbar: Optional[tqdm] = None
         if show_progress:
             total = (await self._files.list_paginated(workspace_name, limit=1)).total
             pbar = tqdm(total=total, desc="Download Progress")
@@ -350,8 +361,14 @@ class FilesService:
         has_more: bool = True
         try:
             while has_more:
+                if timeout_s is not None and time.time() - start > timeout_s:
+                    raise TimeoutError("Ingestion timed out.")
+
                 response = await self._files.list_paginated(
-                    workspace_name,
+                    workspace_name=workspace_name,
+                    name=name,
+                    content=content,
+                    odata_filter=odata_filter,
                     limit=batch_size,
                     after_file_id=after_file_id,
                     after_value=after_value,

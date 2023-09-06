@@ -1,3 +1,5 @@
+import os
+import tempfile
 from pathlib import Path
 from typing import List
 
@@ -69,3 +71,16 @@ class TestListFilesService:
             assert len(file_batches) >= 2
             assert len(file_batches[0]) == 11
             assert len(file_batches[1]) >= 1
+
+
+@pytest.mark.asyncio
+class TestDownloadFilesService:
+    async def test_download_files(self, integration_config: CommonConfig) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            async with FilesService.factory(integration_config) as file_service:
+                # cancel download after 5 seconds
+                try:
+                    await file_service.download(workspace_name="sdk_read", file_dir=tmp_dir, timeout_s=5)
+                finally:
+                    # test that files were downloaded
+                    assert len(os.listdir(tmp_dir)) > 0
