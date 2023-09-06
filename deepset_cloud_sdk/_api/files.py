@@ -139,7 +139,7 @@ class FilesAPI:
         Saves the given content to disk. If there is a collision, the file name is changed to avoid overwriting.
         This new name is returned by the function.
 
-        :param file_path_prefix: Path to the file.
+        :param dir: Path to the file.
         :param file_name: Name of the file.
         :param content: Content of the file.
         :return: The new file name.
