@@ -178,10 +178,8 @@ class FilesAPI:
 
         if isinstance(dir, str):
             # format dir to Path and take relative path into account
-            print("asdf")
             dir = Path(dir).resolve()
 
-        print(dir)
         response = await self._deepset_cloud_api.get(workspace_name, f"files/{file_id}")
         if response.status_code == codes.NOT_FOUND:
             raise FileNotFound(f"Failed to download raw file: {response.text}")
