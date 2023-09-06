@@ -81,6 +81,8 @@ class TestDownloadFilesService:
                 # cancel download after 5 seconds
                 try:
                     await file_service.download(workspace_name="sdk_read", file_dir=tmp_dir, timeout_s=5)
+                except Exception:
+                    pass
                 finally:
                     # test that files were downloaded
                     assert len(os.listdir(tmp_dir)) > 0

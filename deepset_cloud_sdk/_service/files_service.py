@@ -362,7 +362,7 @@ class FilesService:
         try:
             while has_more:
                 if timeout_s is not None and time.time() - start > timeout_s:
-                    raise TimeoutError("Ingestion timed out.")
+                    raise TimeoutError("Download timed out.")
 
                 response = await self._files.list_paginated(
                     workspace_name=workspace_name,
