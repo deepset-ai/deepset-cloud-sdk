@@ -155,7 +155,7 @@ class FilesAPI:
         if Path(file_dir / file_name).exists():
             new_filename = self._available_file_name(file_path)
 
-        with Path.open(file_dir / new_filename, "wb") as file:
+        with (file_dir / new_filename).open("wb") as file:
             file.write(content)
         return new_filename
 
