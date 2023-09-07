@@ -65,7 +65,23 @@ class TestUploadFiles:
             paths=[Path("./tests/data/upload_folder")],
             write_mode=WriteMode.KEEP,
             blocking=True,
-            timeout_s=300,
+            timeout_s=None,
+            show_progress=True,
+            recursive=False,
+        )
+
+    async def test_upload_with_timeout(self, monkeypatch: MonkeyPatch) -> None:
+        mocked_upload = AsyncMock(return_value=None)
+
+        monkeypatch.setattr(FilesService, "upload", mocked_upload)
+        await upload(paths=[Path("./tests/data/upload_folder")], timeout_s=123)
+
+        mocked_upload.assert_called_once_with(
+            workspace_name=DEFAULT_WORKSPACE_NAME,
+            paths=[Path("./tests/data/upload_folder")],
+            write_mode=WriteMode.KEEP,
+            blocking=True,
+            timeout_s=123,
             show_progress=True,
             recursive=False,
         )
@@ -87,7 +103,7 @@ class TestUploadFiles:
             files=files,
             write_mode=WriteMode.KEEP,
             blocking=True,
-            timeout_s=300,
+            timeout_s=None,
             show_progress=True,
         )
 
