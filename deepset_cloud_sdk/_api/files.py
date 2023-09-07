@@ -7,7 +7,6 @@ deleting files.
 
 import datetime
 import inspect
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -127,12 +126,13 @@ class FilesAPI:
     @staticmethod
     def _available_file_name(file_path: Path, suffix: str = "_1") -> str:
         logger.warning("File already exists. Renaming file to avoid overwriting.", file_path=str(file_path))
-        base, ext = os.path.splitext(str(file_path))
-        new_filename = f"{base}{suffix}{ext}"
-        while os.path.exists(new_filename):
+        base = file_path.stem
+        ext = file_path.suffix
+        new_filename = file_path.with_name(f"{base}{suffix}{ext}")
+        while new_filename.exists():
             suffix = f"_{int(suffix[1:]) + 1}"
-            new_filename = f"{base}{suffix}{ext}"
-        return new_filename
+            new_filename = file_path.with_name(f"{base}{suffix}{ext}")
+        return str(new_filename)
 
     async def _save_to_disk(self, file_dir: Path, file_name: str, content: bytes) -> str:
         """Save the given content to disk.
@@ -146,13 +146,11 @@ class FilesAPI:
         :return: The new file name.
         """
         # Check if the directory exists, and create it if necessary
-        directory = os.path.dirname(file_dir)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        file_dir.mkdir(parents=True, exist_ok=True)
 
         new_filename: str = file_name
-        file_path = Path(file_dir / file_name)
-        if Path(file_dir / file_name).exists():
+        file_path = file_dir / file_name
+        if file_path.exists():
             new_filename = self._available_file_name(file_path)
 
         with (file_dir / new_filename).open("wb") as file:
