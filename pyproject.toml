@@ -105,6 +105,7 @@ sort-fix = "isort --profile black ."
 hooks = "pre-commit install"
 docstrings = "pydocstyle deepset_cloud_sdk"
 flake = "autoflake --remove-all-unused-imports --remove-duplicate-keys --remove-unused-variables -v -r ./deepset_cloud_sdk"
+all = "hatch run types && hatch run format-fix && hatch run lint && hatch run sort && hatch run docstrings && hatch run flake"
 
 [tool.hatch.envs.tools]
 detached = false
@@ -154,7 +155,7 @@ disable = [
 max-args=9
 
 [tool.pylint.'SIMILARITIES']
-min-similarity-lines=6
+min-similarity-lines=10
 
 [tool.pylint.'BASIC']
 good-names=[

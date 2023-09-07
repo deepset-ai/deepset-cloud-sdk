@@ -1,7 +1,7 @@
 # pylint:disable=too-many-arguments
 """This module contains async functions for uploading files and folders to deepset Cloud."""
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional
+from typing import AsyncGenerator, List, Optional, Union
 from uuid import UUID
 
 from sniffio import AsyncLibraryNotFoundError
@@ -155,6 +155,46 @@ async def upload(
             timeout_s=timeout_s,
             show_progress=show_progress,
             recursive=recursive,
+        )
+
+
+async def download(
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    file_dir: Optional[Union[Path, str]] = None,
+    name: Optional[str] = None,
+    content: Optional[str] = None,
+    odata_filter: Optional[str] = None,
+    include_meta: bool = True,
+    batch_size: int = 50,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    show_progress: bool = True,
+    timeout_s: Optional[int] = None,
+) -> None:
+    """Download a folder to deepset Cloud.
+
+    Downloads all files from a workspace to a local folder.
+
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
+    during the upload. Supported file formats are TXT and PDF.
+    :param include_meta: Whether to include the file meta in the folder.
+    :param batch_size: Batch size for the listing.
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param show_progress: Shows the upload progress.
+    """
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+        await file_service.download(
+            workspace_name=workspace_name,
+            file_dir=file_dir,
+            name=name,
+            content=content,
+            odata_filter=odata_filter,
+            include_meta=include_meta,
+            batch_size=batch_size,
+            show_progress=show_progress,
+            timeout_s=timeout_s,
         )
 
 
