@@ -124,6 +124,10 @@ class S3:
                         return response
 
                 return response
+        except aiohttp.ServerDisconnectedError as cre:
+            # We want to retry on ServerDisconnectedError since AWS can sometimes close the connection.
+            # See this known error: https://github.com/aio-libs/aiohttp/issues/631
+            raise RetryableHttpError(cre) from cre
         except aiohttp.ClientResponseError as cre:
             if cre.status in [
                 HTTPStatus.INTERNAL_SERVER_ERROR,
