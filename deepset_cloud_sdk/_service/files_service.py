@@ -63,7 +63,12 @@ class FilesService:
             yield cls(upload_sessions_api, files_api, S3(concurrency=30))
 
     async def _wait_for_finished(
-        self, workspace_name: str, session_id: UUID, total_files: int, timeout_s: int, show_progress: bool = True
+        self,
+        workspace_name: str,
+        session_id: UUID,
+        total_files: int,
+        timeout_s: Optional[int] = None,
+        show_progress: bool = True,
     ) -> None:
         start = time.time()
         ingested_files = 0
@@ -72,7 +77,7 @@ class FilesService:
             pbar = tqdm(total=total_files, desc="Ingestion Progress")
 
         while ingested_files < total_files:
-            if time.time() - start > timeout_s:
+            if timeout_s is not None and time.time() - start > timeout_s:
                 raise TimeoutError("Ingestion timed out.")
 
             upload_session_status = await self._upload_sessions.status(
@@ -130,8 +135,8 @@ class FilesService:
         file_paths: List[Path],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
-        timeout_s: int = 300,
         show_progress: bool = True,
+        timeout_s: Optional[int] = None,
     ) -> S3UploadSummary:
         """Upload a list of files to a workspace.
 
@@ -265,7 +270,7 @@ class FilesService:
         paths: List[Path],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
-        timeout_s: int = 300,
+        timeout_s: Optional[int] = None,
         show_progress: bool = True,
         recursive: bool = False,
     ) -> S3UploadSummary:
@@ -404,7 +409,7 @@ class FilesService:
         files: List[DeepsetCloudFile],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
-        timeout_s: int = 300,
+        timeout_s: Optional[int] = None,
         show_progress: bool = True,
     ) -> S3UploadSummary:  # noqa
         """
@@ -453,7 +458,7 @@ class FilesService:
         content: Optional[str] = None,
         odata_filter: Optional[str] = None,
         batch_size: int = 100,
-        timeout_s: int = 20,
+        timeout_s: Optional[int] = None,
     ) -> AsyncGenerator[List[File], None]:
         """List all files in a workspace.
 
@@ -474,7 +479,7 @@ class FilesService:
         after_value = None
         after_file_id = None
         while has_more:
-            if time.time() - start > timeout_s:
+            if timeout_s is not None and time.time() - start > timeout_s:
                 raise TimeoutError(f"Listing all files in workspace {workspace_name} timed out.")
             response = await self._files.list_paginated(
                 workspace_name,
@@ -497,7 +502,7 @@ class FilesService:
         workspace_name: str,
         is_expired: Optional[bool] = False,
         batch_size: int = 100,
-        timeout_s: int = 20,
+        timeout_s: Optional[int] = None,
     ) -> AsyncGenerator[List[UploadSessionDetail], None]:  # noqa: F821
         """List all upload sessions files in a workspace.
 
@@ -515,7 +520,7 @@ class FilesService:
 
         page_number: int = 1
         while has_more:
-            if time.time() - start > timeout_s:
+            if timeout_s is not None and time.time() - start > timeout_s:
                 raise TimeoutError(f"Listing all upload sessions files in workspace {workspace_name} timed out.")
             response = await self._upload_sessions.list(
                 workspace_name,

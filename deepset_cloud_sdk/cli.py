@@ -118,7 +118,7 @@ def list_files(
     odata_filter: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     batch_size: int = 10,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
 ) -> None:
     """List files that exist in the specified deepset Cloud workspace.
 
@@ -166,7 +166,7 @@ def list_upload_sessions(
     is_expired: Optional[bool] = False,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     batch_size: int = 10,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
 ) -> None:
     """List the details of all upload sessions for the specified workspace, including closed sessions.
 
