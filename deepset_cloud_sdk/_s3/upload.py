@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Coroutine, List, Optional
+from typing import Any, Coroutine, List, Optional, Union
 from urllib.parse import quote
 
 import aiofiles
@@ -27,7 +27,7 @@ logger = structlog.get_logger(__name__)
 class RetryableHttpError(Exception):
     """An error that indicates a function should be retried."""
 
-    def __init__(self, error: aiohttp.ClientResponseError) -> None:
+    def __init__(self, error: Union[aiohttp.ClientResponseError, aiohttp.ServerDisconnectedError]) -> None:
         """Store the original exception."""
         self.error = error
 
