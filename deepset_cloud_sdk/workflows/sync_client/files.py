@@ -41,7 +41,7 @@ def upload(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
     show_progress: bool = True,
     recursive: bool = False,
 ) -> S3UploadSummary:
@@ -126,7 +126,7 @@ def upload_texts(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
     show_progress: bool = True,
 ) -> S3UploadSummary:
     """Upload texts to deepset Cloud.
@@ -184,7 +184,7 @@ def list_files(
     content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     batch_size: int = 100,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
 ) -> Generator[List[File], None, None]:
     """List files in a deepset Cloud workspace.
 
@@ -222,7 +222,7 @@ def list_upload_sessions(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     is_expired: Optional[bool] = False,
     batch_size: int = 100,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
 ) -> Generator[List[UploadSessionDetail], None, None]:
     """List the details of all upload sessions, including the closed ones.
 

@@ -34,7 +34,7 @@ async def list_files(
     content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     batch_size: int = 100,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
 ) -> AsyncGenerator[List[File], None]:
     """List all files in a workspace.
 
@@ -71,7 +71,7 @@ async def list_upload_sessions(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     is_expired: Optional[bool] = None,
     batch_size: int = 100,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
 ) -> AsyncGenerator[List[UploadSessionDetail], None]:
     """List the details of all upload sessions for a given workspace, including the closed sessions.
 
@@ -125,7 +125,7 @@ async def upload(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
     show_progress: bool = True,
     recursive: bool = False,
 ) -> S3UploadSummary:
@@ -205,7 +205,7 @@ async def upload_texts(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
     show_progress: bool = True,
 ) -> S3UploadSummary:
     """Upload raw texts to deepset Cloud.
