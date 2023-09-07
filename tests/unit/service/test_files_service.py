@@ -6,6 +6,7 @@ from uuid import UUID
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from structlog.testing import capture_logs
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.files import (
@@ -126,6 +127,24 @@ class TestUpload:
         )
         assert Path("tests/data/upload_folder/example.txt") in mocked_upload_file_paths.call_args[1]["file_paths"]
         assert Path("tests/data/upload_folder/example.pdf") in mocked_upload_file_paths.call_args[1]["file_paths"]
+
+    async def test_upload_paths_to_folder_skips_incompatible_file_and_logs_file_name(
+        self,
+        file_service: FilesService,
+        monkeypatch: MonkeyPatch,
+    ) -> None:
+        with capture_logs() as cap_logs:
+            mocked_upload_file_paths = AsyncMock(return_value=None)
+            monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+            await file_service.upload(
+                workspace_name="test_workspace",
+                paths=[Path("./tests/data/upload_folder")],
+                blocking=True,
+                timeout_s=300,
+            )
+            skip_log_line = next((log for log in cap_logs if log.get("event", None) == "Skipping file"), None)
+            assert skip_log_line is not None
+            assert str(skip_log_line["file_path"]).endswith(".docx")
 
     async def test_upload_paths_nested(
         self,

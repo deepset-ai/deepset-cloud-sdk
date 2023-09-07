@@ -258,7 +258,7 @@ class FilesService:
                 skipped_files=len(all_files) - len(file_paths),
             )
             for skipped_file in set(all_files) - set(file_paths):
-                logger.warning("Skipping file", file=skipped_file)
+                logger.warning("Skipping file", file_path=skipped_file)
 
         if spinner is not None:
             spinner.text = "Validating files and metadata."
