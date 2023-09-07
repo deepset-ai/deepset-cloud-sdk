@@ -7,21 +7,21 @@
 | deepset\_cloud\_sdk/\_\_init\_\_.py                         |        4 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/\_api/config.py                         |       30 |        1 |        8 |        1 |     95% |        37 |
 | deepset\_cloud\_sdk/\_api/deepset\_cloud\_api.py            |       46 |        1 |       16 |        6 |     89% |45->44, 61->63, 62->61, 63->62, 68->exit, 77->71, 212 |
-| deepset\_cloud\_sdk/\_api/files.py                          |       49 |        2 |       18 |        5 |     90% |34->33, 96-99, 102->106, 106->110, 110->113 |
+| deepset\_cloud\_sdk/\_api/files.py                          |       88 |        4 |       40 |        9 |     90% |39->38, 101-104, 107->111, 111->115, 115->118, 127->126, 156->158, 175, 179 |
 | deepset\_cloud\_sdk/\_api/upload\_sessions.py               |       90 |        0 |       28 |        2 |     98% |188->182, 227->221 |
 | deepset\_cloud\_sdk/\_s3/\_\_init\_\_.py                    |        0 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/\_s3/upload.py                          |      116 |        5 |       40 |        7 |     91% |85->79, 105->exit, 116-124, 160->exit, 161->160, 252->exit, 270->exit |
-| deepset\_cloud\_sdk/\_service/files\_service.py             |      146 |        0 |       86 |       14 |     94% |46->48, 47->46, 48->47, 55->exit, 95->102, 107->106, 147->161, 161->170, 173->172, 193->192, 237->236, 287->293, 328->340, 340->348 |
+| deepset\_cloud\_sdk/\_service/files\_service.py             |      178 |        1 |      102 |       15 |     94% |50->52, 51->50, 52->51, 59->exit, 99->106, 111->110, 151->165, 165->174, 177->176, 197->196, 241->240, 291->297, 378, 427->439, 439->447 |
 | deepset\_cloud\_sdk/\_utils/\_\_init\_\_.py                 |        0 |        0 |        0 |        0 |    100% |           |
-| deepset\_cloud\_sdk/cli.py                                  |       72 |        1 |       32 |        8 |     91% |28->27, 48->51, 55->54, 71->70, 121->120, 167->143, 176->175, 226->225, 242 |
+| deepset\_cloud\_sdk/cli.py                                  |       76 |        1 |       34 |        9 |     91% |29->28, 70->69, 90->93, 97->96, 113->112, 163->162, 209->185, 218->217, 268->267, 284 |
 | deepset\_cloud\_sdk/models.py                               |       13 |        0 |        4 |        0 |    100% |           |
 | deepset\_cloud\_sdk/workflows/\_\_init\_\_.py               |        0 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/workflows/async\_client/\_\_init\_\_.py |        0 |        0 |        0 |        0 |    100% |           |
-| deepset\_cloud\_sdk/workflows/async\_client/files.py        |       35 |        0 |       14 |        7 |     86% |53->exit, 54->53, 87->exit, 88->87, 114->exit, 149->exit, 187->exit |
+| deepset\_cloud\_sdk/workflows/async\_client/files.py        |       38 |        0 |       16 |        8 |     85% |53->exit, 54->53, 87->exit, 88->87, 114->exit, 149->exit, 187->exit, 227->exit |
 | deepset\_cloud\_sdk/workflows/sync\_client/\_\_init\_\_.py  |        0 |        0 |        0 |        0 |    100% |           |
-| deepset\_cloud\_sdk/workflows/sync\_client/files.py         |       35 |        0 |        0 |        0 |    100% |           |
+| deepset\_cloud\_sdk/workflows/sync\_client/files.py         |       38 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/workflows/sync\_client/utils.py         |       16 |        1 |        2 |        0 |     94% |        26 |
-|                                                   **TOTAL** |  **652** |   **11** |  **248** |   **50** | **93%** |           |
+|                                                   **TOTAL** |  **733** |   **14** |  **290** |   **57** | **93%** |           |
 
 
 ## Setup coverage badge
