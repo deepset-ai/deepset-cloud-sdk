@@ -21,6 +21,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 from deepset_cloud_sdk.models import UserInfo
 from deepset_cloud_sdk.workflows.async_client.files import (
+    download,
     get_upload_session,
     list_files,
     list_upload_sessions,
@@ -88,6 +89,32 @@ class TestUploadFiles:
             blocking=True,
             timeout_s=300,
             show_progress=True,
+        )
+
+
+@pytest.mark.asyncio
+class TestDownloadFiles:
+    async def test_download_files(self, monkeypatch: MonkeyPatch) -> None:
+        mocked_download = AsyncMock(return_value=None)
+        monkeypatch.setattr(FilesService, "download", mocked_download)
+        await download(
+            workspace_name="my_workspace",
+            name="test_file.txt",
+            content="test content",
+            odata_filter="test",
+            batch_size=100,
+            timeout_s=100,
+        )
+        mocked_download.assert_called_once_with(
+            workspace_name="my_workspace",
+            file_dir=None,
+            name="test_file.txt",
+            content="test content",
+            odata_filter="test",
+            include_meta=True,
+            batch_size=100,
+            show_progress=True,
+            timeout_s=100,
         )
 
 

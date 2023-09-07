@@ -46,6 +46,16 @@ deepset-cloud upload ./examples/data --write-mode OVERWRITE
 This syncs your local files with the files in your deepset Cloud workspace without having to manually delete the files in your workspace.
 
 
+### Downloading Files from deepset Cloud
+This command downloads all files from a workspace to a local directory. For example:
+
+```shell
+deepset-cloud download --workspace-name <your-workspace-name>
+```
+
+To filter for specific files, you can use the the same filters as for listing files.
+
+
 ### List files
 You can run the `list-files` operation to search files in your deepset Cloud workspace. For example:
 ```shell

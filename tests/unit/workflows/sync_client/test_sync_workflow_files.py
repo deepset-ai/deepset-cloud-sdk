@@ -17,6 +17,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.models import UserInfo
 from deepset_cloud_sdk.workflows.sync_client.files import (
+    download,
     get_upload_session,
     list_files,
     list_upload_sessions,
@@ -100,6 +101,32 @@ def test_list_files() -> None:
                 created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
             )
         ]
+
+
+def test_download_files() -> None:
+    mocked_async_download = AsyncMock()
+    with patch("deepset_cloud_sdk.workflows.sync_client.files.async_download", new=mocked_async_download):
+        download(
+            workspace_name="my_workspace",
+            name="test_file.txt",
+            content="test content",
+            odata_filter="test",
+            batch_size=100,
+            timeout_s=100,
+        )
+        mocked_async_download.assert_called_once_with(
+            api_key=None,
+            api_url=None,
+            workspace_name="my_workspace",
+            name="test_file.txt",
+            content="test content",
+            odata_filter="test",
+            file_dir=None,
+            include_meta=True,
+            batch_size=100,
+            show_progress=True,
+            timeout_s=100,
+        )
 
 
 def test_list_upload_sessions() -> None:
