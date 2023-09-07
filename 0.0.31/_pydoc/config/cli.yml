@@ -1,0 +1,26 @@
+loaders:
+  - type: python
+    search_path: [../../../deepset_cloud_sdk]
+    modules: ["cli"]
+    ignore_when_discovered: ["__init__"]
+processors:
+  - type: filter
+    expression:
+    documented_only: true
+    do_not_filter_modules: false
+    skip_empty_modules: true
+  - type: smart
+  - type: crossref
+renderer:
+  type: renderers.ReadmeRenderer
+  excerpt: A cli tool for the deepset Cloud API.
+  category_slug: sdk-10
+  title: deepset Cloud CLI
+  slug: cli
+  order: 0
+  markdown:
+    descriptive_class_title: false
+    descriptive_module_title: true
+    add_method_class_prefix: true
+    add_member_class_prefix: false
+    filename: cli.md
