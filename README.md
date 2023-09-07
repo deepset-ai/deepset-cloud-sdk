@@ -11,7 +11,7 @@
 | deepset\_cloud\_sdk/\_api/upload\_sessions.py               |       90 |        0 |       28 |        2 |     98% |188->182, 227->221 |
 | deepset\_cloud\_sdk/\_s3/\_\_init\_\_.py                    |        0 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/\_s3/upload.py                          |      118 |        5 |       42 |        7 |     91% |85->79, 105->exit, 116-124, 164->exit, 165->164, 256->exit, 274->exit |
-| deepset\_cloud\_sdk/\_service/files\_service.py             |      178 |        1 |      102 |       15 |     94% |50->52, 51->50, 52->51, 59->exit, 104->111, 116->115, 156->170, 170->179, 182->181, 202->201, 246->245, 296->302, 383, 432->444, 444->452 |
+| deepset\_cloud\_sdk/\_service/files\_service.py             |      180 |        1 |      104 |       15 |     94% |50->52, 51->50, 52->51, 59->exit, 104->111, 116->115, 156->170, 170->179, 182->181, 202->201, 246->245, 298->304, 385, 434->446, 446->454 |
 | deepset\_cloud\_sdk/\_utils/\_\_init\_\_.py                 |        0 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/cli.py                                  |       76 |        1 |       34 |        9 |     91% |29->28, 70->69, 90->93, 97->96, 113->112, 163->162, 209->185, 218->217, 268->267, 284 |
 | deepset\_cloud\_sdk/models.py                               |       13 |        0 |        4 |        0 |    100% |           |
@@ -21,7 +21,7 @@
 | deepset\_cloud\_sdk/workflows/sync\_client/\_\_init\_\_.py  |        0 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/workflows/sync\_client/files.py         |       38 |        0 |        0 |        0 |    100% |           |
 | deepset\_cloud\_sdk/workflows/sync\_client/utils.py         |       16 |        1 |        2 |        0 |     94% |        26 |
-|                                                   **TOTAL** |  **735** |   **14** |  **292** |   **57** | **93%** |           |
+|                                                   **TOTAL** |  **737** |   **14** |  **294** |   **57** | **93%** |           |
 
 
 ## Setup coverage badge
