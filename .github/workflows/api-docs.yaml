@@ -5,6 +5,7 @@ name: API Docs
 #     branches:
 #       - <your-branch>
 on:
+  pull_request:
   release:
     types:
       - published
@@ -44,7 +45,7 @@ jobs:
           git config --global user.email docs@bot.com
           git config pull.rebase false
           git pull --allow-unrelated-histories origin gh-pages
-        
+
       - name: Publish docs
         run: |
           VERSION=$(sed -n 's/__version__ = "\(.*\)"/\1/p' ./deepset_cloud_sdk/__about__.py) && \
