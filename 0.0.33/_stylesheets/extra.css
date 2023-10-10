@@ -5,6 +5,6 @@
 }
 
 /* Hide the title deepset Cloud SDK, but still show the name in the tab */
-.md-ellipsis {
+.md-nav__title {
     display: none;
 }
