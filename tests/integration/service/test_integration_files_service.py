@@ -1,3 +1,5 @@
+import os
+import tempfile
 from pathlib import Path
 from typing import List
 
@@ -20,13 +22,17 @@ class TestUploadsFileService:
         async with FilesService.factory(integration_config) as file_service:
             timeout = 120 if "dev.cloud.dpst.dev" in integration_config.api_url else 300
 
-            await file_service.upload(
+            result = await file_service.upload(
                 workspace_name=workspace_name,
                 paths=[Path("./tests/test_data/msmarco.10")],
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
             )
+            assert result.total_files == 20
+            assert result.successful_upload_count == 20
+            assert result.failed_upload_count == 0
+            assert len(result.failed) == 0
 
     async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
@@ -37,13 +43,17 @@ class TestUploadsFileService:
                 DeepsetCloudFile("file4", "file4.txt", {"which": 4}),
                 DeepsetCloudFile("file5", "file5.txt", {"which": 5}),
             ]
-            await file_service.upload_texts(
+            result = await file_service.upload_texts(
                 workspace_name=workspace_name,
                 files=files,
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=120,
             )
+            assert result.total_files == 10
+            assert result.successful_upload_count == 10
+            assert result.failed_upload_count == 0
+            assert len(result.failed) == 0
 
 
 @pytest.mark.asyncio
@@ -61,3 +71,18 @@ class TestListFilesService:
             assert len(file_batches) >= 2
             assert len(file_batches[0]) == 11
             assert len(file_batches[1]) >= 1
+
+
+@pytest.mark.asyncio
+class TestDownloadFilesService:
+    async def test_download_files(self, integration_config: CommonConfig) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            async with FilesService.factory(integration_config) as file_service:
+                # cancel download after 5 seconds
+                try:
+                    await file_service.download(workspace_name="sdk_read", file_dir=tmp_dir, timeout_s=5)
+                except Exception:
+                    pass
+                finally:
+                    # test that files were downloaded
+                    assert len(os.listdir(tmp_dir)) > 0

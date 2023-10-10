@@ -113,7 +113,7 @@ class TestUploadsS3:
                 assert results.successful_upload_count == 0
                 assert results.failed_upload_count == 6
                 assert len(results.failed) == 6
-                assert results.failed == [
+                assert [f.file_name for f in results.failed] == [
                     "16675.txt",
                     "16675.txt.meta.json",
                     "22297.txt",
@@ -121,6 +121,27 @@ class TestUploadsS3:
                     "35887.txt",
                     "35887.txt.meta.json",
                 ]
+                assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
+
+        async def test_upload_files_from_path_with_client_disconnect_error(
+            self, upload_session_response: UploadSession
+        ) -> None:
+            exception = aiohttp.ServerDisconnectedError()
+            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
+                s3 = S3()
+
+                files = [
+                    Path("./tests/test_data/msmarco.10/16675.txt"),
+                    Path("./tests/test_data/msmarco.10/16675.txt.meta.json"),
+                ]
+
+                results = await s3.upload_files_from_paths(upload_session_response, files)
+                assert results.total_files == 2
+                assert results.successful_upload_count == 0
+                assert results.failed_upload_count == 2
+                assert len(results.failed) == 2
+                assert [f.file_name for f in results.failed] == ["16675.txt", "16675.txt.meta.json"]
+                assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
         async def test_upload_texts_http_error(self, upload_session_response: UploadSession) -> None:
             exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=503)
@@ -138,11 +159,13 @@ class TestUploadsS3:
                 assert results.successful_upload_count == 0
                 assert results.failed_upload_count == 3
                 assert len(results.failed) == 3
-                assert results.failed == [
+
+                assert [f.file_name for f in results.failed] == [
                     "one.txt",
                     "two.txt",
                     "three.txt",
                 ]
+                assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
         async def test_upload_texts_with_metadata_http_error(self, upload_session_response: UploadSession) -> None:
             exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=503)
@@ -160,7 +183,7 @@ class TestUploadsS3:
                 assert results.successful_upload_count == 0
                 assert results.failed_upload_count == 6
                 assert len(results.failed) == 6
-                assert results.failed == [
+                assert [f.file_name for f in results.failed] == [
                     "one.txt",
                     "one.txt.meta.json",
                     "two.txt",
@@ -168,6 +191,7 @@ class TestUploadsS3:
                     "three.txt",
                     "three.txt.meta.json",
                 ]
+                assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
         @pytest.mark.parametrize("status", [503, 502, 500, 504, 408])
         @patch("aiohttp.ClientSession")

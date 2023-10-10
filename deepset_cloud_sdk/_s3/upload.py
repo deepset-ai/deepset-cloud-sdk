@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Coroutine, List, Optional
+from typing import Any, Coroutine, List, Optional, Union
 from urllib.parse import quote
 
 import aiofiles
@@ -27,19 +27,9 @@ logger = structlog.get_logger(__name__)
 class RetryableHttpError(Exception):
     """An error that indicates a function should be retried."""
 
-    def __init__(self, error: aiohttp.ClientResponseError) -> None:
+    def __init__(self, error: Union[aiohttp.ClientResponseError, aiohttp.ServerDisconnectedError]) -> None:
         """Store the original exception."""
         self.error = error
-
-
-@dataclass
-class S3UploadSummary:
-    """A summary of the S3 upload results."""
-
-    total_files: int
-    successful_upload_count: int
-    failed_upload_count: int
-    failed: List[str]
 
 
 @dataclass
@@ -49,6 +39,16 @@ class S3UploadResult:
     file_name: str
     success: bool
     exception: Optional[Exception] = None
+
+
+@dataclass
+class S3UploadSummary:
+    """A summary of the S3 upload results."""
+
+    total_files: int
+    successful_upload_count: int
+    failed_upload_count: int
+    failed: List[S3UploadResult]
 
 
 def make_safe_file_name(file_name: str) -> str:
@@ -124,6 +124,10 @@ class S3:
                         return response
 
                 return response
+        except aiohttp.ServerDisconnectedError as cre:
+            # We want to retry on ServerDisconnectedError since AWS can sometimes close the connection.
+            # See this known error: https://github.com/aio-libs/aiohttp/issues/631
+            raise RetryableHttpError(cre) from cre
         except aiohttp.ClientResponseError as cre:
             if cre.status in [
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -164,13 +168,14 @@ class S3:
                 try:
                     await self._upload_file_with_retries(file_name, upload_session, content, client_session)
                     return S3UploadResult(file_name=file_name, success=True)
-                except:  # pylint: disable=bare-except
-                    logger.warn(
+                except Exception as exception:  # pylint: disable=broad-exception-caught
+                    logger.error(
                         "Could not upload a file to deepset Cloud",
                         file_name=file_name,
                         session_id=upload_session.session_id,
+                        exception=str(exception),
                     )
-                    return S3UploadResult(file_name=file_name, success=False)
+                    return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
     async def upload_from_string(
         self,
@@ -220,13 +225,13 @@ class S3:
             failed_files=[r for r in results if not r.success],
         )
 
-        failed: List[str] = []
+        failed: List[S3UploadResult] = []
         successfully_uploaded = 0
         for result in results:
             if result.success:
                 successfully_uploaded += 1
             else:
-                failed.append(result.file_name)
+                failed.append(result)
 
         result_summary = S3UploadSummary(
             successful_upload_count=successfully_uploaded,

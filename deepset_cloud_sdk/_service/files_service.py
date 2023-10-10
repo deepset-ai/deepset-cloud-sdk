@@ -6,7 +6,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional
+from typing import AsyncGenerator, List, Optional, Union
 from uuid import UUID
 
 import structlog
@@ -15,7 +15,11 @@ from yaspin import yaspin
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk._api.files import File, FilesAPI
+from deepset_cloud_sdk._api.files import (
+    File,
+    FileNotFoundInDeepsetCloudException,
+    FilesAPI,
+)
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSession,
     UploadSessionDetail,
@@ -23,7 +27,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionStatus,
     WriteMode,
 )
-from deepset_cloud_sdk._s3.upload import S3
+from deepset_cloud_sdk._s3.upload import S3, S3UploadSummary
 from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
@@ -59,7 +63,12 @@ class FilesService:
             yield cls(upload_sessions_api, files_api, S3(concurrency=30))
 
     async def _wait_for_finished(
-        self, workspace_name: str, session_id: UUID, total_files: int, timeout_s: int, show_progress: bool = True
+        self,
+        workspace_name: str,
+        session_id: UUID,
+        total_files: int,
+        timeout_s: Optional[int] = None,
+        show_progress: bool = True,
     ) -> None:
         start = time.time()
         ingested_files = 0
@@ -68,7 +77,7 @@ class FilesService:
             pbar = tqdm(total=total_files, desc="Ingestion Progress")
 
         while ingested_files < total_files:
-            if time.time() - start > timeout_s:
+            if timeout_s is not None and time.time() - start > timeout_s:
                 raise TimeoutError("Ingestion timed out.")
 
             upload_session_status = await self._upload_sessions.status(
@@ -126,9 +135,9 @@ class FilesService:
         file_paths: List[Path],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
-        timeout_s: int = 300,
         show_progress: bool = True,
-    ) -> None:
+        timeout_s: Optional[int] = None,
+    ) -> S3UploadSummary:
         """Upload a list of files to a workspace.
 
         Upload a list of files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset Cloud.
@@ -167,6 +176,7 @@ class FilesService:
                 timeout_s=timeout_s,
                 show_progress=show_progress,
             )
+        return upload_summary
 
     @staticmethod
     def _get_file_paths(paths: List[Path], recursive: bool = False) -> List[Path]:
@@ -247,6 +257,8 @@ class FilesService:
                 paths=paths,
                 skipped_files=len(all_files) - len(file_paths),
             )
+            for skipped_file in set(all_files) - set(file_paths):
+                logger.warning("Skipping file", file_path=skipped_file)
 
         if spinner is not None:
             spinner.text = "Validating files and metadata."
@@ -260,10 +272,10 @@ class FilesService:
         paths: List[Path],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
-        timeout_s: int = 300,
+        timeout_s: Optional[int] = None,
         show_progress: bool = True,
         recursive: bool = False,
-    ) -> None:
+    ) -> S3UploadSummary:
         """Upload a list of file or folder paths to a workspace.
 
         Upload files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset Cloud.
@@ -289,7 +301,7 @@ class FilesService:
         else:
             file_paths = self._preprocess_paths(paths, recursive=recursive)
 
-        await self.upload_file_paths(
+        return await self.upload_file_paths(
             workspace_name=workspace_name,
             file_paths=file_paths,
             write_mode=write_mode,
@@ -298,15 +310,110 @@ class FilesService:
             show_progress=show_progress,
         )
 
+    async def _download_and_log_errors(
+        self,
+        workspace_name: str,
+        file_id: UUID,
+        file_name: str,
+        file_dir: Optional[Union[Path, str]],
+        include_meta: bool,
+    ) -> None:
+        try:
+            await self._files.download(
+                workspace_name=workspace_name,
+                file_id=file_id,
+                file_name=file_name,
+                file_dir=file_dir,
+                include_meta=include_meta,
+            )
+        except FileNotFoundInDeepsetCloudException as e:
+            logger.error("File was listed in deepset Cloud but could not be downloaded.", file_id=file_id, error=e)
+        except Exception as e:
+            logger.error("Failed to download file.", file_id=file_id, error=e)
+
+    async def download(
+        self,
+        workspace_name: str,
+        file_dir: Optional[Union[Path, str]] = None,
+        name: Optional[str] = None,
+        content: Optional[str] = None,
+        odata_filter: Optional[str] = None,
+        include_meta: bool = True,
+        batch_size: int = 50,
+        timeout_s: Optional[int] = None,
+        show_progress: bool = True,
+    ) -> None:
+        """Download a folder to deepset Cloud.
+
+        :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+        :param file_dir: Path to the folder to download. If None, the current working directory is used.
+        :param name: odata_filter by file name.
+        :param content: odata_filter by file content.
+        :param odata_filter: odata_filter by file meta data.
+        :param include_meta: If True, downloads the metadata files as well.
+        :param batch_size: Batch size for the listing.
+        :param limit: Limit for the listing.
+        :param show_progress: Shows the upload progress.
+        """
+        start = time.time()
+        logger.info("Start downloading files.", workspace_name=workspace_name)
+
+        pbar: Optional[tqdm] = None
+        if show_progress:
+            total = (await self._files.list_paginated(workspace_name, limit=1)).total
+            pbar = tqdm(total=total, desc="Download Progress")
+
+        after_value = None
+        after_file_id = None
+        has_more: bool = True
+        try:
+            while has_more:
+                if timeout_s is not None and time.time() - start > timeout_s:
+                    raise TimeoutError("Download timed out.")
+
+                response = await self._files.list_paginated(
+                    workspace_name=workspace_name,
+                    name=name,
+                    content=content,
+                    odata_filter=odata_filter,
+                    limit=batch_size,
+                    after_file_id=after_file_id,
+                    after_value=after_value,
+                )
+                has_more = response.has_more
+                if not response.data:
+                    return
+
+                after_value = response.data[-1].created_at
+                after_file_id = response.data[-1].file_id
+
+                await asyncio.gather(
+                    *[
+                        self._download_and_log_errors(
+                            workspace_name=workspace_name,
+                            file_id=_file.file_id,
+                            file_name=_file.name,
+                            file_dir=file_dir,
+                            include_meta=include_meta,
+                        )
+                        for _file in response.data
+                    ]
+                )
+                if pbar is not None:
+                    pbar.update(batch_size)
+        finally:
+            if pbar is not None:
+                pbar.close()
+
     async def upload_texts(
         self,
         workspace_name: str,
         files: List[DeepsetCloudFile],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
-        timeout_s: int = 300,
+        timeout_s: Optional[int] = None,
         show_progress: bool = True,
-    ) -> None:  # noqa
+    ) -> S3UploadSummary:  # noqa
         """
         Upload a list of raw texts to a workspace using upload sessions. This method accepts a list of DeepsetCloudFiles
         which contain raw text, file name, and optional metadata.
@@ -344,6 +451,7 @@ class FilesService:
                 timeout_s=timeout_s,
                 show_progress=show_progress,
             )
+        return upload_summary
 
     async def list_all(
         self,
@@ -352,7 +460,7 @@ class FilesService:
         content: Optional[str] = None,
         odata_filter: Optional[str] = None,
         batch_size: int = 100,
-        timeout_s: int = 20,
+        timeout_s: Optional[int] = None,
     ) -> AsyncGenerator[List[File], None]:
         """List all files in a workspace.
 
@@ -373,7 +481,7 @@ class FilesService:
         after_value = None
         after_file_id = None
         while has_more:
-            if time.time() - start > timeout_s:
+            if timeout_s is not None and time.time() - start > timeout_s:
                 raise TimeoutError(f"Listing all files in workspace {workspace_name} timed out.")
             response = await self._files.list_paginated(
                 workspace_name,
@@ -396,7 +504,7 @@ class FilesService:
         workspace_name: str,
         is_expired: Optional[bool] = False,
         batch_size: int = 100,
-        timeout_s: int = 20,
+        timeout_s: Optional[int] = None,
     ) -> AsyncGenerator[List[UploadSessionDetail], None]:  # noqa: F821
         """List all upload sessions files in a workspace.
 
@@ -414,7 +522,7 @@ class FilesService:
 
         page_number: int = 1
         while has_more:
-            if time.time() - start > timeout_s:
+            if timeout_s is not None and time.time() - start > timeout_s:
                 raise TimeoutError(f"Listing all upload sessions files in workspace {workspace_name} timed out.")
             response = await self._upload_sessions.list(
                 workspace_name,

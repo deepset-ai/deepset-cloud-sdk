@@ -21,34 +21,17 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 from deepset_cloud_sdk.models import UserInfo
 from deepset_cloud_sdk.workflows.async_client.files import (
+    download,
     get_upload_session,
     list_files,
     list_upload_sessions,
     upload,
-    upload_file_paths,
     upload_texts,
 )
 
 
 @pytest.mark.asyncio
 class TestUploadFiles:
-    async def test_upload_file_paths(self, monkeypatch: MonkeyPatch) -> None:
-        mocked_upload_file_paths = AsyncMock(return_value=None)
-
-        monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
-        await upload_file_paths(
-            file_paths=[Path("./tests/data/example.txt")], write_mode=WriteMode.OVERWRITE, show_progress=False
-        )
-
-        mocked_upload_file_paths.assert_called_once_with(
-            workspace_name=DEFAULT_WORKSPACE_NAME,
-            file_paths=[Path("./tests/data/example.txt")],
-            write_mode=WriteMode.OVERWRITE,
-            blocking=True,
-            timeout_s=300,
-            show_progress=False,
-        )
-
     async def test_upload_show_progress(self, monkeypatch: MonkeyPatch) -> None:
         paths = [Path("./tests/data/example.txt")]
         mocked_preprocess = AsyncMock(return_value=paths)
@@ -82,7 +65,23 @@ class TestUploadFiles:
             paths=[Path("./tests/data/upload_folder")],
             write_mode=WriteMode.KEEP,
             blocking=True,
-            timeout_s=300,
+            timeout_s=None,
+            show_progress=True,
+            recursive=False,
+        )
+
+    async def test_upload_with_timeout(self, monkeypatch: MonkeyPatch) -> None:
+        mocked_upload = AsyncMock(return_value=None)
+
+        monkeypatch.setattr(FilesService, "upload", mocked_upload)
+        await upload(paths=[Path("./tests/data/upload_folder")], timeout_s=123)
+
+        mocked_upload.assert_called_once_with(
+            workspace_name=DEFAULT_WORKSPACE_NAME,
+            paths=[Path("./tests/data/upload_folder")],
+            write_mode=WriteMode.KEEP,
+            blocking=True,
+            timeout_s=123,
             show_progress=True,
             recursive=False,
         )
@@ -104,8 +103,34 @@ class TestUploadFiles:
             files=files,
             write_mode=WriteMode.KEEP,
             blocking=True,
-            timeout_s=300,
+            timeout_s=None,
             show_progress=True,
+        )
+
+
+@pytest.mark.asyncio
+class TestDownloadFiles:
+    async def test_download_files(self, monkeypatch: MonkeyPatch) -> None:
+        mocked_download = AsyncMock(return_value=None)
+        monkeypatch.setattr(FilesService, "download", mocked_download)
+        await download(
+            workspace_name="my_workspace",
+            name="test_file.txt",
+            content="test content",
+            odata_filter="test",
+            batch_size=100,
+            timeout_s=100,
+        )
+        mocked_download.assert_called_once_with(
+            workspace_name="my_workspace",
+            file_dir=None,
+            name="test_file.txt",
+            content="test content",
+            odata_filter="test",
+            include_meta=True,
+            batch_size=100,
+            show_progress=True,
+            timeout_s=100,
         )
 
 

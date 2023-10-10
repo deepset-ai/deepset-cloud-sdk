@@ -17,31 +17,13 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.models import UserInfo
 from deepset_cloud_sdk.workflows.sync_client.files import (
+    download,
     get_upload_session,
     list_files,
     list_upload_sessions,
     upload,
-    upload_file_paths,
     upload_texts,
 )
-
-
-@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_file_paths")
-def test_upload_file_paths(async_file_upload_mock: AsyncMock) -> None:
-    upload_file_paths(
-        file_paths=[Path("./tests/data/example.txt")],
-        write_mode=WriteMode.FAIL,
-    )
-    async_file_upload_mock.assert_called_once_with(
-        file_paths=[Path("./tests/data/example.txt")],
-        api_key=None,
-        api_url=None,
-        workspace_name=DEFAULT_WORKSPACE_NAME,
-        write_mode=WriteMode.FAIL,
-        blocking=True,
-        timeout_s=300,
-        show_progress=True,
-    )
 
 
 @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
@@ -56,7 +38,7 @@ def test_upload_folder(async_upload_mock: AsyncMock) -> None:
         workspace_name=DEFAULT_WORKSPACE_NAME,
         write_mode=WriteMode.KEEP,
         blocking=True,
-        timeout_s=300,
+        timeout_s=None,
         show_progress=True,
         recursive=False,
     )
@@ -79,7 +61,29 @@ def test_upload_texts(async_upload_texts_mock: AsyncMock) -> None:
         workspace_name=DEFAULT_WORKSPACE_NAME,
         write_mode=WriteMode.KEEP,
         blocking=True,
-        timeout_s=300,
+        timeout_s=None,
+        show_progress=True,
+    )
+
+
+@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload_texts")
+def test_upload_texts_with_timeout(async_upload_texts_mock: AsyncMock) -> None:
+    files = [
+        DeepsetCloudFile(
+            name="test_file.txt",
+            text="test content",
+            meta={"test": "test"},
+        )
+    ]
+    upload_texts(files=files, timeout_s=123)
+    async_upload_texts_mock.assert_called_once_with(
+        files=files,
+        api_key=None,
+        api_url=None,
+        workspace_name=DEFAULT_WORKSPACE_NAME,
+        write_mode=WriteMode.KEEP,
+        blocking=True,
+        timeout_s=123,
         show_progress=True,
     )
 
@@ -119,6 +123,32 @@ def test_list_files() -> None:
                 created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
             )
         ]
+
+
+def test_download_files() -> None:
+    mocked_async_download = AsyncMock()
+    with patch("deepset_cloud_sdk.workflows.sync_client.files.async_download", new=mocked_async_download):
+        download(
+            workspace_name="my_workspace",
+            name="test_file.txt",
+            content="test content",
+            odata_filter="test",
+            batch_size=100,
+            timeout_s=100,
+        )
+        mocked_async_download.assert_called_once_with(
+            api_key=None,
+            api_url=None,
+            workspace_name="my_workspace",
+            name="test_file.txt",
+            content="test content",
+            odata_filter="test",
+            file_dir=None,
+            include_meta=True,
+            batch_size=100,
+            show_progress=True,
+            timeout_s=100,
+        )
 
 
 def test_list_upload_sessions() -> None:

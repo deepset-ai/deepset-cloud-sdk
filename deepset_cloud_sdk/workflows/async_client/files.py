@@ -1,7 +1,7 @@
 # pylint:disable=too-many-arguments
 """This module contains async functions for uploading files and folders to deepset Cloud."""
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional
+from typing import AsyncGenerator, List, Optional, Union
 from uuid import UUID
 
 from sniffio import AsyncLibraryNotFoundError
@@ -18,6 +18,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionStatus,
     WriteMode,
 )
+from deepset_cloud_sdk._s3.upload import S3UploadSummary
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 
 
@@ -33,7 +34,7 @@ async def list_files(
     content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     batch_size: int = 100,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
 ) -> AsyncGenerator[List[File], None]:
     """List all files in a workspace.
 
@@ -70,7 +71,7 @@ async def list_upload_sessions(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     is_expired: Optional[bool] = None,
     batch_size: int = 100,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
 ) -> AsyncGenerator[List[UploadSessionDetail], None]:
     """List the details of all upload sessions for a given workspace, including the closed sessions.
 
@@ -117,37 +118,6 @@ async def get_upload_session(
         )
 
 
-async def upload_file_paths(
-    file_paths: List[Path],
-    api_key: Optional[str] = None,
-    api_url: Optional[str] = None,
-    workspace_name: str = DEFAULT_WORKSPACE_NAME,
-    write_mode: WriteMode = WriteMode.KEEP,
-    blocking: bool = True,
-    timeout_s: int = 300,
-    show_progress: bool = True,
-) -> None:
-    """Upload files to deepset Cloud.
-
-    :param file_paths: List of file paths to upload.
-    :param api_key: deepset Cloud API key to use for authentication.
-    :param api_url: API URL to use for authentication.
-    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-    :param blocking: Whether to wait for the upload to finish.
-    :param timeout_s: Timeout in seconds for the upload.
-    :param show_progress: Shows the upload progress.
-    """
-    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        await file_service.upload_file_paths(
-            workspace_name=workspace_name,
-            file_paths=file_paths,
-            write_mode=write_mode,
-            blocking=blocking,
-            timeout_s=timeout_s,
-            show_progress=show_progress,
-        )
-
-
 async def upload(
     paths: List[Path],
     api_key: Optional[str] = None,
@@ -155,10 +125,10 @@ async def upload(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
     show_progress: bool = True,
     recursive: bool = False,
-) -> None:
+) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported files, they're skipped.
@@ -177,7 +147,7 @@ async def upload(
     :param recursive: Uploads files from subdirectories as well.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        await file_service.upload(
+        return await file_service.upload(
             workspace_name=workspace_name,
             paths=paths,
             write_mode=write_mode,
@@ -188,6 +158,46 @@ async def upload(
         )
 
 
+async def download(
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    file_dir: Optional[Union[Path, str]] = None,
+    name: Optional[str] = None,
+    content: Optional[str] = None,
+    odata_filter: Optional[str] = None,
+    include_meta: bool = True,
+    batch_size: int = 50,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    show_progress: bool = True,
+    timeout_s: Optional[int] = None,
+) -> None:
+    """Download a folder to deepset Cloud.
+
+    Downloads all files from a workspace to a local folder.
+
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
+    during the upload. Supported file formats are TXT and PDF.
+    :param include_meta: Whether to include the file meta in the folder.
+    :param batch_size: Batch size for the listing.
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param show_progress: Shows the upload progress.
+    """
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+        await file_service.download(
+            workspace_name=workspace_name,
+            file_dir=file_dir,
+            name=name,
+            content=content,
+            odata_filter=odata_filter,
+            include_meta=include_meta,
+            batch_size=batch_size,
+            show_progress=show_progress,
+            timeout_s=timeout_s,
+        )
+
+
 async def upload_texts(
     files: List[DeepsetCloudFile],
     api_key: Optional[str] = None,
@@ -195,9 +205,9 @@ async def upload_texts(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     write_mode: WriteMode = WriteMode.KEEP,
     blocking: bool = True,
-    timeout_s: int = 300,
+    timeout_s: Optional[int] = None,
     show_progress: bool = True,
-) -> None:
+) -> S3UploadSummary:
     """Upload raw texts to deepset Cloud.
 
     :param files: List of DeepsetCloudFiles to upload.
@@ -215,7 +225,7 @@ async def upload_texts(
     :param show_progress: Shows the upload progress.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        await file_service.upload_texts(
+        return await file_service.upload_texts(
             workspace_name=workspace_name,
             files=files,
             write_mode=write_mode,
