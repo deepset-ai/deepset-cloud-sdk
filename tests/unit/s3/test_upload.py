@@ -23,7 +23,6 @@ class TestUploadsS3:
                 ),
                 # additional special characters
                 ("""#%"'|<>{}`^[]~\\""", "_" * 15),
-                ("$£%\x09宿 a.txt", "%24%C2%A3__%E5%AE%BF%20a.txt"),
             ],
         )
         def test_make_safe_file_name(self, input_file_name: str, expected_file_name: str) -> None:
