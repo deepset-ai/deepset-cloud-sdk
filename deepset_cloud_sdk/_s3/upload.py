@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Coroutine, List, Optional, Union
-from urllib.parse import quote
 
 import aiofiles
 import aiohttp
@@ -55,13 +54,14 @@ def make_safe_file_name(file_name: str) -> str:
     """
     Transform a given string to a representation that S3 accepts.
 
-    :param str: The file name.
-    :return str: The transformed string.
+    We don't need to URL-encode the file name as `aiohttp.FormData` is doing this automatically.
+
+    :param file_name: The file name.
+    :return: The transformed string.
     For character exclusions, see
     [Creating object key names](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html).
     """
-    transformed = re.sub(r"[\\\\#%\"'\|<>\{\}`\^\[\]~\x00-\x1F]", "_", file_name)
-    return quote(transformed)
+    return re.sub(r"[\\\\#%\"'\|<>\{\}`\^\[\]~\x00-\x1F]", "_", file_name)
 
 
 class S3:
@@ -142,7 +142,7 @@ class S3:
     def _build_file_data(
         self, content: Any, aws_safe_name: str, aws_config: AWSPrefixedRequestConfig
     ) -> aiohttp.FormData:
-        file_data = aiohttp.FormData()
+        file_data = aiohttp.FormData(quote_fields=True)
         for key in aws_config.fields:
             file_data.add_field(key, aws_config.fields[key])
         file_data.add_field("file", content, filename=aws_safe_name, content_type="text/plain")
