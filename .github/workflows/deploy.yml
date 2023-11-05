@@ -19,7 +19,7 @@ env:
 
 jobs:
   ci:
-    uses: ./.github/workflows/continuous-integration.yml
+    uses: ./.github/workflows/merge-queue.yml
     with:
       api_url: ${{ inputs.api_url }}
       deployment_env: ${{ inputs.deployment_env }}

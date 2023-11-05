@@ -1,4 +1,4 @@
-# Upload Files
+# Overview
 
 Uploading with SDK is the fastest way if you have many files. It uses sessions under the hood. That means, you create a session and then upload files to this session. Each session has an ID and you can check its status. The upload starts when you close a session. If you leave a session open, it expires after 24 hours.
 
@@ -6,14 +6,22 @@ After your files are uploaded, it can take a while for them to be listed in deep
 
 You can use the CLI or the SDK Python methods to upload your files.
 
+## Folder Structure
+
+You don't need to follow any specific folder structure. If your folder contains files with the same name, all these files are uploaded, by default. You can set the `--write-mode` to overwrite the files, keep them all, or fail the upload. For more information, see [CLI examples](/examples/cli/README.md) and [SDK examples](/examples/sdk/README.md).
+
+# Upload Files
+
 To upload files:
-1. Log in to the sdk: `deepset-cloud login`.
+
+1. Log in to the sdk: `deepset-cloud login` (MacOS and Linux) or `python -m deepset_cloud_sdk.cli login` (Windows).
 2. When prompted, paste your deepset Cloud API key.
 3. Type the name of the deepset Cloud workspace you want to set as default for all operations.
 4. Choose if you want to use the CLI or a Python script to upload:
-    - To upload files from a folder using CLI, run: `deepset-cloud upload <path to the upload folder>`
+    - To upload files from a folder using CLI, run: `deepset-cloud upload <path to the upload folder>` (MacOS and Linux) or `python -m deepset_cloud_sdk.cli upload <path to the upload folder>` (On Windows)
     - To upload files from a folder using a Python script, create the script and run it. Here's an example you can use: 
-    ```
+
+    ```python
     from pathlib import Path
     from deepset_cloud_sdk.service.files_service import DeepsetCloudFile
     from deepset_cloud_sdk.workflows.sync_client.files import upload
