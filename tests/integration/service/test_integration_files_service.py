@@ -14,7 +14,7 @@ from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesServ
 from tests.conftest import _get_random_workspace_name
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def workspace_name(integration_config: CommonConfig) -> Generator[str, None, None]:
     """Create a workspace for the tests and delete it afterwards."""
     workspace_name = _get_random_workspace_name()
