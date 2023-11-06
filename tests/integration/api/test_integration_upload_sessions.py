@@ -39,11 +39,13 @@ class TestCreateUploadSessions:
         async with DeepsetCloudAPI.factory(integration_config) as deepset_cloud_api:
             upload_session_client = UploadSessionsAPI(deepset_cloud_api)
 
+            await upload_session_client.create(workspace_name=workspace_name)
+
             result: UploadSessionDetailList = await upload_session_client.list(
-                workspace_name=workspace_name, limit=3, page_number=3
+                workspace_name=workspace_name, limit=1, page_number=0
             )
 
             assert result.total > 0
             assert result.has_more is True
             assert result.data is not None
-            assert len(result.data) == 3
+            assert len(result.data) == 1

@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 from http import HTTPStatus
 from typing import List
@@ -120,7 +121,10 @@ def workspace_name(integration_config: CommonConfig) -> str:
         with open("tests/data/example.txt", "rb") as example_file_txt:
             response = httpx.post(
                 f"{integration_config.api_url}/workspaces/{workspace_name}/files",
-                files={"file": ("example.txt", example_file_txt, "text/plain")},
+                files={
+                    "file": ("example.txt", example_file_txt, "text/plain"),
+                    "meta": (None, json.dumps({"find": "me"}).encode("utf-8")),
+                },
                 headers={"Authorization": f"Bearer {integration_config.api_key}"},
             )
             assert response.status_code == HTTPStatus.CREATED
