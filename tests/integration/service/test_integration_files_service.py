@@ -1,19 +1,30 @@
 import os
 import tempfile
+from http import HTTPStatus
 from pathlib import Path
-from typing import List
+from typing import Generator, List
 
+import httpx
 import pytest
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+from tests.conftest import _get_random_workspace_name
 
 
-@pytest.fixture
-def workspace_name() -> str:
-    return "sdk_write"
+@pytest.fixture(scope="module")
+def workspace_name(integration_config: CommonConfig) -> Generator[str, None, None]:
+    """Create a workspace for the tests and delete it afterwards."""
+    workspace_name = _get_random_workspace_name()
+    response = httpx.post(f"{integration_config.api_url}/workspaces", json={"name": workspace_name})
+    assert response.status_code == HTTPStatus.CREATED
+    try:
+        yield workspace_name
+    finally:
+        response = httpx.delete(f"{integration_config.api_url}/workspaces/{workspace_name}")
+        assert response.status_code == HTTPStatus.NO_CONTENT
 
 
 @pytest.mark.asyncio

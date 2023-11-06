@@ -1,5 +1,7 @@
 import datetime
 import os
+import random
+import string
 from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
@@ -22,6 +24,10 @@ load_dotenv()
 
 
 logger = structlog.get_logger(__name__)
+
+
+def _get_random_workspace_name() -> str:
+    return "".join(random.choice(string.ascii_letters + string.digits) for _ in range(12))
 
 
 @pytest.fixture
