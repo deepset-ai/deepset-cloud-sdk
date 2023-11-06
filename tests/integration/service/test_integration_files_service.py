@@ -18,12 +18,19 @@ from tests.conftest import _get_random_workspace_name
 def workspace_name(integration_config: CommonConfig) -> Generator[str, None, None]:
     """Create a workspace for the tests and delete it afterwards."""
     workspace_name = _get_random_workspace_name()
-    response = httpx.post(f"{integration_config.api_url}/workspaces", json={"name": workspace_name})
+    response = httpx.post(
+        f"{integration_config.api_url}/workspaces",
+        json={"name": workspace_name},
+        headers={"Authorization": f"Bearer {integration_config.api_key}"},
+    )
     assert response.status_code == HTTPStatus.CREATED
     try:
         yield workspace_name
     finally:
-        response = httpx.delete(f"{integration_config.api_url}/workspaces/{workspace_name}")
+        response = httpx.delete(
+            f"{integration_config.api_url}/workspaces/{workspace_name}",
+            headers={"Authorization": f"Bearer {integration_config.api_key}"},
+        )
         assert response.status_code == HTTPStatus.NO_CONTENT
 
 
