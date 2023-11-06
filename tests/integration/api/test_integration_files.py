@@ -5,11 +5,6 @@ from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.files import FilesAPI
 
 
-@pytest.fixture
-def workspace_name() -> str:
-    return "sdk_read"
-
-
 @pytest.mark.asyncio
 class TestListFiles:
     async def test_list_paginated(self, integration_config: CommonConfig, workspace_name: str) -> None:

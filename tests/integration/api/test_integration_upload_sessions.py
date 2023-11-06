@@ -10,11 +10,6 @@ from deepset_cloud_sdk._api.upload_sessions import (
 )
 
 
-@pytest.fixture
-def workspace_name() -> str:
-    return "sdk_read"
-
-
 @pytest.mark.asyncio
 class TestCreateUploadSessions:
     async def test_create_and_close_upload_session(self, integration_config: CommonConfig, workspace_name: str) -> None:
