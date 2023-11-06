@@ -1,7 +1,7 @@
 import datetime
 import os
 from http import HTTPStatus
-from typing import Generator, List
+from typing import List
 from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
@@ -47,36 +47,30 @@ def _wait_for_file_to_be_available(integration_config: CommonConfig, workspace_n
 
 
 @pytest.fixture
-def workspace_name(integration_config: CommonConfig) -> Generator[str, None, None]:
+def workspace_name(integration_config: CommonConfig) -> str:
     """Create a workspace for the tests and delete it afterwards."""
     workspace_name = "sdk_integration"
-    try:
-        # try creating workspace
-        response = httpx.post(
-            f"{integration_config.api_url}/workspaces",
-            json={"name": workspace_name},
-            headers={"Authorization": f"Bearer {integration_config.api_key}"},
-        )
-        assert response.status_code in (HTTPStatus.CREATED, HTTPStatus.CONFLICT)
 
-        if len(_get_file_names(integration_config, workspace_name)) == 0:
-            with open("tests/data/example.txt", "rb") as example_file_txt:
-                response = httpx.post(
-                    f"{integration_config.api_url}/workspaces/{workspace_name}/files",
-                    files={"file": ("example.txt", example_file_txt, "text/plain")},
-                    headers={"Authorization": f"Bearer {integration_config.api_key}"},
-                )
-                assert response.status_code == HTTPStatus.CREATED
+    # try creating workspace
+    response = httpx.post(
+        f"{integration_config.api_url}/workspaces",
+        json={"name": workspace_name},
+        headers={"Authorization": f"Bearer {integration_config.api_key}"},
+    )
+    assert response.status_code in (HTTPStatus.CREATED, HTTPStatus.CONFLICT)
 
-            _wait_for_file_to_be_available(integration_config, workspace_name)
+    if len(_get_file_names(integration_config, workspace_name)) == 0:
+        with open("tests/data/example.txt", "rb") as example_file_txt:
+            response = httpx.post(
+                f"{integration_config.api_url}/workspaces/{workspace_name}/files",
+                files={"file": ("example.txt", example_file_txt, "text/plain")},
+                headers={"Authorization": f"Bearer {integration_config.api_key}"},
+            )
+            assert response.status_code == HTTPStatus.CREATED
 
-        yield workspace_name
-    finally:
-        response = httpx.delete(
-            f"{integration_config.api_url}/workspaces/{workspace_name}",
-            headers={"Authorization": f"Bearer {integration_config.api_key}"},
-        )
-        assert response.status_code in (HTTPStatus.NO_CONTENT, HTTPStatus.NOT_FOUND)
+        _wait_for_file_to_be_available(integration_config, workspace_name)
+
+    return workspace_name
 
 
 @pytest.fixture
