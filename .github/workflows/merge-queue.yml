@@ -2,6 +2,7 @@ name: Merge Queue
 
 on:
   merge_group:
+  pull_request:
   workflow_call:
     inputs:
       api_url:
