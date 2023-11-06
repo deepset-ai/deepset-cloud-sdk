@@ -38,14 +38,6 @@ def _get_file_names(integration_config: CommonConfig, workspace_name: str) -> Li
 
 
 @pytest.fixture
-def git_sha() -> str:
-    """get git sha from environment variable"""
-    git_sha = os.getenv("GIT_SHA", "")
-    assert git_sha != "", "GIT_SHA environment variable must be set"
-    return git_sha
-
-
-@pytest.fixture
 def integration_config() -> CommonConfig:
     config = CommonConfig(
         api_key=os.getenv("API_KEY", ""),
