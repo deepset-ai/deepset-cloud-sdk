@@ -30,7 +30,7 @@ logger = structlog.get_logger(__name__)
 
 
 def _get_random_workspace_name() -> str:
-    return "".join(random.choice(string.ascii_letters + string.digits) for _ in range(12))
+    return "sdk+" + "".join(random.choice(string.ascii_letters + string.digits) for _ in range(12))
 
 
 @retry(
