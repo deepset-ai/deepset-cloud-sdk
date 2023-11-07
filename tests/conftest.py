@@ -35,6 +35,7 @@ def _get_file_names(integration_config: CommonConfig, workspace_name: str) -> Li
     )
     assert list_response.status_code == HTTPStatus.OK
     file_names: List[str] = list_response.json()["data"]
+    logger.info("Found files", file_names=file_names)
     return file_names
 
 
