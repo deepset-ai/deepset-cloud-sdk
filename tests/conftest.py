@@ -119,15 +119,16 @@ def workspace_name(integration_config: CommonConfig) -> str:
 
     if len(_get_file_names(integration_config=integration_config, workspace_name=workspace_name)) == 0:
         with open("tests/data/example.txt", "rb") as example_file_txt:
-            response = httpx.post(
-                f"{integration_config.api_url}/workspaces/{workspace_name}/files",
-                files={
-                    "file": ("example.txt", example_file_txt, "text/plain"),
-                    "meta": (None, json.dumps({"find": "me"}).encode("utf-8")),
-                },
-                headers={"Authorization": f"Bearer {integration_config.api_key}"},
-            )
-            assert response.status_code == HTTPStatus.CREATED
+            for i in range(15):
+                response = httpx.post(
+                    f"{integration_config.api_url}/workspaces/{workspace_name}/files",
+                    files={
+                        "file": (f"example{i}.txt", example_file_txt, "text/plain"),
+                        "meta": (None, json.dumps({"find": "me"}).encode("utf-8")),
+                    },
+                    headers={"Authorization": f"Bearer {integration_config.api_key}"},
+                )
+                assert response.status_code == HTTPStatus.CREATED
 
         _wait_for_file_to_be_available(integration_config, workspace_name)
 
