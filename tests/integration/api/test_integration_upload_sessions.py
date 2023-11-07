@@ -42,7 +42,7 @@ class TestCreateUploadSessions:
             await upload_session_client.create(workspace_name=workspace_name)
 
             result: UploadSessionDetailList = await upload_session_client.list(
-                workspace_name=workspace_name, limit=1, page_number=0
+                workspace_name=workspace_name, limit=1, page_number=1
             )
 
             assert result.total > 0
