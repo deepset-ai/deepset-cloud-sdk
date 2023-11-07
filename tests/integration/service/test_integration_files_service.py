@@ -53,11 +53,11 @@ class TestUploadsFileService:
 
 @pytest.mark.asyncio
 class TestListFilesService:
-    async def test_list_all_files(self, integration_config: CommonConfig) -> None:
+    async def test_list_all_files(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
             file_batches: List[List[File]] = []
             async for file_batch in file_service.list_all(
-                workspace_name="sdk_read",
+                workspace_name=workspace_name,
                 batch_size=11,
                 timeout_s=120,
             ):
@@ -70,12 +70,12 @@ class TestListFilesService:
 
 @pytest.mark.asyncio
 class TestDownloadFilesService:
-    async def test_download_files(self, integration_config: CommonConfig) -> None:
+    async def test_download_files(self, integration_config: CommonConfig, workspace_name: str) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             async with FilesService.factory(integration_config) as file_service:
                 # cancel download after 5 seconds
                 try:
-                    await file_service.download(workspace_name="sdk_read", file_dir=tmp_dir, timeout_s=5)
+                    await file_service.download(workspace_name=workspace_name, file_dir=tmp_dir, timeout_s=5)
                 except Exception:
                     pass
                 finally:
