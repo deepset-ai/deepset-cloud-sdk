@@ -11,7 +11,7 @@ env:
 
 jobs:
   deploy-test:
-    if: ${{ github.event.label.name == 'test-deploy' }}`
+    if: ${{ github.event.label.name == 'test-deploy' }} || github.event.label.name !='integration'`
     uses: ./.github/workflows/deploy.yml
     with:
       deployment_env: test
