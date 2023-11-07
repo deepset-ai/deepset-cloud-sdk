@@ -25,7 +25,6 @@ from deepset_cloud_sdk._s3.upload import S3
 
 load_dotenv()
 
-
 logger = structlog.get_logger(__name__)
 
 
@@ -33,6 +32,7 @@ def _get_file_names(integration_config: CommonConfig, workspace_name: str) -> Li
     list_response = httpx.get(
         f"{integration_config.api_url}/workspaces/{workspace_name}/files",
         headers={"Authorization": f"Bearer {integration_config.api_key}"},
+        params={"limit": 100},
     )
     assert list_response.status_code == HTTPStatus.OK
     file_names: List[str] = list_response.json()["data"]
@@ -102,8 +102,10 @@ def upload_session_response() -> UploadSession:
     wait=wait_fixed(1),
     reraise=True,
 )
-def _wait_for_file_to_be_available(integration_config: CommonConfig, workspace_name: str) -> None:
-    assert len(_get_file_names(integration_config, workspace_name)) > 0
+def _wait_for_file_to_be_available(
+    integration_config: CommonConfig, workspace_name: str, expected_file_count: int = 15
+) -> None:
+    assert len(_get_file_names(integration_config, workspace_name)) >= expected_file_count
 
 
 @pytest.fixture(scope="session")
@@ -135,7 +137,7 @@ def workspace_name(integration_config: CommonConfig) -> Generator[str, None, Non
             )
             assert response.status_code == HTTPStatus.CREATED
 
-        _wait_for_file_to_be_available(integration_config, workspace_name)
+        _wait_for_file_to_be_available(integration_config, workspace_name, expected_file_count=15)
 
     yield workspace_name
 
