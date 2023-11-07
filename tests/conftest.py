@@ -106,7 +106,7 @@ def _wait_for_file_to_be_available(integration_config: CommonConfig, workspace_n
     assert len(_get_file_names(integration_config, workspace_name)) > 0
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def workspace_name(integration_config: CommonConfig) -> Generator[str, None, None]:
     """Create a workspace for the tests and delete it afterwards."""
     fake = Faker()
