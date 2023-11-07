@@ -18,6 +18,6 @@ class TestListFiles:
             assert result.has_more is False
             assert len(result.data) == 1
             found_file = result.data[0]
-            assert found_file.name == "example.txt"
+            assert found_file.name == "example0.txt"
             assert found_file.size > 0
             assert found_file.meta == {"find": "me"}
