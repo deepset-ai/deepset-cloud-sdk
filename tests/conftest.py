@@ -2,7 +2,7 @@ import datetime
 import json
 import os
 from http import HTTPStatus
-from typing import List
+from typing import List, Generator
 from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
@@ -10,6 +10,7 @@ import httpx
 import pytest
 import structlog
 from dotenv import load_dotenv
+from faker import Faker
 from tenacity import retry, stop_after_delay, wait_fixed
 
 from deepset_cloud_sdk._api.config import CommonConfig
@@ -106,9 +107,10 @@ def _wait_for_file_to_be_available(integration_config: CommonConfig, workspace_n
 
 
 @pytest.fixture
-def workspace_name(integration_config: CommonConfig) -> str:
+def workspace_name(integration_config: CommonConfig) -> Generator[str, None, None]:
     """Create a workspace for the tests and delete it afterwards."""
-    workspace_name = "sdk_integration"
+    fake = Faker()
+    workspace_name = f"test_{'_'.join(fake.words(3))}"
 
     # try creating workspace
     response = httpx.post(
@@ -133,4 +135,11 @@ def workspace_name(integration_config: CommonConfig) -> str:
 
         _wait_for_file_to_be_available(integration_config, workspace_name)
 
-    return workspace_name
+    yield workspace_name
+
+    response = httpx.delete(
+        f"{integration_config.api_url}/workspaces",
+        headers={"Authorization": f"Bearer {integration_config.api_key}"},
+    )
+
+    assert response.status_code in (HTTPStatus.OK, HTTPStatus.NO_CONTENT)
