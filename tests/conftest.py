@@ -2,7 +2,7 @@ import datetime
 import json
 import os
 from http import HTTPStatus
-from typing import List, Generator
+from typing import Generator, List
 from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
