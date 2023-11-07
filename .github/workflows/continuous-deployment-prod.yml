@@ -2,6 +2,12 @@ name: CD - Prod Integration Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      api_url:
+        required: false
+        default: "https://api.cloud.deepset.ai/api/v1"
+        type: string
+        description: "The API URL for the test run"
 
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
@@ -17,4 +23,4 @@ jobs:
         uses: ./.github/actions/integration_tests
         with:
           API_KEY: "${{secrets.API_KEY}}"
-          API_URL: "https://api.cloud.deepset.ai/api/v1"
+          API_URL: ${{ inputs.api_url }}
