@@ -11,13 +11,13 @@ class TestListFiles:
         async with DeepsetCloudAPI.factory(integration_config) as deepset_cloud_api:
             files_api = FilesAPI(deepset_cloud_api)
             result = await files_api.list_paginated(
-                workspace_name=workspace_name, limit=10, name="example", content="text", odata_filter="find eq 'me'"
+                workspace_name=workspace_name, limit=10, name="example0", content="text", odata_filter="find eq 'me'"
             )
 
             assert result.total == 1
             assert result.has_more is False
             assert len(result.data) == 1
             found_file = result.data[0]
-            assert found_file.name == "example.txt"
+            assert found_file.name == "example0.txt"
             assert found_file.size > 0
             assert found_file.meta == {"find": "me"}

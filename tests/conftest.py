@@ -35,6 +35,7 @@ def _get_file_names(integration_config: CommonConfig, workspace_name: str) -> Li
     )
     assert list_response.status_code == HTTPStatus.OK
     file_names: List[str] = list_response.json()["data"]
+    logger.info("Found files", file_names=file_names)
     return file_names
 
 
@@ -118,13 +119,14 @@ def workspace_name(integration_config: CommonConfig) -> str:
     assert response.status_code in (HTTPStatus.CREATED, HTTPStatus.CONFLICT)
 
     if len(_get_file_names(integration_config=integration_config, workspace_name=workspace_name)) == 0:
-        with open("tests/data/example.txt", "rb") as example_file_txt:
+        for i in range(15):
             response = httpx.post(
                 f"{integration_config.api_url}/workspaces/{workspace_name}/files",
+                data={"text": "This is text"},
                 files={
-                    "file": ("example.txt", example_file_txt, "text/plain"),
                     "meta": (None, json.dumps({"find": "me"}).encode("utf-8")),
                 },
+                params={"file_name": f"example{i}.txt"},
                 headers={"Authorization": f"Bearer {integration_config.api_key}"},
             )
             assert response.status_code == HTTPStatus.CREATED
