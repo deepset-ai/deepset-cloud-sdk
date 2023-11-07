@@ -40,7 +40,7 @@ def _get_file_names(integration_config: CommonConfig, workspace_name: str) -> Li
     return file_names
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def integration_config() -> CommonConfig:
     config = CommonConfig(
         api_key=os.getenv("API_KEY", ""),
