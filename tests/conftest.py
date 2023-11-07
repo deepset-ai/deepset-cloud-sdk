@@ -138,7 +138,7 @@ def workspace_name(integration_config: CommonConfig) -> Generator[str, None, Non
     yield workspace_name
 
     response = httpx.delete(
-        f"{integration_config.api_url}/workspaces",
+        f"{integration_config.api_url}/workspaces/{workspace_name}",
         headers={"Authorization": f"Bearer {integration_config.api_key}"},
     )
 
