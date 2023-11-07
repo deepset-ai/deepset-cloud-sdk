@@ -118,8 +118,8 @@ def workspace_name(integration_config: CommonConfig) -> str:
     assert response.status_code in (HTTPStatus.CREATED, HTTPStatus.CONFLICT)
 
     if len(_get_file_names(integration_config=integration_config, workspace_name=workspace_name)) == 0:
-        with open("tests/data/example.txt", "rb") as example_file_txt:
-            for i in range(15):
+        for i in range(15):
+            with open("tests/data/example.txt", "rb") as example_file_txt:
                 response = httpx.post(
                     f"{integration_config.api_url}/workspaces/{workspace_name}/files",
                     files={
