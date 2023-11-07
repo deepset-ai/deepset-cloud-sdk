@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 from http import HTTPStatus
 from typing import List
@@ -121,7 +122,10 @@ def workspace_name(integration_config: CommonConfig) -> str:
         for i in range(15):
             response = httpx.post(
                 f"{integration_config.api_url}/workspaces/{workspace_name}/files",
-                data={"text": "This is text", "meta": {"find": "me"}},
+                data={"text": "This is text"},
+                files={
+                    "meta": (None, json.dumps({"find": "me"}).encode("utf-8")),
+                },
                 params={"file_name": f"example{i}.txt"},
                 headers={"Authorization": f"Bearer {integration_config.api_key}"},
             )
