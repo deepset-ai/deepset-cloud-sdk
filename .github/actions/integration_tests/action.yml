@@ -1,12 +1,12 @@
-name: 'Integration Tests'
-description: 'Runs the Integration tests '
+name: "Integration Tests"
+description: "Runs the Integration tests "
 
 inputs:
   API_KEY:
-    description: 'The API_KEY for deepset Cloud'
+    description: "The API_KEY for deepset Cloud"
     required: true
   API_URL:
-    description: 'The API_URL for deepset Cloud'
+    description: "The API_URL for deepset Cloud"
     required: true
 
 outputs: {}
@@ -23,4 +23,4 @@ runs:
     - name: Run SDK Tests
       shell: bash
       run: |
-        API_KEY=${{inputs.API_KEY}} API_URL=${{inputs.API_URL}}  hatch run test:integration
+        API_KEY=${{inputs.API_KEY}} API_URL=${{inputs.API_URL}} hatch run test:integration

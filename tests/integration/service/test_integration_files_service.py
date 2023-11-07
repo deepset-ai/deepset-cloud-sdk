@@ -11,11 +11,6 @@ from deepset_cloud_sdk._api.upload_sessions import WriteMode
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 
 
-@pytest.fixture
-def workspace_name() -> str:
-    return "sdk_write"
-
-
 @pytest.mark.asyncio
 class TestUploadsFileService:
     async def test_upload(self, integration_config: CommonConfig, workspace_name: str) -> None:
