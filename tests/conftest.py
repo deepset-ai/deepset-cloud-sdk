@@ -112,6 +112,8 @@ def workspace_name(integration_config: CommonConfig) -> Generator[str, None, Non
     fake = Faker()
     workspace_name = f"test_{'_'.join(fake.words(3))}"
 
+    logger.info("Creating workspace", workspace_name=workspace_name)
+
     # try creating workspace
     response = httpx.post(
         f"{integration_config.api_url}/workspaces",
