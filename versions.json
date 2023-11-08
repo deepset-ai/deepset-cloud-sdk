@@ -1,1 +1,37 @@
-[{"version": "0.0.34", "title": "0.0.34", "aliases": []}, {"version": "0.0.33", "title": "0.0.33", "aliases": []}, {"version": "0.0.32", "title": "0.0.32", "aliases": []}, {"version": "0.0.31", "title": "0.0.31", "aliases": []}, {"version": "0.0.30", "title": "0.0.30", "aliases": []}, {"version": "0.0.29", "title": "0.0.29", "aliases": []}, {"version": "0.0.27", "title": "0.0.27", "aliases": []}]
+[
+  {
+    "version": "0.0.34",
+    "title": "0.0.34",
+    "aliases": []
+  },
+  {
+    "version": "0.0.33",
+    "title": "0.0.33",
+    "aliases": []
+  },
+  {
+    "version": "0.0.32",
+    "title": "0.0.32",
+    "aliases": []
+  },
+  {
+    "version": "0.0.31",
+    "title": "0.0.31",
+    "aliases": []
+  },
+  {
+    "version": "0.0.30",
+    "title": "0.0.30",
+    "aliases": []
+  },
+  {
+    "version": "0.0.29",
+    "title": "0.0.29",
+    "aliases": []
+  },
+  {
+    "version": "0.0.27",
+    "title": "0.0.27",
+    "aliases": []
+  }
+]
