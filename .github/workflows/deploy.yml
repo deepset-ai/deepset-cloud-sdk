@@ -10,6 +10,9 @@ on:
         required: true
         default: https://api.dev.cloud.dpst.dev/api/v1
         type: string
+      version:
+        required: true
+        type: string
 
 permissions:
   id-token: write
@@ -38,6 +41,9 @@ jobs:
          python-version: "3.10"
       - name: Install Hatch
         run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Bump version
+        # Bump version to Github action tag
+        run: hatch version ${{ inputs.version }}
       - name: Build
         run: hatch build
       - name: publish
