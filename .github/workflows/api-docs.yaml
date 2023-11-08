@@ -36,8 +36,6 @@ jobs:
       - name: Generate API docs
         run: ./.github/utils/pydoc-markdown.sh
 
-      - name: Install dependencies for doc deployment
-        run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
 
       - name: Configure git to push docs
         run: |
@@ -45,6 +43,9 @@ jobs:
           git config --global user.email docs@bot.com
           git config pull.rebase false
           git pull --allow-unrelated-histories origin gh-pages
+
+      - name: Install dependencies for doc deployment
+        run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
 
       - name: Publish docs
         run: |
