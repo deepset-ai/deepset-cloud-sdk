@@ -31,12 +31,12 @@ jobs:
         run: |
             python -m pip install --upgrade pip
             pip install -r docs/_pydoc/requirements.txt
+            pip install --upgrade setuptools # Fix to prevent: ModuleNotFoundError: No module named 'pkg_resources'
+
 
       - name: Generate API docs
         run: ./.github/utils/pydoc-markdown.sh
 
-      - name: Install dependencies for doc deployment
-        run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
 
       - name: Configure git to push docs
         run: |
@@ -44,9 +44,11 @@ jobs:
           git config --global user.email docs@bot.com
           git config pull.rebase false
           git pull --allow-unrelated-histories origin gh-pages
-        
+
+      - name: Install dependencies for doc deployment
+        run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
+
       - name: Publish docs
         run: |
-          VERSION=$(sed -n 's/__version__ = "\(.*\)"/\1/p' ./deepset_cloud_sdk/__about__.py) && \
-          mike deploy --push --update-aliases ${VERSION} && \
-          mike set-default --push ${VERSION}
+          mike deploy --push --update-aliases ${{github.ref_name}} && \
+          mike set-default --push ${{github.ref_name}}
