@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional, Union
+from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 from uuid import UUID
 
 import structlog
@@ -27,10 +28,13 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionStatus,
     WriteMode,
 )
-from deepset_cloud_sdk._s3.upload import S3, S3UploadSummary
+from deepset_cloud_sdk._s3.upload import S3, S3UploadResult, S3UploadSummary
 from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
+
+ALLOWED_TYPE_SUFFIXES = [".txt", ".pdf"]
+DIRECT_UPLOAD_THRESHOLD = 100
 
 
 class FilesService:
@@ -129,6 +133,21 @@ class FilesService:
         finally:
             await self._upload_sessions.close(workspace_name=workspace_name, session_id=upload_session.session_id)
 
+    async def _wrapped_direct_upload(
+        self, workspace_name: str, file_path: Path, meta: Dict[str, Any], write_mode: WriteMode
+    ) -> S3UploadResult:
+        try:
+            await self._files.direct_upload(
+                workspace_name=workspace_name,
+                file_path=file_path,
+                meta=meta,
+                file_name=file_path.name,
+                write_mode=write_mode,
+            )
+            return S3UploadResult(file_name=file_path.name, success=True)
+        except Exception as error:
+            return S3UploadResult(file_name=file_path.name, success=False, exception=error)
+
     async def upload_file_paths(
         self,
         workspace_name: str,
@@ -152,6 +171,31 @@ class FilesService:
         :show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
+
+        if len(file_paths) < DIRECT_UPLOAD_THRESHOLD:
+            logger.info("Uploading files to deepset Cloud.", file_paths=file_paths)
+            _coroutines = []
+            _raw_files = [path for path in file_paths if path.suffix.lower() in ALLOWED_TYPE_SUFFIXES]
+            for file_path in _raw_files:
+                meta: Dict[str, Any] = {}
+                meta_path = Path(str(file_path) + ".meta.json")
+                if meta_path in file_paths:
+                    with meta_path.open("r") as meta_file:
+                        meta = json.loads(meta_file.read())
+
+                _coroutines.append(
+                    self._wrapped_direct_upload(
+                        workspace_name=workspace_name, file_path=file_path, meta=meta, write_mode=write_mode
+                    )
+                )
+            result = await asyncio.gather(*_coroutines)
+            return S3UploadSummary(
+                total_files=len(_raw_files),
+                successful_upload_count=len([r for r in result if r.success]),
+                failed_upload_count=len([r for r in result if r.success is False]),
+                failed=[r for r in result if r.success is False],
+            )
+
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
             # upload file paths to session
@@ -248,7 +292,7 @@ class FilesService:
         file_paths = [
             path
             for path in all_files
-            if path.is_file() and ((path.suffix in [".txt", ".pdf"]) or path.name.endswith("meta.json"))
+            if path.is_file() and ((path.suffix in ALLOWED_TYPE_SUFFIXES) or path.name.endswith("meta.json"))
         ]
 
         if len(file_paths) < len(all_files):

@@ -1,6 +1,5 @@
 import datetime
 import json
-import os
 from http import HTTPStatus
 from typing import Generator, List
 from unittest.mock import AsyncMock, Mock
@@ -43,8 +42,8 @@ def _get_file_names(integration_config: CommonConfig, workspace_name: str) -> Li
 @pytest.fixture(scope="session")
 def integration_config() -> CommonConfig:
     config = CommonConfig(
-        api_key=os.getenv("API_KEY", ""),
-        api_url=os.getenv("API_URL", ""),
+        api_key="api_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZWQyZGFmOC05OTliLTQxNmMtYmRkOC1mN2U1OGQ5YTRhMDB8NjIyMGI4YzU1MzVhNTMwMDY5ZjBjMmNmIiwiZXhwIjoxNzAwOTE4MTMwLCJhdWQiOlsiaHR0cHM6Ly9hcGkuZGV2LmNsb3VkLmRwc3QuZGV2Il19.6qLWbEpvJSR5GRJ5WwymyJ2BDFq9tnSPvlJ2u-lUggo",
+        api_url="https://api.dev.cloud.dpst.dev/api/v1",
     )
     assert config.api_key != "", "API_KEY environment variable must be set"
     assert config.api_url != "", "API_URL environment variable must be set"
