@@ -112,7 +112,7 @@ def _wait_for_file_to_be_available(
 def workspace_name(integration_config: CommonConfig) -> Generator[str, None, None]:
     """Create a workspace for the tests and delete it afterwards."""
     fake = Faker()
-    workspace_name = f"test_{'_'.join(fake.words(3))}"
+    workspace_name = f"sdktest_{'_'.join(fake.words(3))}"
 
     logger.info("Creating workspace", workspace_name=workspace_name)
 
