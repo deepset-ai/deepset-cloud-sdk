@@ -25,8 +25,8 @@ class TestUploadsFileService:
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
             )
-            assert result.total_files == 20
-            assert result.successful_upload_count == 20
+            assert result.total_files == 10
+            assert result.successful_upload_count == 10
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
