@@ -385,7 +385,7 @@ class TestUploadTexts:
             workspace_name="test_workspace",
             text="test content",
             meta={"test": "test"},
-            file_name="example.txt",
+            file_name="test_file.txt",
             write_mode=WriteMode.OVERWRITE,
         )
 
