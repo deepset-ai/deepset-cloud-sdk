@@ -46,7 +46,7 @@ class TestFilePathsUpload:
         monkeypatch: MonkeyPatch,
     ) -> None:
         # enforce batch upload
-        monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", 1)
+        monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", -1)
         upload_summary = S3UploadSummary(total_files=1, successful_upload_count=1, failed_upload_count=0, failed=[])
         mocked_s3.upload_files_from_paths.return_value = upload_summary
         mocked_upload_sessions_api.create.return_value = upload_session_response
@@ -91,7 +91,7 @@ class TestFilePathsUpload:
         monkeypatch: MonkeyPatch,
     ) -> None:
         # enforce batch upload
-        monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", 1)
+        monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", -1)
         mocked_upload_sessions_api.create.return_value = upload_session_response
         mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
             session_id=upload_session_response.session_id,
@@ -348,7 +348,7 @@ async def test_upload_file_paths_with_timeout(
     upload_session_response: UploadSession,
     monkeypatch: MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", 1)
+    monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", -1)
     mocked_upload_sessions_api.create.return_value = upload_session_response
     mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
         session_id=upload_session_response.session_id,

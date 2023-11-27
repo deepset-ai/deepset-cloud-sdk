@@ -329,7 +329,9 @@ class TestDirectUploadFile:
             "files",
             files={"file": ("basic.txt", ANY)},
             data={"meta": {"key": "value"}},
-            params={"write_mode": "KEEP"},
+            params={
+                "write_mode": "OVERWRITE",
+            },
         )
 
     async def test_direct_upload_file_with_name(self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock) -> None:
