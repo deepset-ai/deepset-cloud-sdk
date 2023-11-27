@@ -34,7 +34,7 @@ from deepset_cloud_sdk.models import DeepsetCloudFile
 logger = structlog.get_logger(__name__)
 
 ALLOWED_TYPE_SUFFIXES = [".txt", ".pdf"]
-DIRECT_UPLOAD_THRESHOLD = 100
+DIRECT_UPLOAD_THRESHOLD = 20
 
 
 class FilesService:
