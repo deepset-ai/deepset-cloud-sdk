@@ -2,18 +2,20 @@ import datetime
 import tempfile
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock
+from unittest.mock import ANY, Mock
 from uuid import UUID
 
 import httpx
 import pytest
 
 from deepset_cloud_sdk._api.files import (
+    FailedToUploadFileException,
     File,
     FileList,
     FileNotFoundInDeepsetCloudException,
     FilesAPI,
 )
+from deepset_cloud_sdk._api.upload_sessions import WriteMode
 
 
 @pytest.fixture
@@ -292,3 +294,82 @@ class TestDownloadFile:
 
             with Path.open(Path(tmp_dir + "/silly_things_1_2.txt.meta.json")) as _file:
                 assert _file.read() == '{"key": "value"}'
+
+
+@pytest.mark.asyncio
+class TestDirectUploadFile:
+    @pytest.mark.parametrize("error_code", [httpx.codes.NOT_FOUND, httpx.codes.SERVICE_UNAVAILABLE])
+    async def test_direct_upload_file_failed(
+        self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock, error_code: str
+    ) -> None:
+        mocked_deepset_cloud_api.post.return_value = httpx.Response(
+            status_code=error_code,
+        )
+        with pytest.raises(FailedToUploadFileException):
+            await files_api.direct_upload(
+                workspace_name="test_workspace",
+                file_path=Path("./tests/test_data/basic.txt"),
+                meta={},
+            )
+
+    async def test_direct_upload_file(self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock) -> None:
+        mocked_deepset_cloud_api.post.return_value = httpx.Response(
+            status_code=httpx.codes.CREATED,
+            json={"file_id": "cd16435f-f6eb-423f-bf6f-994dc8a36a10"},
+        )
+        file_id = await files_api.direct_upload(
+            workspace_name="test_workspace",
+            file_path=Path("./tests/test_data/basic.txt"),
+            meta={"key": "value"},
+            write_mode=WriteMode.OVERWRITE,
+        )
+        assert file_id == UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10")
+        mocked_deepset_cloud_api.post.assert_called_once_with(
+            "test_workspace",
+            "files",
+            files={"file": ("basic.txt", ANY)},
+            data={"meta": {"key": "value"}},
+            params={"write_mode": "KEEP"},
+        )
+
+    async def test_direct_upload_file_with_name(self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock) -> None:
+        mocked_deepset_cloud_api.post.return_value = httpx.Response(
+            status_code=httpx.codes.CREATED,
+            json={"file_id": "cd16435f-f6eb-423f-bf6f-994dc8a36a10"},
+        )
+        file_id = await files_api.direct_upload(
+            workspace_name="test_workspace",
+            file_path=Path("./tests/test_data/basic.txt"),
+            meta={"key": "value"},
+            file_name="my_file.txt",
+            write_mode=WriteMode.OVERWRITE,
+        )
+        assert file_id == UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10")
+        mocked_deepset_cloud_api.post.assert_called_once_with(
+            "test_workspace",
+            "files",
+            files={"file": ("my_file.txt", ANY)},
+            data={"meta": {"key": "value"}},
+            params={"write_mode": "OVERWRITE"},
+        )
+
+    async def test_direct_upload_with_path_as_string(self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock) -> None:
+        mocked_deepset_cloud_api.post.return_value = httpx.Response(
+            status_code=httpx.codes.CREATED,
+            json={"file_id": "cd16435f-f6eb-423f-bf6f-994dc8a36a10"},
+        )
+        file_id = await files_api.direct_upload(
+            workspace_name="test_workspace",
+            file_path="./tests/test_data/basic.txt",
+            meta={"key": "value"},
+            file_name="my_file.txt",
+            write_mode=WriteMode.FAIL,
+        )
+        assert file_id == UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10")
+        mocked_deepset_cloud_api.post.assert_called_once_with(
+            "test_workspace",
+            "files",
+            files={"file": ("my_file.txt", ANY)},
+            data={"meta": {"key": "value"}},
+            params={"write_mode": "FAIL"},
+        )

@@ -196,7 +196,7 @@ class FilesAPI:
             raise FailedToUploadFileException(
                 f"Failed to upload file with status code {response.status_code}. response was: {response.text}"
             )
-        file_id: UUID = response.json()["file_id"]
+        file_id: UUID = UUID(response.json()["file_id"])
         return file_id
 
     async def download(
