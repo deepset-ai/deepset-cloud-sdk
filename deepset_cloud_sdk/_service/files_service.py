@@ -173,7 +173,7 @@ class FilesService:
         :show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
-        if len(file_paths) < DIRECT_UPLOAD_THRESHOLD:
+        if len(file_paths) <= DIRECT_UPLOAD_THRESHOLD:
             logger.info("Uploading files to deepset Cloud.", file_paths=file_paths)
             _coroutines = []
             _raw_files = [path for path in file_paths if path.suffix.lower() in ALLOWED_TYPE_SUFFIXES]
@@ -190,6 +190,11 @@ class FilesService:
                     )
                 )
             result = await asyncio.gather(*_coroutines)
+            logger.info(
+                "Finished uploading files.",
+                number_of_successful_files=len(_raw_files),
+                failed_files=[r for r in result if r.success is False],
+            )
             return S3UploadSummary(
                 total_files=len(_raw_files),
                 successful_upload_count=len([r for r in result if r.success]),
