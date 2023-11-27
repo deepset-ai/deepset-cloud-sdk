@@ -107,7 +107,7 @@ class TestFilePathsUpload:
                 workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=0
             )
 
-    async def test_upload_file_with_direct_upload(
+    async def test_upload_file_with_direct_upload_path(
         self,
         file_service: FilesService,
         mocked_upload_sessions_api: Mock,
@@ -141,7 +141,7 @@ class TestFilePathsUpload:
         )
         assert result == upload_summary
 
-        mocked_files_api.direct_upload.assert_called_once_with(
+        mocked_files_api.direct_upload_path.assert_called_once_with(
             workspace_name="test_workspace",
             file_path=Path("./tests/data/direct_upload/example.txt"),
             file_name="example.txt",
@@ -149,7 +149,7 @@ class TestFilePathsUpload:
             write_mode=WriteMode.OVERWRITE,
         )
 
-        assert not mocked_upload_sessions_api.create.called
+        assert not mocked_upload_sessions_api.create.called, "We should not have created a sessionf for a single file"
 
     async def test_upload_file_with_direct_upload_and_one_fail(
         self,
@@ -161,7 +161,7 @@ class TestFilePathsUpload:
         upload_summary = S3UploadSummary(total_files=1, successful_upload_count=1, failed_upload_count=0, failed=[])
         mocked_s3.upload_files_from_paths.return_value = upload_summary
         expected_exception = FailedToUploadFileException()
-        mocked_files_api.direct_upload.side_effect = [
+        mocked_files_api.direct_upload_path.side_effect = [
             expected_exception,
             UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
         ]
@@ -190,7 +190,7 @@ class TestFilePathsUpload:
             ],
         )
 
-        assert not mocked_upload_sessions_api.create.called
+        assert not mocked_upload_sessions_api.create.called, "We should not have created a sessionf for a single file"
 
 
 @pytest.mark.asyncio
@@ -289,13 +289,15 @@ class TestUpload:
 
 @pytest.mark.asyncio
 class TestUploadTexts:
-    async def test_upload_texts(
+    async def test_upload_texts_via_sessions(
         self,
         file_service: FilesService,
         mocked_upload_sessions_api: Mock,
         upload_session_response: UploadSession,
         mocked_s3: Mock,
+        monkeypatch: MonkeyPatch,
     ) -> None:
+        monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", -1)
         upload_summary = S3UploadSummary(total_files=1, successful_upload_count=1, failed_upload_count=0, failed=[])
         mocked_s3.upload_texts.return_value = upload_summary
         files = [
@@ -338,6 +340,53 @@ class TestUploadTexts:
         )
         mocked_upload_sessions_api.status.assert_called_once_with(
             workspace_name="test_workspace", session_id=upload_session_response.session_id
+        )
+
+    async def test_upload_texts_via_sync_upload(
+        self,
+        file_service: FilesService,
+        mocked_upload_sessions_api: Mock,
+        upload_session_response: UploadSession,
+        mocked_s3: Mock,
+        mocked_files_api: Mock,
+    ) -> None:
+        upload_summary = S3UploadSummary(total_files=1, successful_upload_count=1, failed_upload_count=0, failed=[])
+        mocked_s3.upload_texts.return_value = upload_summary
+        files = [
+            DeepsetCloudFile(
+                name="test_file.txt",
+                text="test content",
+                meta={"test": "test"},
+            )
+        ]
+        mocked_upload_sessions_api.create.return_value = upload_session_response
+        mocked_upload_sessions_api.status.return_value = UploadSessionStatus(
+            session_id=upload_session_response.session_id,
+            expires_at=upload_session_response.expires_at,
+            documentation_url=upload_session_response.documentation_url,
+            ingestion_status=UploadSessionIngestionStatus(
+                failed_files=0,
+                finished_files=1,
+            ),
+        )
+        result = await file_service.upload_texts(
+            workspace_name="test_workspace",
+            files=files,
+            write_mode=WriteMode.OVERWRITE,
+            blocking=True,
+            timeout_s=300,
+            show_progress=False,
+        )
+        assert result == upload_summary
+
+        assert not mocked_upload_sessions_api.create.called, "We should not have created a sessionf for a single file"
+
+        mocked_files_api.direct_upload_path.assert_called_once_with(
+            workspace_name="test_workspace",
+            file_name="example.txt",
+            text="test content",
+            meta={"key": "value"},
+            write_mode=WriteMode.OVERWRITE,
         )
 
 

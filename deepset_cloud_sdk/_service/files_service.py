@@ -133,11 +133,11 @@ class FilesService:
         finally:
             await self._upload_sessions.close(workspace_name=workspace_name, session_id=upload_session.session_id)
 
-    async def _wrapped_direct_upload(
+    async def _wrapped_direct_upload_path(
         self, workspace_name: str, file_path: Path, meta: Dict[str, Any], write_mode: WriteMode
     ) -> S3UploadResult:
         try:
-            await self._files.direct_upload(
+            await self._files.direct_upload_path(
                 workspace_name=workspace_name,
                 file_path=file_path,
                 meta=meta,
@@ -149,6 +149,23 @@ class FilesService:
         except Exception as error:
             logger.error("Failed uploading file.", file_path=file_path, error=error)
             return S3UploadResult(file_name=file_path.name, success=False, exception=error)
+
+    async def _wrapped_direct_upload_text(
+        self, workspace_name: str, text: str, file_name: str, meta: Dict[str, Any], write_mode: WriteMode
+    ) -> S3UploadResult:
+        try:
+            await self._files.direct_upload_text(
+                workspace_name=workspace_name,
+                text=text,
+                meta=meta,
+                file_name=file_name,
+                write_mode=write_mode,
+            )
+            logger.info("Successfully uploaded file.", file_name=file_name)
+            return S3UploadResult(file_name=file_name, success=True)
+        except Exception as error:
+            logger.error("Failed uploading file.", file_name=file_name, error=error)
+            return S3UploadResult(file_name=file_name, success=False, exception=error)
 
     async def upload_file_paths(
         self,
@@ -185,7 +202,7 @@ class FilesService:
                         meta = json.loads(meta_file.read())
 
                 _coroutines.append(
-                    self._wrapped_direct_upload(
+                    self._wrapped_direct_upload_path(
                         workspace_name=workspace_name, file_path=file_path, meta=meta, write_mode=write_mode
                     )
                 )
@@ -480,6 +497,32 @@ class FilesService:
         :show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
+        if len(files) <= DIRECT_UPLOAD_THRESHOLD:
+            logger.info("Uploading files to deepset Cloud.", total_text_files=len(files))
+            _coroutines = []
+            for file in files:
+                _coroutines.append(
+                    self._wrapped_direct_upload_text(
+                        workspace_name=workspace_name,
+                        file_name=file.name,
+                        meta=file.meta or {},
+                        text=file.text,
+                        write_mode=write_mode,
+                    )
+                )
+            result = await asyncio.gather(*_coroutines)
+            logger.info(
+                "Finished uploading files.",
+                number_of_successful_files=len(files),
+                failed_files=[r for r in result if r.success is False],
+            )
+            return S3UploadSummary(
+                total_files=len(files),
+                successful_upload_count=len([r for r in result if r.success]),
+                failed_upload_count=len([r for r in result if r.success is False]),
+                failed=[r for r in result if r.success is False],
+            )
+
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
             upload_summary = await self._s3.upload_texts(

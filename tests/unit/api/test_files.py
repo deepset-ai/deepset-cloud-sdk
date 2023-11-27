@@ -14,6 +14,7 @@ from deepset_cloud_sdk._api.files import (
     FileList,
     FileNotFoundInDeepsetCloudException,
     FilesAPI,
+    NotMatchingFileTypeException,
 )
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
 
@@ -297,7 +298,7 @@ class TestDownloadFile:
 
 
 @pytest.mark.asyncio
-class TestDirectUploadFile:
+class TestDirectUploadFilePath:
     @pytest.mark.parametrize("error_code", [httpx.codes.NOT_FOUND, httpx.codes.SERVICE_UNAVAILABLE])
     async def test_direct_upload_file_failed(
         self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock, error_code: int
@@ -306,7 +307,7 @@ class TestDirectUploadFile:
             status_code=error_code,
         )
         with pytest.raises(FailedToUploadFileException):
-            await files_api.direct_upload(
+            await files_api.direct_upload_path(
                 workspace_name="test_workspace",
                 file_path=Path("./tests/test_data/basic.txt"),
                 meta={},
@@ -317,7 +318,7 @@ class TestDirectUploadFile:
             status_code=httpx.codes.CREATED,
             json={"file_id": "cd16435f-f6eb-423f-bf6f-994dc8a36a10"},
         )
-        file_id = await files_api.direct_upload(
+        file_id = await files_api.direct_upload_path(
             workspace_name="test_workspace",
             file_path=Path("./tests/test_data/basic.txt"),
             meta={"key": "value"},
@@ -339,7 +340,7 @@ class TestDirectUploadFile:
             status_code=httpx.codes.CREATED,
             json={"file_id": "cd16435f-f6eb-423f-bf6f-994dc8a36a10"},
         )
-        file_id = await files_api.direct_upload(
+        file_id = await files_api.direct_upload_path(
             workspace_name="test_workspace",
             file_path=Path("./tests/test_data/basic.txt"),
             meta={"key": "value"},
@@ -360,7 +361,7 @@ class TestDirectUploadFile:
             status_code=httpx.codes.CREATED,
             json={"file_id": "cd16435f-f6eb-423f-bf6f-994dc8a36a10"},
         )
-        file_id = await files_api.direct_upload(
+        file_id = await files_api.direct_upload_path(
             workspace_name="test_workspace",
             file_path="./tests/test_data/basic.txt",
             meta={"key": "value"},
@@ -374,4 +375,53 @@ class TestDirectUploadFile:
             files={"file": ("my_file.txt", ANY)},
             data={"meta": {"key": "value"}},
             params={"write_mode": "FAIL"},
+        )
+
+
+@pytest.mark.asyncio
+class TestDirectUploadText:
+    async def test_direct_upload_file_for_wrong_file_type_name(self, files_api: FilesAPI) -> None:
+        with pytest.raises(NotMatchingFileTypeException):
+            await files_api.direct_upload_text(
+                workspace_name="test_workspace",
+                file_name="basic.json",
+                text="some text",
+                meta={},
+            )
+
+    @pytest.mark.parametrize("error_code", [httpx.codes.NOT_FOUND, httpx.codes.SERVICE_UNAVAILABLE])
+    async def test_direct_upload_file_failed(
+        self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock, error_code: int
+    ) -> None:
+        mocked_deepset_cloud_api.post.return_value = httpx.Response(
+            status_code=error_code,
+        )
+        with pytest.raises(FailedToUploadFileException):
+            await files_api.direct_upload_text(
+                workspace_name="test_workspace",
+                file_name="basic.txt",
+                text="some text",
+                meta={},
+            )
+
+    async def test_direct_upload_file(self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock) -> None:
+        mocked_deepset_cloud_api.post.return_value = httpx.Response(
+            status_code=httpx.codes.CREATED,
+            json={"file_id": "cd16435f-f6eb-423f-bf6f-994dc8a36a10"},
+        )
+        file_id = await files_api.direct_upload_text(
+            workspace_name="test_workspace",
+            file_name="basic.txt",
+            text="some text",
+            meta={"key": "value"},
+            write_mode=WriteMode.OVERWRITE,
+        )
+        assert file_id == UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10")
+        mocked_deepset_cloud_api.post.assert_called_once_with(
+            "test_workspace",
+            "files",
+            data={"meta": {"key": "value"}, "file_name": "basic.txt", "text": "some text"},
+            params={
+                "write_mode": "OVERWRITE",
+            },
         )
