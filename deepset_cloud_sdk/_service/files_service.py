@@ -144,8 +144,10 @@ class FilesService:
                 file_name=file_path.name,
                 write_mode=write_mode,
             )
+            logger.info("Successfully uploaded file.", file_path=file_path)
             return S3UploadResult(file_name=file_path.name, success=True)
         except Exception as error:
+            logger.error("Failed uploading file.", file_path=file_path, error=error)
             return S3UploadResult(file_name=file_path.name, success=False, exception=error)
 
     async def upload_file_paths(
