@@ -193,7 +193,7 @@ class FilesAPI:
                 workspace_name,
                 "files",
                 files={"file": (file_name, file)},
-                data={"meta": meta},
+                json={"meta": meta},
                 params={"write_mode": write_mode.value},
             )
         if response.status_code != codes.CREATED or response.json().get("file_id") is None:
@@ -227,8 +227,9 @@ class FilesAPI:
         response = await self._deepset_cloud_api.post(
             workspace_name,
             "files",
-            data={"meta": meta, "text": text, "file_name": file_name},
-            params={"write_mode": write_mode.value},
+            json={"meta": meta},
+            data={"text": text},
+            params={"write_mode": write_mode.value, "file_name": file_name},
         )
         if response.status_code != codes.CREATED or response.json().get("file_id") is None:
             raise FailedToUploadFileException(

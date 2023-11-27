@@ -104,7 +104,7 @@ class S3:
         try:
             async with client_session.post(
                 aws_config.url,
-                data=file_data,
+                json=file_data,
                 allow_redirects=False,
             ) as response:
                 response.raise_for_status()
@@ -117,7 +117,7 @@ class S3:
                     file_data = self._build_file_data(content, aws_safe_name, aws_config)
                     async with client_session.post(
                         redirect_url,
-                        data=file_data,
+                        json=file_data,
                         allow_redirects=False,
                     ) as response:
                         response.raise_for_status()

@@ -329,7 +329,7 @@ class TestDirectUploadFilePath:
             "test_workspace",
             "files",
             files={"file": ("basic.txt", ANY)},
-            data={"meta": {"key": "value"}},
+            json={"meta": {"key": "value"}},
             params={
                 "write_mode": "OVERWRITE",
             },
@@ -352,7 +352,7 @@ class TestDirectUploadFilePath:
             "test_workspace",
             "files",
             files={"file": ("my_file.txt", ANY)},
-            data={"meta": {"key": "value"}},
+            json={"meta": {"key": "value"}},
             params={"write_mode": "OVERWRITE"},
         )
 
@@ -373,7 +373,7 @@ class TestDirectUploadFilePath:
             "test_workspace",
             "files",
             files={"file": ("my_file.txt", ANY)},
-            data={"meta": {"key": "value"}},
+            json={"meta": {"key": "value"}},
             params={"write_mode": "FAIL"},
         )
 
@@ -420,8 +420,10 @@ class TestDirectUploadText:
         mocked_deepset_cloud_api.post.assert_called_once_with(
             "test_workspace",
             "files",
-            data={"meta": {"key": "value"}, "file_name": "basic.txt", "text": "some text"},
+            json={"meta": {"key": "value"}},
+            data={"text": "some text"},
             params={
                 "write_mode": "OVERWRITE",
+                "file_name": "basic.txt",
             },
         )
