@@ -219,7 +219,6 @@ class FilesAPI:
         :param meta: Meta information to attach to the file.
         :return: ID of the uploaded file.
         """
-
         if not file_name.endswith(".txt"):
             raise NotMatchingFileTypeException(
                 f"File name {file_name} is not a textfile. Please use '.txt' for text uploads."
