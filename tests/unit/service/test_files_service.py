@@ -381,7 +381,7 @@ class TestUploadTexts:
 
         assert not mocked_upload_sessions_api.create.called, "We should not have created a sessionf for a single file"
 
-        mocked_files_api.direct_upload_path.assert_called_once_with(
+        mocked_files_api.direct_upload_text.assert_called_once_with(
             workspace_name="test_workspace",
             file_name="example.txt",
             text="test content",
