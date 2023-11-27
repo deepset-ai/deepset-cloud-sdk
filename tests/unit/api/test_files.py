@@ -300,7 +300,7 @@ class TestDownloadFile:
 class TestDirectUploadFile:
     @pytest.mark.parametrize("error_code", [httpx.codes.NOT_FOUND, httpx.codes.SERVICE_UNAVAILABLE])
     async def test_direct_upload_file_failed(
-        self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock, error_code: str
+        self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock, error_code: int
     ) -> None:
         mocked_deepset_cloud_api.post.return_value = httpx.Response(
             status_code=error_code,
