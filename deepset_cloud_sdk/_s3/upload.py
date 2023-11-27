@@ -104,7 +104,7 @@ class S3:
         try:
             async with client_session.post(
                 aws_config.url,
-                json=file_data,
+                data=file_data,
                 allow_redirects=False,
             ) as response:
                 response.raise_for_status()
