@@ -189,10 +189,13 @@ class FilesAPI:
                 workspace_name,
                 "files",
                 files={"file": (file_name, file)},
-                data={"meta": meta, "write_mode": write_mode.value},
+                data={"meta": meta},
+                params={"write_mode": write_mode.value},
             )
         if response.status_code != codes.CREATED or response.json().get("file_id") is None:
-            raise FailedToUploadFileException(f"Failed to upload file: {response.text}")
+            raise FailedToUploadFileException(
+                f"Failed to upload file with status code {response.status_code}. response was: {response.text}"
+            )
         file_id: UUID = response.json()["file_id"]
         return file_id
 
