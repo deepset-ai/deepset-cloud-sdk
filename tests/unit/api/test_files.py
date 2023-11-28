@@ -1,4 +1,5 @@
 import datetime
+import json
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -420,8 +421,7 @@ class TestDirectUploadText:
         mocked_deepset_cloud_api.post.assert_called_once_with(
             "test_workspace",
             "files",
-            json={"meta": {"key": "value"}},
-            data={"text": "some text"},
+            data={"text": "some text", "meta": json.dumps({"key": "value"})},
             params={
                 "write_mode": "OVERWRITE",
                 "file_name": "basic.txt",

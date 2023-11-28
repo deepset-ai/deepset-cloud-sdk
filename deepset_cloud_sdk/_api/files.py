@@ -7,6 +7,7 @@ deleting files.
 
 import datetime
 import inspect
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -227,8 +228,7 @@ class FilesAPI:
         response = await self._deepset_cloud_api.post(
             workspace_name,
             "files",
-            json={"meta": meta},
-            data={"text": text},
+            data={"text": text, "meta": json.dumps(meta)},
             params={"write_mode": write_mode.value, "file_name": file_name},
         )
         if response.status_code != codes.CREATED or response.json().get("file_id") is None:
