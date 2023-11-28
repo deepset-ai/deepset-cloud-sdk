@@ -124,26 +124,28 @@ def workspace_name(integration_config: CommonConfig) -> Generator[str, None, Non
     )
     assert response.status_code in (HTTPStatus.CREATED, HTTPStatus.CONFLICT)
 
-    if len(_get_file_names(integration_config=integration_config, workspace_name=workspace_name)) == 0:
-        for i in range(15):
-            response = httpx.post(
-                f"{integration_config.api_url}/workspaces/{workspace_name}/files",
-                data={"text": "This is text"},
-                files={
-                    "meta": (None, json.dumps({"find": "me"}).encode("utf-8")),
-                },
-                params={"file_name": f"example{i}.txt"},
-                headers={"Authorization": f"Bearer {integration_config.api_key}"},
-            )
-            assert response.status_code == HTTPStatus.CREATED
+    try:
+        if len(_get_file_names(integration_config=integration_config, workspace_name=workspace_name)) == 0:
+            for i in range(15):
+                response = httpx.post(
+                    f"{integration_config.api_url}/workspaces/{workspace_name}/files",
+                    data={"text": "This is text"},
+                    files={
+                        "meta": (None, json.dumps({"find": "me"}).encode("utf-8")),
+                    },
+                    params={"file_name": f"example{i}.txt"},
+                    headers={"Authorization": f"Bearer {integration_config.api_key}"},
+                )
+                assert response.status_code == HTTPStatus.CREATED
 
-        _wait_for_file_to_be_available(integration_config, workspace_name, expected_file_count=15)
+            _wait_for_file_to_be_available(integration_config, workspace_name, expected_file_count=15)
 
-    yield workspace_name
+        yield workspace_name
 
-    response = httpx.delete(
-        f"{integration_config.api_url}/workspaces/{workspace_name}",
-        headers={"Authorization": f"Bearer {integration_config.api_key}"},
-    )
+    finally:
+        response = httpx.delete(
+            f"{integration_config.api_url}/workspaces/{workspace_name}",
+            headers={"Authorization": f"Bearer {integration_config.api_key}"},
+        )
 
-    assert response.status_code in (HTTPStatus.OK, HTTPStatus.NO_CONTENT)
+        assert response.status_code in (HTTPStatus.OK, HTTPStatus.NO_CONTENT)
