@@ -106,8 +106,9 @@ class DeepsetCloudAPI:
         workspace_name: str,
         endpoint: str,
         params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
+        json: Optional[Dict[str, Any]] = None,
         files: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
         timeout_s: int = 20,
     ) -> Response:
         """Make a POST request to the deepset Cloud API.
@@ -123,7 +124,8 @@ class DeepsetCloudAPI:
         response = await self.client.post(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
-            json=data or {},
+            json=json or {},
+            data=data or {},
             files=files,
             headers=self.headers,
             timeout=timeout_s,

@@ -7,7 +7,7 @@ name = "deepset-cloud-sdk"
 dynamic = ["version"]
 description = 'deepset Cloud SDK'
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">= 3.8"
 license = "Apache-2.0"
 keywords = []
 authors = [
@@ -54,7 +54,7 @@ tests-unit = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov
 tests-integration = "pytest tests/integration"
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.8"]
+python = ["3.10"]
 
 [tool.hatch.envs.default]
 dependencies = [
@@ -80,7 +80,7 @@ dependencies = [
 
 
 [tool.hatch.envs.code-quality]
-python = "3.8"
+python = "3.10"
 template='default'
 detached = false
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
@@ -136,7 +136,7 @@ exclude_lines = [
 line-length = 120
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true

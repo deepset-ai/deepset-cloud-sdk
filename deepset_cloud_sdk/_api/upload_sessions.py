@@ -131,7 +131,7 @@ class UploadSessionsAPI:
         :return: UploadSession object.
         """
         response = await self._deepset_cloud_api.post(
-            workspace_name=workspace_name, endpoint="upload_sessions", data={"write_mode": write_mode.value}
+            workspace_name=workspace_name, endpoint="upload_sessions", json={"write_mode": write_mode.value}
         )
         if response.status_code != codes.CREATED:
             logger.error(
