@@ -30,6 +30,11 @@ class TestUploadsFileService:
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
+            names_of_uploaded_files = [
+                file.name
+                for file in Path("./tests/test_data/msmarco.10").glob("*.txt")
+                if not file.name.endswith(".meta.json")
+            ]
             # Check the metadata was uploaded correctly
             files: List[File] = []
             async for file_batch in file_service.list_all(
@@ -40,6 +45,10 @@ class TestUploadsFileService:
                 files += file_batch
 
             for file in files:
+                if file.name in names_of_uploaded_files:
+                    assert (
+                        file.meta.get("source") == "msmarco"
+                    ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
                 assert (
                     file.meta.get("source") == "msmarco"
                 ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
@@ -63,6 +72,11 @@ class TestUploadsFileService:
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
+            names_of_uploaded_files = [
+                file.name
+                for file in Path("./tests/test_data/msmarco.10").glob("*.txt")
+                if not file.name.endswith(".meta.json")
+            ]
             # Check the metadata was uploaded correctly
             files: List[File] = []
             async for file_batch in file_service.list_all(
@@ -73,6 +87,10 @@ class TestUploadsFileService:
                 files += file_batch
 
             for file in files:
+                if file.name in names_of_uploaded_files:
+                    assert (
+                        file.meta.get("source") == "msmarco"
+                    ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
                 assert (
                     file.meta.get("source") == "msmarco"
                 ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
