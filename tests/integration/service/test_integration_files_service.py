@@ -30,6 +30,18 @@ class TestUploadsFileService:
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
+            # Check the metadata was uploaded correctly
+            files: List[File] = []
+            async for file_batch in file_service.list_all(
+                workspace_name=workspace_name,
+                batch_size=11,
+                timeout_s=120,
+            ):
+                files += file_batch
+
+            for file in files:
+                assert file.meta["source"] == "msmarco"
+
     async def test_async_upload(
         self, integration_config: CommonConfig, workspace_name: str, monkeypatch: MonkeyPatch
     ) -> None:
@@ -48,6 +60,18 @@ class TestUploadsFileService:
             assert result.successful_upload_count == 20
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
+
+            # Check the metadata was uploaded correctly
+            files: List[File] = []
+            async for file_batch in file_service.list_all(
+                workspace_name=workspace_name,
+                batch_size=11,
+                timeout_s=120,
+            ):
+                files += file_batch
+
+            for file in files:
+                assert file.meta["source"] == "msmarco"
 
     async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:

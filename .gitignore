@@ -169,3 +169,4 @@ cython_debug/
 temp
 .idea
 .python-version
+.DS_Store

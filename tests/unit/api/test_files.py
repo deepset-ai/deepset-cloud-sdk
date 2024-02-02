@@ -329,8 +329,7 @@ class TestDirectUploadFilePath:
         mocked_deepset_cloud_api.post.assert_called_once_with(
             "test_workspace",
             "files",
-            files={"file": ("basic.txt", ANY)},
-            json={"meta": {"key": "value"}},
+            files={"file": ("basic.txt", ANY), "meta": (None, '{"key": "value"}')},
             params={
                 "write_mode": "OVERWRITE",
             },
@@ -352,8 +351,7 @@ class TestDirectUploadFilePath:
         mocked_deepset_cloud_api.post.assert_called_once_with(
             "test_workspace",
             "files",
-            files={"file": ("my_file.txt", ANY)},
-            json={"meta": {"key": "value"}},
+            files={"file": ("my_file.txt", ANY), "meta": (None, '{"key": "value"}')},
             params={"write_mode": "OVERWRITE"},
         )
 
@@ -373,8 +371,7 @@ class TestDirectUploadFilePath:
         mocked_deepset_cloud_api.post.assert_called_once_with(
             "test_workspace",
             "files",
-            files={"file": ("my_file.txt", ANY)},
-            json={"meta": {"key": "value"}},
+            files={"file": ("my_file.txt", ANY), "meta": (None, '{"key": "value"}')},
             params={"write_mode": "FAIL"},
         )
 
