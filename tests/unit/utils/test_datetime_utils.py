@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -14,4 +14,4 @@ class TestFromIsoformat:
         ],
     )
     def test_fromisoformat(self, input: str) -> None:
-        assert from_isoformat(input) == datetime(2024, 2, 3, 8, 10, 10, 335884)
+        assert from_isoformat(input) == datetime(2024, 2, 3, 8, 10, 10, 335884).replace(tzinfo=timezone.utc)
