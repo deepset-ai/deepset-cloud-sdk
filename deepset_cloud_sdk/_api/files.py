@@ -194,8 +194,7 @@ class FilesAPI:
             response = await self._deepset_cloud_api.post(
                 workspace_name,
                 "files",
-                files={"file": (file_name, file)},
-                json={"meta": meta},
+                files={"file": (file_name, file), "meta": (None, json.dumps(meta))},
                 params={"write_mode": write_mode.value},
             )
         if response.status_code != codes.CREATED or response.json().get("file_id") is None:
