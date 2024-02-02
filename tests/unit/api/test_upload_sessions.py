@@ -195,6 +195,49 @@ class TestListUploadSessions:
         assert result.data[0].write_mode == UploadSessionWriteModeEnum.KEEP
         assert result.data[0].status == UploadSessionStatusEnum.OPEN
 
+    async def test_list_sessions_with_z_timestamp(
+        self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock
+    ) -> None:
+        session_id = uuid4()
+        timestamp = datetime.datetime.now()
+        user_id = uuid4()
+
+        mocked_deepset_cloud_api.get.return_value = Response(
+            status_code=codes.OK,
+            json={
+                "data": [
+                    {
+                        "session_id": str(session_id),
+                        "created_by": {
+                            "given_name": "Kristof",
+                            "family_name": "Test",
+                            "user_id": str(user_id),
+                        },
+                        "created_at": timestamp.isoformat().replace("+00:00", "Z"),
+                        "expires_at": timestamp.isoformat().replace("+00:00", "Z"),
+                        "write_mode": "KEEP",
+                        "status": "OPEN",
+                    },
+                ],
+                "has_more": True,
+                "total": 23,
+            },
+        )
+        result: UploadSessionDetailList = await upload_session_client.list(
+            workspace_name="sdk_read", is_expired=True, limit=1, page_number=10
+        )
+        assert result.has_more is True
+        assert result.total == 23
+        assert len(result.data) == 1
+        assert result.data[0].session_id == session_id
+        assert result.data[0].created_by.given_name == "Kristof"
+        assert result.data[0].created_by.family_name == "Test"
+        assert result.data[0].created_by.user_id == user_id
+        assert result.data[0].created_at == timestamp
+        assert result.data[0].expires_at == timestamp
+        assert result.data[0].write_mode == UploadSessionWriteModeEnum.KEEP
+        assert result.data[0].status == UploadSessionStatusEnum.OPEN
+
     @pytest.mark.parametrize("first_status_code", [codes.BAD_GATEWAY, codes.INTERNAL_SERVER_ERROR])
     async def test_list_sessions_with_retry(
         self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock, first_status_code: int

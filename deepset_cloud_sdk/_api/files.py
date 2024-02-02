@@ -18,6 +18,7 @@ from httpx import codes
 
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
+from deepset_cloud_sdk._utils.datetime import from_isoformat
 
 logger = structlog.get_logger(__name__)
 
@@ -54,7 +55,7 @@ class File:
         :param env: Dictionary to parse.
         """
         to_parse = {k: v for k, v in env.items() if k in inspect.signature(cls).parameters}
-        to_parse["created_at"] = datetime.datetime.fromisoformat(to_parse["created_at"])
+        to_parse["created_at"] = from_isoformat(to_parse["created_at"])
         to_parse["file_id"] = UUID(to_parse["file_id"])
         return cls(**to_parse)
 
