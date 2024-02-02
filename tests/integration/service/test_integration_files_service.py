@@ -40,7 +40,9 @@ class TestUploadsFileService:
                 files += file_batch
 
             for file in files:
-                assert file.meta["source"] == "msmarco"
+                assert (
+                    file.meta.get("source") == "msmarco"
+                ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
 
     async def test_async_upload(
         self, integration_config: CommonConfig, workspace_name: str, monkeypatch: MonkeyPatch
@@ -71,7 +73,9 @@ class TestUploadsFileService:
                 files += file_batch
 
             for file in files:
-                assert file.meta["source"] == "msmarco"
+                assert (
+                    file.meta.get("source") == "msmarco"
+                ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
 
     async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
