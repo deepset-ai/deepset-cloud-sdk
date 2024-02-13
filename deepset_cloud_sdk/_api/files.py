@@ -37,9 +37,7 @@ class FailedToUploadFileException(Exception):
 
 @dataclass
 class File:
-    """File primitive from deepset Cloud. This dataclass is used for all file-related operations that don't include
-    the actual file content.
-    """
+    """File primitive from deepset Cloud. This dataclass is used for all file-related operations that don't include the actual file content."""
 
     file_id: UUID
     url: str
