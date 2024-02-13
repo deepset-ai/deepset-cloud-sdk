@@ -37,7 +37,9 @@ class FailedToUploadFileException(Exception):
 
 @dataclass
 class File:
-    """File primitive from deepset Cloud. This dataclass is used for all file-related operations that don't include thea actual file content."""
+    """File primitive from deepset Cloud. This dataclass is used for all file-related operations that don't include
+    the actual file content.
+    """
 
     file_id: UUID
     url: str
@@ -215,9 +217,14 @@ class FilesAPI:
         """Directly upload text to deepset Cloud.
 
         :param workspace_name: Name of the workspace to use.
-        :param file_path: Path to the file to upload.
+        :param text: File text to upload.
         :param file_name: Name of the file to upload.
         :param meta: Meta information to attach to the file.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
         :return: ID of the uploaded file.
         """
         if not file_name.endswith(".txt"):
@@ -250,7 +257,9 @@ class FilesAPI:
 
         :param workspace_name: Name of the workspace to use.
         :param file_id: ID of the file to download.
+        :param file_name: Name assigned to the downloaded file.
         :param include_meta: Whether to include the file meta in the folder.
+        :param file_dir: Location to save the file locally. If not provided the current directory is used.
         """
         if file_dir is None:
             file_dir = Path.cwd()

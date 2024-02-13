@@ -45,7 +45,7 @@ class FilesService:
 
         :param upload_sessions: API for upload sessions.
         :param files: API for files.
-        :param aws: AWS client.
+        :param s3: AWS S3 client.
         """
         self._upload_sessions = upload_sessions
         self._files = files
@@ -57,7 +57,6 @@ class FilesService:
         """Create a new instance of the service.
 
         :param config: CommonConfig object.
-        :param client: HTTPX client.
         :return: New instance of the service.
         """
         async with DeepsetCloudAPI.factory(config) as deepset_cloud_api:
@@ -184,10 +183,15 @@ class FilesService:
         the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
-        :file_paths: List of file paths to upload.
-        :blocking: If True, waits until the ingestion is finished and the files are visible in deepset Cloud.
-        :timeout_s: Timeout in seconds for the `blocking` parameter.
-        :show_progress If True, shows a progress bar for S3 uploads.
+        :param file_paths: List of file paths to upload.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
+        :param blocking: If True, waits until the ingestion is finished and the files are visible in deepset Cloud.
+        :param timeout_s: Timeout in seconds for the `blocking` parameter.
+        :param show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         if len(file_paths) <= DIRECT_UPLOAD_THRESHOLD:
@@ -351,15 +355,19 @@ class FilesService:
         the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
-        :paths: Path to the folder to upload.
-        :blocking: If True, waits until the ingestion to S3 is finished and the files are visible in deepset Cloud.
-        :timeout_s: Timeout in seconds for the `blocking` parameter.
-        :show_progress If True, shows a progress bar for S3 uploads.
-        :recursive: If True, recursively uploads all files in the folder.
+        :param paths: Path to the folder to upload.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
+        :param blocking: If True, waits until the ingestion to S3 is finished and the files are visible in deepset Cloud.
+        :param timeout_s: Timeout in seconds for the `blocking` parameter.
+        :param show_progress If True, shows a progress bar for S3 uploads.
+        :param recursive: If True, recursively uploads all files in the folder.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         logger.info("Getting valid files from file path. This may take a few minutes.", recursive=recursive)
-        file_paths = []
 
         if show_progress:
             with yaspin().arc as sp:
@@ -410,7 +418,7 @@ class FilesService:
         timeout_s: Optional[int] = None,
         show_progress: bool = True,
     ) -> None:
-        """Download a folder to deepset Cloud.
+        """Download files from deepset Cloud to a folder.
 
         :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
         :param file_dir: Path to the folder to download. If None, the current working directory is used.
@@ -419,7 +427,7 @@ class FilesService:
         :param odata_filter: odata_filter by file meta data.
         :param include_meta: If True, downloads the metadata files as well.
         :param batch_size: Batch size for the listing.
-        :param limit: Limit for the listing.
+        :param timeout_s: Timeout in seconds for the download.
         :param show_progress: Shows the upload progress.
         """
         start = time.time()
@@ -491,10 +499,15 @@ class FilesService:
         the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
-        :files: List of DeepsetCloudFiles to upload.
-        :blocking: If True, waits until the ingestion to S3 is finished and the files are displayed in deepset Cloud.
-        :timeout_s: Timeout in seconds for the `blocking` parameter.
-        :show_progress If True, shows a progress bar for S3 uploads.
+        :param files: List of DeepsetCloudFiles to upload.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
+        :param blocking: If True, waits until the ingestion to S3 is finished and the files are displayed in deepset Cloud.
+        :param timeout_s: Timeout in seconds for the `blocking` parameter.
+        :param show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         if len(files) <= DIRECT_UPLOAD_THRESHOLD:
