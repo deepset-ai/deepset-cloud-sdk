@@ -27,7 +27,7 @@ class DeepsetCloudAPI:
     def __init__(self, config: CommonConfig, client: httpx.AsyncClient) -> None:
         """Create a deepset Cloud API client.
 
-        Add a config for authencation and a HTTPX client for
+        Add a config for authentication and a HTTPX client for
         sending requests.
 
         :param config: Config for authentication.

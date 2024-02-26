@@ -178,11 +178,15 @@ async def download(
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
     during the upload. Supported file formats are TXT and PDF.
+    :param name: Name of the file to odata_filter by.
+    :param content: Content of a file to odata_filter by.
+    :param odata_filter: odata_filter by file meta data.
     :param include_meta: Whether to include the file meta in the folder.
     :param batch_size: Batch size for the listing.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
+    :param timeout_s: Timeout in seconds for the download.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         await file_service.download(

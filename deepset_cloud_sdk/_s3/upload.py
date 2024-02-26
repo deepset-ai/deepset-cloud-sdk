@@ -91,10 +91,10 @@ class S3:
     ) -> aiohttp.ClientResponse:
         """Upload a file to the prefixed S3 namespace.
 
-        :param file_path: The path to upload from.
+        :param file_name: The name that will be given to the uploaded file.
         :param upload_session: UploadSession to associate the upload with.
+        :param content: The content to upload.
         :param client_session: The aiohttp ClientSession to use for this request.
-        :param headers: The headers for the request
         :return: ClientResponse object.
         """
         aws_safe_name = make_safe_file_name(file_name)
@@ -188,8 +188,8 @@ class S3:
 
         :param file_name: Name of the file.
         :param upload_session: UploadSession to associate the upload with.
+        :param content: Content of the file.
         :param client_session: The aiohttp ClientSession to use for this request.
-        :param progress: A progress bar.
         :return: S3UploadResult object.
         """
         try:
@@ -251,6 +251,7 @@ class S3:
 
         :param upload_session: UploadSession to associate the upload with.
         :param file_paths: A list of paths to upload.
+        :param show_progress: Whether to show a progress bar on the upload.
         :return: S3UploadSummary object.
         """
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
@@ -269,6 +270,7 @@ class S3:
 
         :param upload_session: UploadSession to associate the upload with.
         :param files: A list of DeepsetCloudFiles to upload.
+        :param show_progress: Whether to show a progress bar on the upload.
         :return: S3UploadSummary object.
         """
         async with aiohttp.ClientSession(connector=self.connector) as client_session:

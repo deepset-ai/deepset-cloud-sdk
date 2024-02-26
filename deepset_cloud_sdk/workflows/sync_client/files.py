@@ -52,9 +52,11 @@ def upload(
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-    :param write_mode: The write mode determines how to handle uploading a file if it's already in the workspace.
-        Your options are: keep the file with the same name, make the request fail if a file with the same name already
-        exists, or overwrite the file. If you choose to overwrite, all files with the same name are overwritten.
+    :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+    Possible options are:
+    KEEP - uploads the file with the same name and keeps both files in the workspace.
+    OVERWRITE - overwrites the file that is in the workspace.
+    FAIL - fails to upload the file with the same name.
     :param blocking: Whether to wait for the files to be uploaded and displayed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
@@ -95,6 +97,9 @@ def download(  # pylint: disable=too-many-arguments
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
     during the upload. Supported file formats are TXT and PDF.
+    :param name: Name of the file to odata_filter by.
+    :param content: Content of a file to odata_filter by.
+    :param odata_filter: odata_filter by file meta data.
     :param include_meta: Whether to include the file meta in the folder.
     :param batch_size: Batch size for the listing.
     :param api_key: API key to use for authentication.
