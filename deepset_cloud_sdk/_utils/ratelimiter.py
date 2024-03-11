@@ -42,7 +42,6 @@ class RateLimiter:
 
     async def wait_for_token(self) -> None:
         """Wait until a token becomes available."""
-
         while self.tokens < 1:
             self.add_new_tokens()
             await asyncio.sleep(0.1)
@@ -50,7 +49,6 @@ class RateLimiter:
 
     def add_new_tokens(self) -> None:
         """Add additional tokens based on the time passed and the defined rate."""
-
         now = time.monotonic()
         time_since_update = now - self.updated_at
         new_tokens = int(time_since_update * self.RATE)
