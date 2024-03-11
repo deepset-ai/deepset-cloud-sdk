@@ -7,8 +7,8 @@ from aiohttp import ClientSession
 
 
 class RateLimiter:
+    """Rate limits an HTTP client for post() calls.
 
-    """Rate limits an HTTP client that would make get() and post() calls.
     Calls are rate-limited by host.
     This is a slightly modified version of the following code:
       - https://gist.github.com/pquentin/28628ad59145e339027cc1612195a961
@@ -32,7 +32,7 @@ class RateLimiter:
 
     async def post(self, *args: Any, **kwargs: Any) -> aiohttp.client._RequestContextManager:
         """
-        Ensure there is an avaialable token before making a request
+        Ensure there is an avaialable token before making a request.
 
         :params *args: the arguments to be passed to the ClientSession
         :param **kwargs: the keyword arguments to pass to the ClientSession
@@ -41,19 +41,16 @@ class RateLimiter:
         return self.client.post(*args, **kwargs)
 
     async def wait_for_token(self) -> None:
-        """
-        Waits until a token becomes available
-        """
+        """Wait until a token becomes available."""
+
         while self.tokens < 1:
             self.add_new_tokens()
             await asyncio.sleep(0.1)
         self.tokens -= 1
 
     def add_new_tokens(self) -> None:
-        """
-        Adds additional tokens based on the time passed and the defined rate
-        Does not add more than the Maximum allowed tokens
-        """
+        """Add additional tokens based on the time passed and the defined rate."""
+
         now = time.monotonic()
         time_since_update = now - self.updated_at
         new_tokens = int(time_since_update * self.RATE)
