@@ -18,6 +18,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     AWSPrefixedRequestConfig,
     UploadSession,
 )
+from deepset_cloud_sdk._utils.ratelimiter import RateLimiter
 from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
@@ -102,7 +103,7 @@ class S3:
 
         file_data = self._build_file_data(content, aws_safe_name, aws_config)
         try:
-            async with client_session.post(
+            async with await client_session.post(
                 aws_config.url,
                 data=file_data,
                 allow_redirects=False,
@@ -115,7 +116,7 @@ class S3:
                     # for example during automatic redirects. See https://github.com/aio-libs/aiohttp/issues/5577
                     redirect_url = response.headers["Location"]
                     file_data = self._build_file_data(content, aws_safe_name, aws_config)
-                    async with client_session.post(
+                    async with await client_session.post(
                         redirect_url,
                         json=file_data,
                         allow_redirects=False,
@@ -255,10 +256,11 @@ class S3:
         :return: S3UploadSummary object.
         """
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
+            client = RateLimiter(client_session)
             tasks = []
 
             for file_path in file_paths:
-                tasks.append(self.upload_from_file(file_path, upload_session, client_session))
+                tasks.append(self.upload_from_file(file_path, upload_session, client))
 
             result_summary = await self._process_results(tasks, show_progress=show_progress)
             return result_summary
@@ -274,18 +276,19 @@ class S3:
         :return: S3UploadSummary object.
         """
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
+            client = RateLimiter(client_session)
             tasks = []
 
             for file in files:
                 # raw data
                 file_name = file.name
-                tasks.append(self.upload_from_string(file_name, upload_session, file.text, client_session))
+                tasks.append(self.upload_from_string(file_name, upload_session, file.text, client))
 
                 # meta
                 if file.meta is not None:
                     meta_name = f"{file_name}.meta.json"
                     metadata = json.dumps(file.meta)
-                    tasks.append(self.upload_from_string(meta_name, upload_session, metadata, client_session))
+                    tasks.append(self.upload_from_string(meta_name, upload_session, metadata, client))
 
             result_summary = await self._process_results(tasks, show_progress=show_progress)
 

@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -7,6 +8,7 @@ from tqdm.asyncio import tqdm
 
 from deepset_cloud_sdk._api.upload_sessions import UploadSession
 from deepset_cloud_sdk._s3.upload import S3, RetryableHttpError, make_safe_file_name
+from deepset_cloud_sdk._utils.ratelimiter import RateLimiter
 from deepset_cloud_sdk.models import DeepsetCloudFile
 
 
@@ -92,6 +94,16 @@ class TestUploadsS3:
             assert results.successful_upload_count == 6
             assert results.failed_upload_count == 0
             assert len(results.failed) == 0
+
+        async def test_upload_rate(self, post: Mock, upload_session_response: UploadSession) -> None:
+            s3 = S3()
+            number_of_files_to_upload = 2500
+            files = [DeepsetCloudFile(name=f"{i}.txt", text=f"{i}") for i in range(number_of_files_to_upload)]
+            start = time.monotonic()
+            await s3.upload_texts(upload_session_response, files)
+            time_taken = time.monotonic() - start
+            expected_time_taken = number_of_files_to_upload / RateLimiter.RATE
+            assert time_taken == pytest.approx(expected_time_taken, 0.5)
 
         async def test_upload_files_from_path_http_error(self, upload_session_response: UploadSession) -> None:
             exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=503)
