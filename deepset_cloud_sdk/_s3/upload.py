@@ -88,7 +88,7 @@ class S3:
         file_name: str,
         upload_session: UploadSession,
         content: Any,
-        client_session: aiohttp.ClientSession,
+        client_session: RateLimiter,
     ) -> aiohttp.ClientResponse:
         """Upload a file to the prefixed S3 namespace.
 
