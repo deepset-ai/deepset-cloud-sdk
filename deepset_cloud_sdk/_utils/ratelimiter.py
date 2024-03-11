@@ -32,7 +32,7 @@ class RateLimiter:
 
     async def post(self, *args: Any, **kwargs: Any) -> aiohttp.client._RequestContextManager:
         """
-        Ensure there is an avaialable token before making a request.
+        Ensure there is an available token before making a request.
 
         :params *args: the arguments to be passed to the ClientSession
         :param **kwargs: the keyword arguments to pass to the ClientSession
