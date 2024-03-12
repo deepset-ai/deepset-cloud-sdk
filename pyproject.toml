@@ -62,13 +62,13 @@ dependencies = [
   "httpx==0.26.0",
   "python-dotenv==1.0.0",
   "tenacity==8.2.3",
-  "aiohttp==3.9.1"
+  "aiohttp==3.9.1",
 ]
 
 [tool.hatch.envs.test.scripts]
 unit-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
 integration = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/integration"
-
+unit = "pytest tests/unit -k test_ratelimiter"
 [tool.hatch.envs.test]
 template='default'
 dependencies = [
@@ -76,6 +76,8 @@ dependencies = [
   "pytest==7.3.1",
   "pytest-asyncio==0.21.0",
   "Faker==19.13.0",
+  "freezegun==1.4.0",
+  "pytest-timeout==2.3.1",
 ]
 
 
