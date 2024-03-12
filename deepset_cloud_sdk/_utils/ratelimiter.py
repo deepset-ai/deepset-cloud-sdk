@@ -5,8 +5,11 @@ from typing import Any
 import aiohttp
 from aiohttp import ClientSession
 
+# 500 requests per second, AWS limit is 3500 PUT/POST/DELETE requests a second
+DEFAULT_RATE_LIMIT = 500
 
-class RateLimiter:
+
+class RateLimiter:  # pylint: disable=too-few-public-methods
     """Rate limits an HTTP client for post() calls.
 
     Calls are rate-limited by host.
@@ -24,7 +27,7 @@ class RateLimiter:
         :param client: Instance of an aiohttp.ClientSession.
         """
         self._client = client
-        self._rate = 500  # 500 requests per second, AWS limit is 3500 PUT/POST/DELETE requests a second
+        self._rate = DEFAULT_RATE_LIMIT
         self._max_tokens = 500
         self._tokens = 0
         self._updated_at = time.monotonic()
