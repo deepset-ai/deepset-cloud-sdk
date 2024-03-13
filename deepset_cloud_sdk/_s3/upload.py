@@ -104,12 +104,11 @@ class S3:
 
         file_data = self._build_file_data(content, aws_safe_name, aws_config)
         try:
-            async with await self.limiter.try_acquire(
-                client_session.post(
-                    aws_config.url,
-                    data=file_data,
-                    allow_redirects=False,
-                )
+            self.limiter.try_acquire(1)  # rate limit requests
+            async with client_session.post(
+                aws_config.url,
+                data=file_data,
+                allow_redirects=False,
             ) as response:
                 response.raise_for_status()
 
@@ -119,12 +118,11 @@ class S3:
                     # for example during automatic redirects. See https://github.com/aio-libs/aiohttp/issues/5577
                     redirect_url = response.headers["Location"]
                     file_data = self._build_file_data(content, aws_safe_name, aws_config)
-                    async with await self.limiter(
-                        client_session.post(
-                            redirect_url,
-                            json=file_data,
-                            allow_redirects=False,
-                        )
+                    self.limiter.try_acquire(1)  # rate limit requests
+                    async with client_session.post(
+                        redirect_url,
+                        json=file_data,
+                        allow_redirects=False,
                     ) as response:
                         response.raise_for_status()
                         return response
