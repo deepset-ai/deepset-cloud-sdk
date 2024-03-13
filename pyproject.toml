@@ -70,7 +70,7 @@ dependencies = [
 [tool.hatch.envs.test.scripts]
 unit-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
 integration = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/integration"
-unit = "pytest tests/unit -k test_upload_rate"
+
 [tool.hatch.envs.test]
 template='default'
 dependencies = [
