@@ -11,7 +11,7 @@ from typing import Any, Coroutine, List, Optional, Union
 import aiofiles
 import aiohttp
 import structlog
-from pyrate_limiter import Duration, InMemoryBucket, Limiter, Rate
+from pyrate_limiter import Duration, Limiter, Rate
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from tqdm.asyncio import tqdm
 
