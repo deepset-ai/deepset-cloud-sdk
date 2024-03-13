@@ -11,6 +11,7 @@ from typing import Any, Coroutine, List, Optional, Union
 import aiofiles
 import aiohttp
 import structlog
+from pyrate_limiter import Duration, Limiter, Rate
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from tqdm.asyncio import tqdm
 
@@ -67,7 +68,7 @@ def make_safe_file_name(file_name: str) -> str:
 class S3:
     """Client for S3 operations related to deepset Cloud uploads."""
 
-    def __init__(self, concurrency: int = 120):
+    def __init__(self, concurrency: int = 120, rate_limit: Rate = Rate(3000, Duration.SECOND)):
         """
         Initialize the client.
 
@@ -75,6 +76,7 @@ class S3:
         """
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
+        self.limiter = Limiter(rate_limit, raise_when_fail=False, max_delay=Duration.SECOND * 1)
 
     @retry(
         retry=retry_if_exception_type(RetryableHttpError),
@@ -102,6 +104,7 @@ class S3:
 
         file_data = self._build_file_data(content, aws_safe_name, aws_config)
         try:
+            self.limiter.try_acquire("")  # rate limit requests
             async with client_session.post(
                 aws_config.url,
                 data=file_data,
@@ -115,6 +118,7 @@ class S3:
                     # for example during automatic redirects. See https://github.com/aio-libs/aiohttp/issues/5577
                     redirect_url = response.headers["Location"]
                     file_data = self._build_file_data(content, aws_safe_name, aws_config)
+                    self.limiter.try_acquire("")  # rate limit requests
                     async with client_session.post(
                         redirect_url,
                         json=file_data,
