@@ -18,9 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@b55428b1882923874294fa556849718a1d7f2ca5
+      - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
         with:
-          python-version: 3.8
+          python-version: "3.10"
 
       - name: Install prod dependencies
         run: |
@@ -34,14 +34,14 @@ jobs:
 
       - name: Send license report to Fossa
         # This will collect all necessary information (mostly used dependencies) and send it to the Fossa API
-        uses: fossas/fossa-action@f61a4c0c263690f2ddb54b9822a719c25a7b608f # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@47ef11b1e1e3812e88dae436ccbd2d0cbd1adab0 # Use a specific version if locking is preferred
         with:
           api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
 
       - name: Check license compliance
         # This will poll the Fossa API until they have processed the information which we've sent in the previous step
         # and fail if Fossa found an issue with the licences of our dependencies.
-        uses: fossas/fossa-action@f61a4c0c263690f2ddb54b9822a719c25a7b608f # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@47ef11b1e1e3812e88dae436ccbd2d0cbd1adab0 # Use a specific version if locking is preferred
         with:
           api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
           run-tests: true

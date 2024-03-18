@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional, Union
+from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 from uuid import UUID
 
 import structlog
@@ -27,10 +28,13 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionStatus,
     WriteMode,
 )
-from deepset_cloud_sdk._s3.upload import S3, S3UploadSummary
+from deepset_cloud_sdk._s3.upload import S3, S3UploadResult, S3UploadSummary
 from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
+
+ALLOWED_TYPE_SUFFIXES = [".txt", ".pdf"]
+DIRECT_UPLOAD_THRESHOLD = 20
 
 
 class FilesService:
@@ -41,7 +45,7 @@ class FilesService:
 
         :param upload_sessions: API for upload sessions.
         :param files: API for files.
-        :param aws: AWS client.
+        :param s3: AWS S3 client.
         """
         self._upload_sessions = upload_sessions
         self._files = files
@@ -53,7 +57,6 @@ class FilesService:
         """Create a new instance of the service.
 
         :param config: CommonConfig object.
-        :param client: HTTPX client.
         :return: New instance of the service.
         """
         async with DeepsetCloudAPI.factory(config) as deepset_cloud_api:
@@ -129,6 +132,40 @@ class FilesService:
         finally:
             await self._upload_sessions.close(workspace_name=workspace_name, session_id=upload_session.session_id)
 
+    async def _wrapped_direct_upload_path(
+        self, workspace_name: str, file_path: Path, meta: Dict[str, Any], write_mode: WriteMode
+    ) -> S3UploadResult:
+        try:
+            await self._files.direct_upload_path(
+                workspace_name=workspace_name,
+                file_path=file_path,
+                meta=meta,
+                file_name=file_path.name,
+                write_mode=write_mode,
+            )
+            logger.info("Successfully uploaded file.", file_path=file_path)
+            return S3UploadResult(file_name=file_path.name, success=True)
+        except Exception as error:
+            logger.error("Failed uploading file.", file_path=file_path, error=error)
+            return S3UploadResult(file_name=file_path.name, success=False, exception=error)
+
+    async def _wrapped_direct_upload_text(
+        self, workspace_name: str, text: str, file_name: str, meta: Dict[str, Any], write_mode: WriteMode
+    ) -> S3UploadResult:
+        try:
+            await self._files.direct_upload_text(
+                workspace_name=workspace_name,
+                text=text,
+                meta=meta,
+                file_name=file_name,
+                write_mode=write_mode,
+            )
+            logger.info("Successfully uploaded file.", file_name=file_name)
+            return S3UploadResult(file_name=file_name, success=True)
+        except Exception as error:
+            logger.error("Failed uploading file.", file_name=file_name, error=error)
+            return S3UploadResult(file_name=file_name, success=False, exception=error)
+
     async def upload_file_paths(
         self,
         workspace_name: str,
@@ -146,12 +183,46 @@ class FilesService:
         the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
-        :file_paths: List of file paths to upload.
-        :blocking: If True, waits until the ingestion is finished and the files are visible in deepset Cloud.
-        :timeout_s: Timeout in seconds for the `blocking` parameter.
-        :show_progress If True, shows a progress bar for S3 uploads.
+        :param file_paths: List of file paths to upload.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
+        :param blocking: If True, waits until the ingestion is finished and the files are visible in deepset Cloud.
+        :param timeout_s: Timeout in seconds for the `blocking` parameter.
+        :param show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
+        if len(file_paths) <= DIRECT_UPLOAD_THRESHOLD:
+            logger.info("Uploading files to deepset Cloud.", file_paths=file_paths)
+            _coroutines = []
+            _raw_files = [path for path in file_paths if path.suffix.lower() in ALLOWED_TYPE_SUFFIXES]
+            for file_path in _raw_files:
+                meta: Dict[str, Any] = {}
+                meta_path = Path(str(file_path) + ".meta.json")
+                if meta_path in file_paths:
+                    with meta_path.open("r") as meta_file:
+                        meta = json.loads(meta_file.read())
+
+                _coroutines.append(
+                    self._wrapped_direct_upload_path(
+                        workspace_name=workspace_name, file_path=file_path, meta=meta, write_mode=write_mode
+                    )
+                )
+            result = await asyncio.gather(*_coroutines)
+            logger.info(
+                "Finished uploading files.",
+                number_of_successful_files=len(_raw_files),
+                failed_files=[r for r in result if r.success is False],
+            )
+            return S3UploadSummary(
+                total_files=len(_raw_files),
+                successful_upload_count=len([r for r in result if r.success]),
+                failed_upload_count=len([r for r in result if r.success is False]),
+                failed=[r for r in result if r.success is False],
+            )
+
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
             # upload file paths to session
@@ -248,7 +319,7 @@ class FilesService:
         file_paths = [
             path
             for path in all_files
-            if path.is_file() and ((path.suffix in [".txt", ".pdf"]) or path.name.endswith("meta.json"))
+            if path.is_file() and ((path.suffix in ALLOWED_TYPE_SUFFIXES) or path.name.endswith("meta.json"))
         ]
 
         if len(file_paths) < len(all_files):
@@ -284,15 +355,19 @@ class FilesService:
         the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
-        :paths: Path to the folder to upload.
-        :blocking: If True, waits until the ingestion to S3 is finished and the files are visible in deepset Cloud.
-        :timeout_s: Timeout in seconds for the `blocking` parameter.
-        :show_progress If True, shows a progress bar for S3 uploads.
-        :recursive: If True, recursively uploads all files in the folder.
+        :param paths: Path to the folder to upload.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
+        :param blocking: If True, waits until the ingestion to S3 is finished and the files are visible in deepset Cloud.
+        :param timeout_s: Timeout in seconds for the `blocking` parameter.
+        :param show_progress If True, shows a progress bar for S3 uploads.
+        :param recursive: If True, recursively uploads all files in the folder.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         logger.info("Getting valid files from file path. This may take a few minutes.", recursive=recursive)
-        file_paths = []
 
         if show_progress:
             with yaspin().arc as sp:
@@ -343,7 +418,7 @@ class FilesService:
         timeout_s: Optional[int] = None,
         show_progress: bool = True,
     ) -> None:
-        """Download a folder to deepset Cloud.
+        """Download files from deepset Cloud to a folder.
 
         :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
         :param file_dir: Path to the folder to download. If None, the current working directory is used.
@@ -352,7 +427,7 @@ class FilesService:
         :param odata_filter: odata_filter by file meta data.
         :param include_meta: If True, downloads the metadata files as well.
         :param batch_size: Batch size for the listing.
-        :param limit: Limit for the listing.
+        :param timeout_s: Timeout in seconds for the download.
         :param show_progress: Shows the upload progress.
         """
         start = time.time()
@@ -424,12 +499,43 @@ class FilesService:
         the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
 
         :param workspace_name: Name of the workspace to upload the files to.
-        :files: List of DeepsetCloudFiles to upload.
-        :blocking: If True, waits until the ingestion to S3 is finished and the files are displayed in deepset Cloud.
-        :timeout_s: Timeout in seconds for the `blocking` parameter.
-        :show_progress If True, shows a progress bar for S3 uploads.
+        :param files: List of DeepsetCloudFiles to upload.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
+        :param blocking: If True, waits until the ingestion to S3 is finished and the files are displayed in deepset Cloud.
+        :param timeout_s: Timeout in seconds for the `blocking` parameter.
+        :param show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
+        if len(files) <= DIRECT_UPLOAD_THRESHOLD:
+            logger.info("Uploading files to deepset Cloud.", total_text_files=len(files))
+            _coroutines = []
+            for file in files:
+                _coroutines.append(
+                    self._wrapped_direct_upload_text(
+                        workspace_name=workspace_name,
+                        file_name=file.name,
+                        meta=file.meta or {},
+                        text=file.text,
+                        write_mode=write_mode,
+                    )
+                )
+            result = await asyncio.gather(*_coroutines)
+            logger.info(
+                "Finished uploading files.",
+                number_of_successful_files=len(files),
+                failed_files=[r for r in result if r.success is False],
+            )
+            return S3UploadSummary(
+                total_files=len(files),
+                successful_upload_count=len([r for r in result if r.success]),
+                failed_upload_count=len([r for r in result if r.success is False]),
+                failed=[r for r in result if r.success is False],
+            )
+
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
             upload_summary = await self._s3.upload_texts(

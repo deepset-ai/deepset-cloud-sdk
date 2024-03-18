@@ -7,6 +7,7 @@ deleting files.
 
 import datetime
 import inspect
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -16,17 +17,27 @@ import structlog
 from httpx import codes
 
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
+from deepset_cloud_sdk._api.upload_sessions import WriteMode
+from deepset_cloud_sdk._utils.datetime import from_isoformat
 
 logger = structlog.get_logger(__name__)
+
+
+class NotMatchingFileTypeException(Exception):
+    """Exception raised when a file is not matching the file type."""
 
 
 class FileNotFoundInDeepsetCloudException(Exception):
     """Exception raised when a file is not found."""
 
 
+class FailedToUploadFileException(Exception):
+    """Exception raised when a file failed to be uploaded."""
+
+
 @dataclass
 class File:
-    """File primitive from deepset Cloud. This dataclass is used for all file-related operations that don't include thea actual file content."""
+    """File primitive from deepset Cloud. This dataclass is used for all file-related operations that don't include the actual file content."""
 
     file_id: UUID
     url: str
@@ -44,7 +55,7 @@ class File:
         :param env: Dictionary to parse.
         """
         to_parse = {k: v for k, v in env.items() if k in inspect.signature(cls).parameters}
-        to_parse["created_at"] = datetime.datetime.fromisoformat(to_parse["created_at"])
+        to_parse["created_at"] = from_isoformat(to_parse["created_at"])
         to_parse["file_id"] = UUID(to_parse["file_id"])
         return cls(**to_parse)
 
@@ -157,6 +168,81 @@ class FilesAPI:
             file.write(content)
         return new_filename
 
+    async def direct_upload_path(
+        self,
+        workspace_name: str,
+        file_path: Union[Path, str],
+        file_name: Optional[str] = None,
+        meta: Optional[Dict[str, Any]] = None,
+        write_mode: WriteMode = WriteMode.KEEP,
+    ) -> UUID:
+        """Directly upload a file to deepset Cloud.
+
+        :param workspace_name: Name of the workspace to use.
+        :param file_path: Path to the file to upload.
+        :param file_name: Name of the file to upload.
+        :param meta: Meta information to attach to the file.
+        :return: ID of the uploaded file.
+        """
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
+        if file_name is None:
+            file_name = file_path.name
+
+        with file_path.open("rb") as file:
+            response = await self._deepset_cloud_api.post(
+                workspace_name,
+                "files",
+                files={"file": (file_name, file), "meta": (None, json.dumps(meta))},
+                params={"write_mode": write_mode.value},
+            )
+        if response.status_code != codes.CREATED or response.json().get("file_id") is None:
+            raise FailedToUploadFileException(
+                f"Failed to upload file with status code {response.status_code}. response was: {response.text}"
+            )
+        file_id: UUID = UUID(response.json()["file_id"])
+        return file_id
+
+    async def direct_upload_text(
+        self,
+        workspace_name: str,
+        text: str,
+        file_name: str,
+        meta: Optional[Dict[str, Any]] = None,
+        write_mode: WriteMode = WriteMode.KEEP,
+    ) -> UUID:
+        """Directly upload text to deepset Cloud.
+
+        :param workspace_name: Name of the workspace to use.
+        :param text: File text to upload.
+        :param file_name: Name of the file to upload.
+        :param meta: Meta information to attach to the file.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
+        :return: ID of the uploaded file.
+        """
+        if not file_name.endswith(".txt"):
+            raise NotMatchingFileTypeException(
+                f"File name {file_name} is not a textfile. Please use '.txt' for text uploads."
+            )
+
+        response = await self._deepset_cloud_api.post(
+            workspace_name,
+            "files",
+            data={"text": text, "meta": json.dumps(meta)},
+            params={"write_mode": write_mode.value, "file_name": file_name},
+        )
+        if response.status_code != codes.CREATED or response.json().get("file_id") is None:
+            raise FailedToUploadFileException(
+                f"Failed to upload file with status code {response.status_code}. response was: {response.text}"
+            )
+        file_id: UUID = UUID(response.json()["file_id"])
+        return file_id
+
     async def download(
         self,
         workspace_name: str,
@@ -169,7 +255,9 @@ class FilesAPI:
 
         :param workspace_name: Name of the workspace to use.
         :param file_id: ID of the file to download.
+        :param file_name: Name assigned to the downloaded file.
         :param include_meta: Whether to include the file meta in the folder.
+        :param file_dir: Location to save the file locally. If not provided the current directory is used.
         """
         if file_dir is None:
             file_dir = Path.cwd()

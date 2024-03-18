@@ -7,12 +7,10 @@ name = "deepset-cloud-sdk"
 dynamic = ["version"]
 description = 'deepset Cloud SDK'
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">= 3.8"
 license = "Apache-2.0"
 keywords = []
-authors = [
-  { name = "deepset", email = "rohan.janjua@deepset.ai" },
-]
+authors = [{ name = "deepset", email = "rohan.janjua@deepset.ai" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
@@ -24,16 +22,17 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "structlog==23.2.0",
-  "httpx==0.25.0",
-  "python-dotenv==1.0.0",
+  "structlog==24.1.0",
+  "httpx==0.27.0",
+  "python-dotenv==1.0.1",
   "typer==0.9.0",
   "tenacity==8.2.3",
-  "aiohttp==3.8.6",
+  "aiohttp==3.9.3",
   "aiofiles==23.2.1",
   "tabulate==0.9.0",
-  "tqdm==4.66.1",
+  "tqdm==4.66.2",
   "yaspin==3.0.0",
+  "pyrate-limiter==3.4.1",
 ]
 
 [project.urls]
@@ -43,7 +42,7 @@ Source = "https://github.com/deepset-ai/deepset-cloud-sdk"
 
 
 [project.scripts]
-deepset-cloud  = "deepset_cloud_sdk.cli:run_packaged"
+deepset-cloud = "deepset_cloud_sdk.cli:run_packaged"
 
 [tool.hatch.version]
 path = "deepset_cloud_sdk/__about__.py"
@@ -54,15 +53,16 @@ tests-unit = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov
 tests-integration = "pytest tests/integration"
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.8"]
+python = ["3.10"]
 
 [tool.hatch.envs.default]
 dependencies = [
-  "structlog==23.2.0",
-  "httpx==0.25.0",
-  "python-dotenv==1.0.0",
+  "structlog==24.1.0",
+  "httpx==0.27.0",
+  "python-dotenv==1.0.1",
   "tenacity==8.2.3",
-  "aiohttp==3.8.6"
+  "aiohttp==3.9.3",
+  "pyrate-limiter==3.4.1",
 ]
 
 [tool.hatch.envs.test.scripts]
@@ -70,17 +70,18 @@ unit-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --
 integration = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/integration"
 
 [tool.hatch.envs.test]
-template='default'
+template = 'default'
 dependencies = [
   "pytest-cov==4.0.0",
   "pytest==7.3.1",
   "pytest-asyncio==0.21.0",
+  "Faker==19.13.0",
 ]
 
 
 [tool.hatch.envs.code-quality]
-python = "3.8"
-template='default'
+python = "3.10"
+template = 'default'
 detached = false
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
 dependencies = [
@@ -92,7 +93,7 @@ dependencies = [
   "pre-commit==2.20.0",
   "types-aiofiles==23.1.0.2",
   "types-tabulate==0.9.0.2",
-  "autoflake==2.1.1"
+  "autoflake==2.1.1",
 ]
 
 [tool.hatch.envs.code-quality.scripts]
@@ -110,9 +111,7 @@ all = "hatch run types && hatch run format-fix && hatch run lint && hatch run so
 [tool.hatch.envs.tools]
 detached = false
 # Please keep these aligned with the versions defined in .pre-commit-config.yaml
-dependencies = [
-  "pip-tools==6.13.0",
-]
+dependencies = ["pip-tools==6.13.0"]
 
 [tool.hatch.envs.tools.scripts]
 requirements = "pip-compile -o requirements.txt pyproject.toml"
@@ -120,22 +119,16 @@ requirements = "pip-compile -o requirements.txt pyproject.toml"
 [tool.coverage.run]
 branch = true
 relative_files = true
-omit = [
-  "deepset_cloud_sdk/__about__.py",
-]
+omit = ["deepset_cloud_sdk/__about__.py"]
 
 [tool.coverage.report]
-exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
-]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 
 [tool.black]
 line-length = 120
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
@@ -143,34 +136,25 @@ disallow_incomplete_defs = true
 disallow_untyped_defs = true
 
 [tool.pylint.'MESSAGES CONTROL']
-max-line-length=150
+max-line-length = 150
 disable = [
   "fixme",
   "c-extension-no-member",
   "wrong-spelling-in-comment",
   "wrong-spelling-in-docstring",
-  "missing-module-docstring"
-  ]
+  "missing-module-docstring",
+]
 [tool.pylint.'DESIGN']
-max-args=9
+max-args = 9
 
 [tool.pylint.'SIMILARITIES']
-min-similarity-lines=10
+min-similarity-lines = 10
 
 [tool.pylint.'BASIC']
-good-names=[
-  "i",
-  "k",
-  "v",
-  "_",
-  "f1"
-  ]
+good-names = ["i", "k", "v", "_", "f1"]
 
 [tool.hatch.build.targets.sdist]
-exclude = [
-  "/.github",
-  "/tests",
-]
+exclude = ["/.github", "/tests"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["deepset_cloud_sdk"]

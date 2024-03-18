@@ -123,7 +123,8 @@ class TestCRUDForDeepsetCloudAPI:
             "default",
             "endpoint",
             params={"param_key": "param_value"},
-            data={"data_key": "data_value"},
+            json={"data_key": "data_value"},
+            data={"raw": "data_sent_as_form_data"},
             files={"file": ("my_file", "fake-file-binary", "text/csv")},
             timeout_s=123,
         )
@@ -133,6 +134,7 @@ class TestCRUDForDeepsetCloudAPI:
             "https://fake.dc.api/api/v1/workspaces/default/endpoint",
             params={"param_key": "param_value"},
             json={"data_key": "data_value"},
+            data={"raw": "data_sent_as_form_data"},
             files={"file": ("my_file", "fake-file-binary", "text/csv")},
             headers={
                 "Accept": "application/json",

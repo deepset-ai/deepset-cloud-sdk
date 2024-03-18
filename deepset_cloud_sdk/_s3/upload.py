@@ -11,6 +11,7 @@ from typing import Any, Coroutine, List, Optional, Union
 import aiofiles
 import aiohttp
 import structlog
+from pyrate_limiter import Duration, Limiter, Rate
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from tqdm.asyncio import tqdm
 
@@ -67,7 +68,7 @@ def make_safe_file_name(file_name: str) -> str:
 class S3:
     """Client for S3 operations related to deepset Cloud uploads."""
 
-    def __init__(self, concurrency: int = 120):
+    def __init__(self, concurrency: int = 120, rate_limit: Rate = Rate(3000, Duration.SECOND)):
         """
         Initialize the client.
 
@@ -75,6 +76,7 @@ class S3:
         """
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
+        self.limiter = Limiter(rate_limit, raise_when_fail=False, max_delay=Duration.SECOND * 1)
 
     @retry(
         retry=retry_if_exception_type(RetryableHttpError),
@@ -91,10 +93,10 @@ class S3:
     ) -> aiohttp.ClientResponse:
         """Upload a file to the prefixed S3 namespace.
 
-        :param file_path: The path to upload from.
+        :param file_name: The name that will be given to the uploaded file.
         :param upload_session: UploadSession to associate the upload with.
+        :param content: The content to upload.
         :param client_session: The aiohttp ClientSession to use for this request.
-        :param headers: The headers for the request
         :return: ClientResponse object.
         """
         aws_safe_name = make_safe_file_name(file_name)
@@ -102,6 +104,7 @@ class S3:
 
         file_data = self._build_file_data(content, aws_safe_name, aws_config)
         try:
+            self.limiter.try_acquire("")  # rate limit requests
             async with client_session.post(
                 aws_config.url,
                 data=file_data,
@@ -115,9 +118,10 @@ class S3:
                     # for example during automatic redirects. See https://github.com/aio-libs/aiohttp/issues/5577
                     redirect_url = response.headers["Location"]
                     file_data = self._build_file_data(content, aws_safe_name, aws_config)
+                    self.limiter.try_acquire("")  # rate limit requests
                     async with client_session.post(
                         redirect_url,
-                        data=file_data,
+                        json=file_data,
                         allow_redirects=False,
                     ) as response:
                         response.raise_for_status()
@@ -188,8 +192,8 @@ class S3:
 
         :param file_name: Name of the file.
         :param upload_session: UploadSession to associate the upload with.
+        :param content: Content of the file.
         :param client_session: The aiohttp ClientSession to use for this request.
-        :param progress: A progress bar.
         :return: S3UploadResult object.
         """
         try:
@@ -251,6 +255,7 @@ class S3:
 
         :param upload_session: UploadSession to associate the upload with.
         :param file_paths: A list of paths to upload.
+        :param show_progress: Whether to show a progress bar on the upload.
         :return: S3UploadSummary object.
         """
         async with aiohttp.ClientSession(connector=self.connector) as client_session:
@@ -269,6 +274,7 @@ class S3:
 
         :param upload_session: UploadSession to associate the upload with.
         :param files: A list of DeepsetCloudFiles to upload.
+        :param show_progress: Whether to show a progress bar on the upload.
         :return: S3UploadSummary object.
         """
         async with aiohttp.ClientSession(connector=self.connector) as client_session:

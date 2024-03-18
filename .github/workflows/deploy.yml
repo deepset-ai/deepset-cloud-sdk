@@ -10,6 +10,9 @@ on:
         required: true
         default: https://api.dev.cloud.dpst.dev/api/v1
         type: string
+      version:
+        required: true
+        type: string
 
 permissions:
   id-token: write
@@ -18,14 +21,7 @@ env:
   HATCH_VERSION: "v1.7.0" # keep in sync with continuous-integration.yml
 
 jobs:
-  ci:
-    uses: ./.github/workflows/merge-queue.yml
-    with:
-      api_url: ${{ inputs.api_url }}
-      deployment_env: ${{ inputs.deployment_env }}
-    secrets: inherit
   build-and-deploy:
-    needs: ci
     runs-on: ubuntu-latest
     environment: ${{inputs.deployment_env}}
     env:
@@ -33,11 +29,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
          python-version: "3.10"
       - name: Install Hatch
         run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Bump version
+        # Bump version to Github action tag
+        run: hatch version ${{ inputs.version }}
       - name: Build
         run: hatch build
       - name: publish

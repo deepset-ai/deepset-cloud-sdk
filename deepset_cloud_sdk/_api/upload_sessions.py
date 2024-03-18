@@ -11,6 +11,7 @@ from httpx import codes
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
+from deepset_cloud_sdk._utils.datetime import from_isoformat
 from deepset_cloud_sdk.models import UserInfo
 
 logger = structlog.get_logger(__name__)
@@ -127,11 +128,16 @@ class UploadSessionsAPI:
         After that it's automatically closed and you must open a new session to upload more files.
 
         :param workspace_name: Name of the workspace.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
         :raises FailedToSendUploadSessionRequest: If the session could not be created.
         :return: UploadSession object.
         """
         response = await self._deepset_cloud_api.post(
-            workspace_name=workspace_name, endpoint="upload_sessions", data={"write_mode": write_mode.value}
+            workspace_name=workspace_name, endpoint="upload_sessions", json={"write_mode": write_mode.value}
         )
         if response.status_code != codes.CREATED:
             logger.error(
@@ -146,7 +152,7 @@ class UploadSessionsAPI:
         return UploadSession(
             session_id=UUID(response_body["session_id"]),
             documentation_url=response_body["documentation_url"],
-            expires_at=datetime.datetime.fromisoformat(response_body["expires_at"]),
+            expires_at=from_isoformat(response_body["expires_at"]),
             aws_prefixed_request_config=AWSPrefixedRequestConfig(
                 fields=response_body["aws_prefixed_request_config"]["fields"],
                 url=response_body["aws_prefixed_request_config"]["url"],
@@ -211,7 +217,7 @@ class UploadSessionsAPI:
         return UploadSessionStatus(
             session_id=UUID(response_body["session_id"]),
             documentation_url=response_body["documentation_url"],
-            expires_at=datetime.datetime.fromisoformat(response_body["expires_at"]),
+            expires_at=from_isoformat(response_body["expires_at"]),
             ingestion_status=UploadSessionIngestionStatus(
                 failed_files=response_body["ingestion_status"]["failed_files"],
                 finished_files=response_body["ingestion_status"]["finished_files"],
@@ -267,8 +273,8 @@ class UploadSessionsAPI:
                         given_name=upload_session["created_by"]["given_name"],
                         family_name=upload_session["created_by"]["family_name"],
                     ),
-                    expires_at=datetime.datetime.fromisoformat(upload_session["expires_at"]),
-                    created_at=datetime.datetime.fromisoformat(upload_session["created_at"]),
+                    expires_at=from_isoformat(upload_session["expires_at"]),
+                    created_at=from_isoformat(upload_session["created_at"]),
                     write_mode=UploadSessionWriteModeEnum(upload_session["write_mode"]),
                     status=UploadSessionStatusEnum(upload_session["status"]),
                 )
