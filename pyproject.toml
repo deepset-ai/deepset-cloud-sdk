@@ -26,14 +26,15 @@ classifiers = [
 dependencies = [
   "structlog==24.1.0",
   "httpx==0.26.0",
-  "python-dotenv==1.0.0",
+  "python-dotenv==1.0.1",
   "typer==0.9.0",
   "tenacity==8.2.3",
   "aiohttp==3.9.3",
   "aiofiles==23.2.1",
   "tabulate==0.9.0",
-  "tqdm==4.66.1",
+  "tqdm==4.66.2",
   "yaspin==2.3.0",
+  "pyrate-limiter==3.4.1",
 ]
 
 [project.urls]
@@ -60,9 +61,10 @@ python = ["3.10"]
 dependencies = [
   "structlog==24.1.0",
   "httpx==0.26.0",
-  "python-dotenv==1.0.0",
+  "python-dotenv==1.0.1",
   "tenacity==8.2.3",
   "aiohttp==3.9.3"
+  "pyrate-limiter==3.4.1",
 ]
 
 [tool.hatch.envs.test.scripts]

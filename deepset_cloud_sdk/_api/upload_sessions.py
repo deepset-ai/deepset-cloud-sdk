@@ -128,6 +128,11 @@ class UploadSessionsAPI:
         After that it's automatically closed and you must open a new session to upload more files.
 
         :param workspace_name: Name of the workspace.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
         :raises FailedToSendUploadSessionRequest: If the session could not be created.
         :return: UploadSession object.
         """
