@@ -111,10 +111,6 @@ class FilesService:
                 failed_files=upload_session_status.ingestion_status.failed_files,
             )
 
-        logger.warning(
-            "It may take up to three minutes for the files to be visible in deepset Cloud after they were marked as finished."
-        )
-
     @asynccontextmanager
     async def _create_upload_session(
         self,
