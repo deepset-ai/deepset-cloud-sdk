@@ -22,7 +22,7 @@ class TestListFiles:
             # immediately, but the search index might not be updated yet.
             # We are searching by context here which is otherwise not available.
             for attempt in tenacity.Retrying(
-                stop=tenacity.stop_after_delay(600),
+                stop=tenacity.stop_after_delay(300),
                 wait=tenacity.wait_fixed(wait=timedelta(seconds=0.5)),
                 reraise=True,
             ):
