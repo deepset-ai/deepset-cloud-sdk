@@ -41,13 +41,12 @@ def download(  # pylint: disable=too-many-arguments
     """Download files from deepset Cloud to your local machine.
 
     :param workspace_name: Name of the workspace to download the files from. Uses the workspace from the .ENV file by default.
-    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
-    during the upload. Supported file formats are TXT and PDF.
+    :param file_dir: Path to the folder where you want to download the files.
     :param name: Name of the file to odata_filter for.
     :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
-    :param include_meta: Whether to include the file meta in the folder.
-    :param batch_size: Batch size for the listing.
+    :param include_meta: Downloads metadata of the files.
+    :param batch_size: Batch size for file listing.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
@@ -90,7 +89,7 @@ def login() -> None:
     with open(ENV_FILE_PATH, "w", encoding="utf-8") as env_file:
         env_file.write(env_content)
 
-    typer.echo(f"{ENV_FILE_PATH} created successfully!")
+    typer.echo(f"{ENV_FILE_PATH} created successfully.")
 
 
 @cli_app.command()
