@@ -132,7 +132,7 @@ async def upload(
     """Upload a folder to deepset Cloud.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported files, they're skipped.
-    during the upload. Supported file formats are TXT and PDF.
+    during the upload. Supported file formats are txt, pdf, docx, pptx, xlsx, xml, csv, html, md, json.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.

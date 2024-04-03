@@ -190,7 +190,7 @@ class TestFilePathsUpload:
             ],
         )
 
-        assert not mocked_upload_sessions_api.create.called, "We should not have created a sessionf for a single file"
+        assert not mocked_upload_sessions_api.create.called, "We should not have created a session for a single file"
 
 
 @pytest.mark.asyncio
@@ -219,6 +219,14 @@ class TestUpload:
         )
         assert Path("tests/data/upload_folder/example.txt") in mocked_upload_file_paths.call_args[1]["file_paths"]
         assert Path("tests/data/upload_folder/example.pdf") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.html") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.md") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.docx") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.xlsx") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.csv") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.pptx") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.json") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.xml") in mocked_upload_file_paths.call_args[1]["file_paths"]
 
     async def test_upload_paths_to_folder_skips_incompatible_file_and_logs_file_name(
         self,
@@ -236,7 +244,7 @@ class TestUpload:
             )
             skip_log_line = next((log for log in cap_logs if log.get("event", None) == "Skipping file"), None)
             assert skip_log_line is not None
-            assert str(skip_log_line["file_path"]).endswith(".docx")
+            assert str(skip_log_line["file_path"]).endswith(".jpg")
 
     async def test_upload_paths_nested(
         self,
@@ -379,7 +387,7 @@ class TestUploadTexts:
         )
         assert result == upload_summary
 
-        assert not mocked_upload_sessions_api.create.called, "We should not have created a sessionf for a single file"
+        assert not mocked_upload_sessions_api.create.called, "We should not have created a session for a single file"
 
         mocked_files_api.direct_upload_text.assert_called_once_with(
             workspace_name="test_workspace",
@@ -907,8 +915,17 @@ class TestValidateFilePaths:
         "file_paths",
         [
             [Path("/home/user/file1.txt"), Path("/home/user/file2.txt")],
+            [Path("/home/user/file1.txt"), Path("/home/user/file1.json")],
             [Path("/home/user/file1.txt"), Path("/home/user/file1.txt.meta.json")],
             [Path("/home/user/file1.pdf"), Path("/home/user/file1.pdf.meta.json")],
+            [Path("/home/user/file1.csv"), Path("/home/user/file1.csv.meta.json")],
+            [Path("/home/user/file1.docx"), Path("/home/user/file1.docx.meta.json")],
+            [Path("/home/user/file1.html"), Path("/home/user/file1.html.meta.json")],
+            [Path("/home/user/file1.json"), Path("/home/user/file1.json.meta.json")],
+            [Path("/home/user/file1.md"), Path("/home/user/file1.md.meta.json")],
+            [Path("/home/user/file1.pptx"), Path("/home/user/file1.pptx.meta.json")],
+            [Path("/home/user/file1.xlsx"), Path("/home/user/file1.xlsx.meta.json")],
+            [Path("/home/user/file1.xml"), Path("/home/user/file1.xml.meta.json")],
         ],
     )
     async def test_validate_file_paths(self, file_paths: List[Path]) -> None:
@@ -918,9 +935,8 @@ class TestValidateFilePaths:
         "file_paths",
         [
             [Path("/home/user/.DS_Store")],
-            [Path("/home/user/file2.json")],
-            [Path("/home/user/file1.md")],
-            [Path("/home/user/file1.docx")],
+            [Path("/home/user/file2.jpg")],
+            [Path("/home/user/file1.exe")],
             [Path("/home/user/file1.pdf"), Path("/home/user/file2.pdf.meta.json")],
             [Path("/home/user/file1.pdf"), Path("/home/user/file1.txt.meta.json")],
             [Path("/home/user/file1.txt"), Path("/home/user/file1.pdf.meta.json")],

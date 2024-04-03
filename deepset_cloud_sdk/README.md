@@ -9,7 +9,7 @@ This package is split into multiple layers:
 
 ### API layer
 This layer is the lowest level of abstraction and contains the API definition, including all HTTP methods. It takes care of the authentication.
-You can find this layer in the `deepset_cloud_sdk/api/deepset_cloud_api.py` file. We should implement reties on this lowest layer.
+You can find this layer in the `deepset_cloud_sdk/_api/deepset_cloud_api.py` file. We should implement reties on this lowest layer.
 
 ### Client layer
 This layer adds a thin wrapper around the API layer and provides a more convenient interface to the API. It includes explicit methods

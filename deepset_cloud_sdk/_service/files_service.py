@@ -33,7 +33,7 @@ from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
 
-ALLOWED_TYPE_SUFFIXES = [".txt", ".pdf"]
+ALLOWED_TYPE_SUFFIXES = [".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"]
 DIRECT_UPLOAD_THRESHOLD = 20
 
 
@@ -193,7 +193,11 @@ class FilesService:
         if len(file_paths) <= DIRECT_UPLOAD_THRESHOLD:
             logger.info("Uploading files to deepset Cloud.", file_paths=file_paths)
             _coroutines = []
-            _raw_files = [path for path in file_paths if path.suffix.lower() in ALLOWED_TYPE_SUFFIXES]
+            _raw_files = [
+                path
+                for path in file_paths
+                if path.suffix.lower() in ALLOWED_TYPE_SUFFIXES and not path.name.endswith(".meta.json")
+            ]
             for file_path in _raw_files:
                 meta: Dict[str, Any] = {}
                 meta_path = Path(str(file_path) + ".meta.json")
@@ -276,20 +280,21 @@ class FilesService:
         :raises ValueError: If the file paths are invalid.
         """
         logger.info("Validating file paths and metadata.")
-        allowed_suffixes = {".txt", ".json", ".pdf"}
+        allowed_suffixes = {".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"}
         for file_path in file_paths:
             if file_path.suffix.lower() not in allowed_suffixes:
                 raise ValueError(
-                    f"Invalid file extension: {file_path.suffix}. You can upload TXT and PDF files. Metadata files should have the `.meta.json` extension."
-                )
-            if file_path.suffix.lower() == ".json" and not str(file_path).endswith(".meta.json"):
-                raise ValueError(
-                    f"JSON files are only supported for metadata files. Make sure you follow this naming format for your metadata files: '<file_name>.meta.json'. Got {file_path.name}."
+                    f"Invalid file extension: {file_path.suffix}. Supported file types: csv, docx, html, json, md, txt, pdf, pptx, xlsx, xml. "
+                    "Metadata files should have the `.meta.json` extension."
                 )
         meta_file_names = list(
             map(
                 lambda fp: os.path.basename(fp),
-                [file_path for file_path in file_paths if file_path.suffix.lower() == ".json"],
+                [
+                    file_path
+                    for file_path in file_paths
+                    if file_path.suffix.lower() == ".json" and str(file_path).endswith(".meta.json")
+                ],
             )
         )
         file_names = list(map(lambda fp: os.path.basename(fp), file_paths))
@@ -304,7 +309,7 @@ class FilesService:
         if len(not_mapped_meta_files) > 0:
             raise ValueError(
                 f"Metadata files without corresponding text files were found: {not_mapped_meta_files}. "
-                "Make sure each metadata file has a corresponding text or PDF file."
+                "Make sure each metadata file has a corresponding file. "
                 "Map the files using file names like this: '<file_name>' and '<file_name>.meta.json'. "
                 "For example: 'file1.txt' and 'file1.txt.meta.json'."
             )
@@ -312,11 +317,7 @@ class FilesService:
     @staticmethod
     def _preprocess_paths(paths: List[Path], spinner: yaspin.Spinner = None, recursive: bool = False) -> List[Path]:
         all_files = FilesService._get_file_paths(paths, recursive=recursive)
-        file_paths = [
-            path
-            for path in all_files
-            if path.is_file() and ((path.suffix in ALLOWED_TYPE_SUFFIXES) or path.name.endswith("meta.json"))
-        ]
+        file_paths = [path for path in all_files if path.is_file() and ((path.suffix in ALLOWED_TYPE_SUFFIXES))]
 
         if len(file_paths) < len(all_files):
             logger.warning(
