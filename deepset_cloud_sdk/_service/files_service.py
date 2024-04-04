@@ -284,7 +284,7 @@ class FilesService:
         for file_path in file_paths:
             if file_path.suffix.lower() not in allowed_suffixes:
                 raise ValueError(
-                    f"Invalid file extension: {file_path.suffix}. Supported file types: csv, docx, html, json, md, txt, pdf, pptx, xlsx, xml. "
+                    f"Invalid file extension: {file_path.suffix}. Refer to the list of allowed file types in 'allowed_suffixes'. "
                     "Metadata files should have the `.meta.json` extension."
                 )
         meta_file_names = list(

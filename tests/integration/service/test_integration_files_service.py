@@ -25,21 +25,21 @@ class TestUploadsFileService:
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
             )
-            assert result.total_files == 10
-            assert result.successful_upload_count == 10
+            assert result.total_files == 19
+            assert result.successful_upload_count == 19
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
             names_of_uploaded_files = [
                 file.name
-                for file in Path("./tests/test_data/msmarco.10").glob("*.txt")
+                for file in Path("./tests/test_data/msmarco.10").glob("*")
                 if not file.name.endswith(".meta.json")
             ]
             # Check the metadata was uploaded correctly
             files: List[File] = []
             async for file_batch in file_service.list_all(
                 workspace_name=workspace_name,
-                batch_size=11,
+                batch_size=20,
                 timeout_s=120,
             ):
                 files += file_batch
@@ -64,21 +64,21 @@ class TestUploadsFileService:
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
             )
-            assert result.total_files == 20
-            assert result.successful_upload_count == 20
+            assert result.total_files == 38
+            assert result.successful_upload_count == 38
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
             names_of_uploaded_files = [
                 file.name
-                for file in Path("./tests/test_data/msmarco.10").glob("*.txt")
+                for file in Path("./tests/test_data/msmarco.10").glob("*")
                 if not file.name.endswith(".meta.json")
             ]
             # Check the metadata was uploaded correctly
             files: List[File] = []
             async for file_batch in file_service.list_all(
                 workspace_name=workspace_name,
-                batch_size=11,
+                batch_size=40,
                 timeout_s=120,
             ):
                 files += file_batch
