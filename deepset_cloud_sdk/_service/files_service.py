@@ -289,15 +289,11 @@ class FilesService:
         meta_file_names = list(
             map(
                 lambda fp: os.path.basename(fp),
-                [
-                    file_path
-                    for file_path in file_paths
-                    if file_path.suffix.lower() == ".json" and str(file_path).endswith(".meta.json")
-                ],
+                [file_path for file_path in file_paths if str(file_path).lower().endswith(".meta.json")],
             )
         )
         file_names = list(map(lambda fp: os.path.basename(fp), file_paths))
-        file_name_set = set(filter(lambda fn: not fn.endswith(".meta.json"), file_names))
+        file_name_set = set(filter(lambda fn: not fn.lower().endswith(".meta.json"), file_names))
 
         not_mapped_meta_files = [
             meta_file_name
