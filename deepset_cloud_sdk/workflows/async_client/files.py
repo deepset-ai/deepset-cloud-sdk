@@ -176,8 +176,7 @@ async def download(
     Downloads all files from a workspace to a local folder.
 
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
-    during the upload. Supported file formats are TXT and PDF.
+    :param file_dir: Path to the folder to download.
     :param name: Name of the file to odata_filter by.
     :param content: Content of a file to odata_filter by.
     :param odata_filter: odata_filter by file meta data.

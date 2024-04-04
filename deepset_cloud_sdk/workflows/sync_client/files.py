@@ -48,7 +48,7 @@ def upload(
     """Upload a folder to deepset Cloud.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped.
-    deepset Cloud supports TXT and PDF files.
+    deepset Cloud supports csv, docx, html, json, md, txt, pdf, pptx, xlsx, xml.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
@@ -95,8 +95,7 @@ def download(  # pylint: disable=too-many-arguments
     Downloads all files from a workspace to a local folder.
 
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
-    during the upload. Supported file formats are TXT and PDF.
+    :param file_dir: Path to the folder to download.
     :param name: Name of the file to odata_filter by.
     :param content: Content of a file to odata_filter by.
     :param odata_filter: odata_filter by file meta data.

@@ -280,11 +280,10 @@ class FilesService:
         :raises ValueError: If the file paths are invalid.
         """
         logger.info("Validating file paths and metadata.")
-        allowed_suffixes = {".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"}
         for file_path in file_paths:
-            if file_path.suffix.lower() not in allowed_suffixes:
+            if file_path.suffix.lower() not in ALLOWED_TYPE_SUFFIXES:
                 raise ValueError(
-                    f"Invalid file extension: {file_path.suffix}. Refer to the list of allowed file types in 'allowed_suffixes'. "
+                    f"Invalid file extension: {file_path.suffix}. Refer to the list of allowed file types in `ALLOWED_TYPE_SUFFIXES`. "
                     "Metadata files should have the `.meta.json` extension."
                 )
         meta_file_names = list(
@@ -308,7 +307,7 @@ class FilesService:
 
         if len(not_mapped_meta_files) > 0:
             raise ValueError(
-                f"Metadata files without corresponding text files were found: {not_mapped_meta_files}. "
+                f"Metadata files without corresponding files were found: {not_mapped_meta_files}. "
                 "Make sure each metadata file has a corresponding file. "
                 "Map the files using file names like this: '<file_name>' and '<file_name>.meta.json'. "
                 "For example: 'file1.txt' and 'file1.txt.meta.json'."
@@ -317,7 +316,7 @@ class FilesService:
     @staticmethod
     def _preprocess_paths(paths: List[Path], spinner: yaspin.Spinner = None, recursive: bool = False) -> List[Path]:
         all_files = FilesService._get_file_paths(paths, recursive=recursive)
-        file_paths = [path for path in all_files if path.is_file() and ((path.suffix in ALLOWED_TYPE_SUFFIXES))]
+        file_paths = [path for path in all_files if path.is_file() and (path.suffix in ALLOWED_TYPE_SUFFIXES)]
 
         if len(file_paths) < len(all_files):
             logger.warning(
