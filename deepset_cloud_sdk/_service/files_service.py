@@ -298,7 +298,7 @@ class FilesService:
         not_mapped_meta_files = [
             meta_file_name
             for meta_file_name in meta_file_names
-            if meta_file_name.split(".meta.json")[0] not in file_name_set
+            if meta_file_name.lower().split(".meta.json")[0] not in file_name_set
         ]
 
         if len(not_mapped_meta_files) > 0:
@@ -312,7 +312,7 @@ class FilesService:
     @staticmethod
     def _preprocess_paths(paths: List[Path], spinner: yaspin.Spinner = None, recursive: bool = False) -> List[Path]:
         all_files = FilesService._get_file_paths(paths, recursive=recursive)
-        file_paths = [path for path in all_files if path.is_file() and (path.suffix in ALLOWED_TYPE_SUFFIXES)]
+        file_paths = [path for path in all_files if path.is_file() and path.suffix in ALLOWED_TYPE_SUFFIXES]
 
         if len(file_paths) < len(all_files):
             logger.warning(

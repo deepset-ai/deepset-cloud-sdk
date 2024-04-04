@@ -19,12 +19,12 @@ To upload files:
 3. Type the name of the deepset Cloud workspace you want to set as default for all operations.
 4. Choose if you want to use the CLI or a Python script to upload:
     - To upload files from a folder using CLI, run: `deepset-cloud upload <path to the upload folder>` (MacOS and Linux) or `python -m deepset_cloud_sdk.cli upload <path to the upload folder>` (On Windows)
-    - To upload files from a folder using a Python script, create the script and run it. Here's an example you can use: 
+    - To upload files from a folder using a Python script, create the script and run it. Here's an example you can use:
 
     ```python
     from pathlib import Path
     from deepset_cloud_sdk.workflows.sync_client.files import upload
-    
+
     ## Uploads all files from a given path
     upload(
     paths=[Path("<your_path_to_the_upload_folder>")],
@@ -41,7 +41,7 @@ For more examples, see [CLI examples](/examples/cli/README.md) and [SDK examples
 
 # Metadata
 
-To add metadata to your files, create one metadata file for each TXT or PDF file you upload. The metadata file must be a JSON with the same name as the file whose metadata it contains and the extension `meta.json`.
+To add metadata to your files, create one metadata file for each file you upload. The metadata file must be a JSON with the same name as the file whose metadata it contains and the extension `meta.json`.
 
 For example, if you're uploading a file called `example.txt`, the metadata file should be called `example.txt.meta.json`. If you're uploading a file called `example.pdf`, the metadata file should be `example.pdf.meta.json`.
 
