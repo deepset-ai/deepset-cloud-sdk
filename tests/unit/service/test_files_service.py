@@ -945,3 +945,19 @@ class TestPreprocessFiles:
             FilesService._preprocess_paths([Path("tests/data/upload_folder/example.txt")], spinner=None)
         except Exception as e:
             assert False, f"No error should have been thrown but got error of type '{type(e).__name__}'"
+
+
+class TestGetFilePaths:
+    def test_directories_excluded_from_path_recursive(self) -> None:
+        paths = [Path("tests/data/upload_folder_nested")]
+        file_paths = FilesService._get_file_paths(paths=paths, recursive=True)
+        assert file_paths == [
+            Path("tests/data/upload_folder_nested/example.txt"),
+            Path("tests/data/upload_folder_nested/nested_folder/second.txt"),
+            Path("tests/data/upload_folder_nested/meta/example.txt.meta.json"),
+        ]
+
+    def test_directories_excluded_from_path_non_recursive(self) -> None:
+        paths = [Path("tests/data/upload_folder_nested")]
+        file_paths = FilesService._get_file_paths(paths=paths, recursive=False)
+        assert file_paths == [Path("tests/data/upload_folder_nested/example.txt")]
