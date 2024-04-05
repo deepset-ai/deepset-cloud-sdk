@@ -911,7 +911,9 @@ class TestValidateFilePaths:
             [Path("/home/user/file1.pdf"), Path("/home/user/file1.pdf.meta.json")],
         ],
     )
-    async def test_validate_file_paths(self, file_paths: List[Path]) -> None:
+    async def test_validate_file_paths(self, file_paths: List[Path], monkeypatch: MonkeyPatch) -> None:
+        # skip _remove_duplicates since we want to acoid accessing file system
+        monkeypatch.setattr(FilesService, FilesService._remove_duplicates.__name__, Mock(return_value=file_paths))
         FilesService._validate_file_paths(file_paths)
 
     @pytest.mark.parametrize(
@@ -926,7 +928,11 @@ class TestValidateFilePaths:
             [Path("/home/user/file1.txt"), Path("/home/user/file1.pdf.meta.json")],
         ],
     )
-    async def test_validate_file_paths_with_broken_meta_field(self, file_paths: List[Path]) -> None:
+    async def test_validate_file_paths_with_broken_meta_field(
+        self, file_paths: List[Path], monkeypatch: MonkeyPatch
+    ) -> None:
+        # skip _remove_duplicates since we want to acoid accessing file system
+        monkeypatch.setattr(FilesService, FilesService._remove_duplicates.__name__, Mock(return_value=file_paths))
         with pytest.raises(ValueError):
             FilesService._validate_file_paths(file_paths)
 
