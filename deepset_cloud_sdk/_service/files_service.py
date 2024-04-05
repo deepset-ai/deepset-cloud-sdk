@@ -261,9 +261,9 @@ class FilesService:
             if path.is_file():
                 file_paths.append(path)
             elif recursive:
-                file_paths.extend([file_path for file_path in path.rglob("*")])
+                file_paths.extend([file_path for file_path in path.rglob("*") if file_path.is_file()])
             else:
-                file_paths.extend([file_path for file_path in path.glob("*")])
+                file_paths.extend([file_path for file_path in path.glob("*") if file_path.is_file()])
         return file_paths
 
     @staticmethod
