@@ -1011,10 +1011,10 @@ class TestGetFilePaths:
     def test_directories_excluded_from_path_recursive(self) -> None:
         paths = [Path("tests/data/upload_folder_nested")]
         file_paths = FilesService._get_file_paths(paths=paths, recursive=True)
-        assert file_paths == [
+        assert sorted(file_paths) == [
             Path("tests/data/upload_folder_nested/example.txt"),
-            Path("tests/data/upload_folder_nested/nested_folder/second.txt"),
             Path("tests/data/upload_folder_nested/meta/example.txt.meta.json"),
+            Path("tests/data/upload_folder_nested/nested_folder/second.txt"),
         ]
 
     def test_directories_excluded_from_path_non_recursive(self) -> None:
