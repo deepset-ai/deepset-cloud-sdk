@@ -931,6 +931,33 @@ class TestValidateFilePaths:
             FilesService._validate_file_paths(file_paths)
 
 
+class TestRemoveDuplicates:
+    @pytest.mark.parametrize(
+        "file_paths, expected",
+        [
+            (
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/file2.txt"),
+                ],
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/file2.txt"),
+                ],
+            ),
+            (
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/other/file1.txt"),
+                ],
+                [Path("tests/data/upload_folder_with_duplicates/other/file1.txt")],
+            ),
+        ],
+    )
+    def test_remove_duplicates(self, file_paths: List[Path], expected: List[Path]) -> None:
+        assert FilesService._remove_duplicates(file_paths) == expected
+
+
 class TestPreprocessFiles:
     def test_show_progress_triggers_spinner_update(self) -> None:
         mock_spinner = Mock()
