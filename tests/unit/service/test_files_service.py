@@ -954,14 +954,41 @@ class TestRemoveDuplicates:
             (
                 [
                     Path("tests/data/upload_folder_with_duplicates/file1.txt"),
-                    Path("tests/data/upload_folder_with_duplicates/other/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/old_files/file2.txt"),
                 ],
-                [Path("tests/data/upload_folder_with_duplicates/other/file1.txt")],
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/old_files/file2.txt"),
+                ],
             ),
         ],
     )
-    def test_remove_duplicates(self, file_paths: List[Path], expected: List[Path]) -> None:
+    def test_remove_duplicates_without_dups(self, file_paths: List[Path], expected: List[Path]) -> None:
         assert FilesService._remove_duplicates(file_paths) == expected
+
+    @pytest.mark.parametrize(
+        "file_paths, expected",
+        [
+            (
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),  # this file was created last
+                    Path("tests/data/upload_folder_with_duplicates/file2.txt"),  # this file was created last
+                    Path("tests/data/upload_folder_with_duplicates/old_files/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/old_files/file2.txt"),
+                ],
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/file2.txt"),
+                ],
+            ),
+        ],
+    )
+    def test_remove_duplicates_with_dups(self, file_paths: List[Path], expected: List[Path]) -> None:
+        with capture_logs() as cap_logs:
+            assert FilesService._remove_duplicates(file_paths) == expected
+            next(
+                (log for log in cap_logs if "Multiple files with the same name found." in log.get("event", None)), None
+            )
 
 
 class TestPreprocessFiles:
