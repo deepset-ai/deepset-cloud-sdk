@@ -1,7 +1,9 @@
 import datetime
+import os
+import time
 from pathlib import Path
 from typing import List
-from unittest.mock import AsyncMock, Mock, call
+from unittest.mock import AsyncMock, Mock, PropertyMock, call
 from uuid import UUID
 
 import pytest
@@ -971,8 +973,8 @@ class TestRemoveDuplicates:
         [
             (
                 [
-                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),  # this file was created last
-                    Path("tests/data/upload_folder_with_duplicates/file2.txt"),  # this file was created last
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/file2.txt"),
                     Path("tests/data/upload_folder_with_duplicates/old_files/file1.txt"),
                     Path("tests/data/upload_folder_with_duplicates/old_files/file2.txt"),
                 ],
@@ -984,6 +986,23 @@ class TestRemoveDuplicates:
         ],
     )
     def test_remove_duplicates_with_dups(self, file_paths: List[Path], expected: List[Path]) -> None:
+        file_paths = [
+            Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+            Path("tests/data/upload_folder_with_duplicates/file2.txt"),
+            Path("tests/data/upload_folder_with_duplicates/old_files/file1.txt"),
+            Path("tests/data/upload_folder_with_duplicates/old_files/file2.txt"),
+        ]
+        expected = [
+            Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+            Path("tests/data/upload_folder_with_duplicates/file2.txt"),
+        ]
+        # mock file age to avoid relying on files in file system
+        timestamp = time.time()
+        MonkeyPatch().setattr(
+            os.stat_result,
+            "st_mtime",
+            PropertyMock(side_effect=[timestamp, timestamp - 1, timestamp - 2, timestamp - 3]),
+        )
         with capture_logs() as cap_logs:
             assert FilesService._remove_duplicates(file_paths) == expected
             next(
