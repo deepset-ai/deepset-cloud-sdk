@@ -968,7 +968,7 @@ class TestRemoveDuplicates:
     def test_remove_duplicates_without_dups(self, file_paths: List[Path], expected: List[Path]) -> None:
         assert FilesService._remove_duplicates(file_paths) == expected
 
-    def test_remove_duplicates_with_dups(self) -> None:
+    def test_remove_duplicates_with_dups(self, monkeypatch: MonkeyPatch) -> None:
         file_paths = [
             Path("tests/data/upload_folder_with_duplicates/file1.txt"),
             Path("tests/data/upload_folder_with_duplicates/file2.txt"),
@@ -981,7 +981,7 @@ class TestRemoveDuplicates:
         ]
         # mock file age to avoid relying on files in file system
         timestamp = time.time()
-        MonkeyPatch().setattr(
+        monkeypatch.setattr(
             os.stat_result,
             "st_mtime",
             PropertyMock(side_effect=[timestamp, timestamp - 1, timestamp - 2, timestamp - 3]),
