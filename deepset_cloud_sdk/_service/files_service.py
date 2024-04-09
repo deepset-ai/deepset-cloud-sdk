@@ -281,7 +281,6 @@ class FilesService:
         :raises ValueError: If the file paths are invalid.
         """
         logger.info("Validating file paths and metadata.")
-        allowed_suffixes = {".txt", ".json", ".pdf"}
         file_paths = FilesService._remove_duplicates(file_paths)
         for file_path in file_paths:
             if file_path.suffix.lower() not in ALLOWED_TYPE_SUFFIXES:
