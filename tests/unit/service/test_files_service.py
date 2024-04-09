@@ -28,7 +28,11 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadResult, S3UploadSummary
-from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk._service.files_service import (
+    SUPPORTED_TYPE_SUFFIXES,
+    DeepsetCloudFile,
+    FilesService,
+)
 from deepset_cloud_sdk.models import UserInfo
 
 
@@ -209,6 +213,7 @@ class TestUpload:
             paths=[Path("./tests/data/upload_folder")],
             blocking=True,
             timeout_s=300,
+            desired_file_types=SUPPORTED_TYPE_SUFFIXES,
         )
         assert mocked_upload_file_paths.called
         assert "test_workspace" == mocked_upload_file_paths.call_args[1]["workspace_name"]
@@ -217,6 +222,10 @@ class TestUpload:
 
         assert (
             Path("tests/data/upload_folder/example.txt.meta.json")
+            in mocked_upload_file_paths.call_args[1]["file_paths"]
+        )
+        assert (
+            Path("tests/data/upload_folder/example.csv.meta.json")
             in mocked_upload_file_paths.call_args[1]["file_paths"]
         )
         assert Path("tests/data/upload_folder/example.txt") in mocked_upload_file_paths.call_args[1]["file_paths"]
@@ -243,10 +252,38 @@ class TestUpload:
                 paths=[Path("./tests/data/upload_folder")],
                 blocking=True,
                 timeout_s=300,
+                desired_file_types=SUPPORTED_TYPE_SUFFIXES,
             )
             skip_log_line = next((log for log in cap_logs if log.get("event", None) == "Skipping file"), None)
             assert skip_log_line is not None
             assert str(skip_log_line["file_path"]).endswith(".jpg")
+
+    async def test_upload_paths_only_uploads_desired_file_types(
+        self,
+        file_service: FilesService,
+        monkeypatch: MonkeyPatch,
+    ) -> None:
+        with capture_logs() as cap_logs:
+            mocked_upload_file_paths = AsyncMock(return_value=None)
+            monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+            await file_service.upload(
+                workspace_name="test_workspace",
+                paths=[Path("./tests/data/upload_folder")],
+                blocking=True,
+                timeout_s=300,
+                desired_file_types=[
+                    ".csv",
+                    ".docx",
+                    ".html",
+                    ".json",
+                    ".md",
+                    ".pptx",
+                    ".xlsx",
+                    ".xml",
+                ],  # exclude txt/pdf/jpg
+            )
+            skipped = sorted([log["file_path"].name for log in cap_logs if log["event"] == "Skipping file"])
+            assert skipped == ["example.jpg", "example.pdf", "example.txt", "example.txt.meta.json"]
 
     async def test_upload_paths_nested(
         self,
@@ -1023,6 +1060,28 @@ class TestPreprocessFiles:
             FilesService._preprocess_paths([Path("tests/data/upload_folder/example.txt")], spinner=None)
         except Exception as e:
             assert False, f"No error should have been thrown but got error of type '{type(e).__name__}'"
+
+
+class TestGetAllowedFileTypes:
+    @pytest.mark.parametrize("input", [[], None])
+    def test_get_allowed_file_types_empty_values(self, input: List[object] | None) -> None:
+        file_types = FilesService._get_allowed_file_types(input)
+        assert file_types == SUPPORTED_TYPE_SUFFIXES
+
+    def test_get_allowed_file_types(self) -> None:
+        desired = [".pdf", ".txt", ".xml"]
+        file_types = sorted(FilesService._get_allowed_file_types(desired))
+        assert file_types == desired
+
+    def test_get_allowed_file_types_unsupported_types(self) -> None:
+        desired = [".pdf", ".foo", "jpg", 2]
+        file_types = sorted(FilesService._get_allowed_file_types(desired))
+        assert file_types == [".pdf"]
+
+    def test_get_allowed_file_types_manages_formatting(self) -> None:
+        desired = [".pdf", "txt", "XML", "PDF"]
+        file_types = sorted(FilesService._get_allowed_file_types(desired))
+        assert file_types == [".pdf", ".txt", ".xml"]
 
 
 class TestGetFilePaths:

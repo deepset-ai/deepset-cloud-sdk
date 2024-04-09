@@ -44,6 +44,7 @@ def upload(
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
     recursive: bool = False,
+    desired_file_types: List[str] = [".txt", ".pdf"],
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
@@ -61,6 +62,7 @@ def upload(
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
+    :param desired_file_types: A list of allowed file types to upload, defaults to ['.txt', '.pdf'].
     """
     return asyncio.run(
         async_upload(
@@ -73,6 +75,7 @@ def upload(
             timeout_s=timeout_s,
             show_progress=show_progress,
             recursive=recursive,
+            desired_file_types=desired_file_types,
         )
     )
 
