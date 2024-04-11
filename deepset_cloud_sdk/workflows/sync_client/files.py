@@ -34,7 +34,7 @@ from deepset_cloud_sdk.workflows.sync_client.utils import iter_over_async
 logger = structlog.get_logger(__name__)
 
 
-def upload(
+def upload(  # pylint: disable=too-many-arguments
     paths: List[Path],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,

@@ -9,7 +9,11 @@ from _pytest.monkeypatch import MonkeyPatch
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
-from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk._service.files_service import (
+    SUPPORTED_TYPE_SUFFIXES,
+    DeepsetCloudFile,
+    FilesService,
+)
 
 
 @pytest.mark.asyncio
@@ -62,6 +66,7 @@ class TestUploadsFileService:
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
+                desired_file_types=SUPPORTED_TYPE_SUFFIXES,
             )
             assert result.total_files == 9
             assert result.successful_upload_count == 9
@@ -106,8 +111,8 @@ class TestUploadsFileService:
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
             )
-            assert result.total_files == 10
-            assert result.successful_upload_count == 10
+            assert result.total_files == 20
+            assert result.successful_upload_count == 20
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
@@ -149,9 +154,10 @@ class TestUploadsFileService:
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
+                desired_file_types=SUPPORTED_TYPE_SUFFIXES,
             )
-            assert result.total_files == 9
-            assert result.successful_upload_count == 9
+            assert result.total_files == 18
+            assert result.successful_upload_count == 18
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
@@ -165,7 +171,7 @@ class TestUploadsFileService:
             async for file_batch in file_service.list_all(
                 workspace_name=workspace_name,
                 batch_size=39,
-                timeout_s=120,
+                timeout_s=200,
             ):
                 uploaded_files += file_batch
 

@@ -12,7 +12,9 @@ You don't need to follow any specific folder structure. If your folder contains 
 
 # Upload Files
 
-To upload files:
+## Upload text files:
+
+By default it is allowed to upload .txt and .pdf files. See below to upload different file types.
 
 1. Log in to the sdk: `deepset-cloud login` (MacOS and Linux) or `python -m deepset_cloud_sdk.cli login` (Windows).
 2. When prompted, paste your deepset Cloud API key.
@@ -25,16 +27,37 @@ To upload files:
     from pathlib import Path
     from deepset_cloud_sdk.workflows.sync_client.files import upload
 
-    ## Uploads all files from a given path
+    ## Uploads all txt and pdf files from a given path
     upload(
     paths=[Path("<your_path_to_the_upload_folder>")],
     blocking=True,  # waits until the files are displayed in deepset Cloud,
                     # this may take a couple of minutes
     timeout_s=300,  # the timeout for the `blocking` parameter in number of seconds
     show_progress=True,  # shows the progress bar
-    recursive=True,  # uploads files from all subfolders as well
+    recursive=True,  # uploads text files from all subfolders as well
     )
+    ```
 
+## Upload other file types
+
+Deepset Cloud currently supports uploading : .csv, .docx, .html, .json, .md, .txt, .pdf, .pptx, .xlsx and .xml.
+
+
+    ```python
+    from pathlib import Path
+    from deepset_cloud_sdk.workflows.sync_client.files import upload
+
+    ## Uploads supported files from a given path
+    upload(
+    paths=[Path("<your_path_to_the_upload_folder>")],
+    blocking=True,
+    timeout_s=300,
+    show_progress=True,
+    recursive=True,
+    desired_file_types=[ # list of desired file types to upload
+        ".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"
+    ]
+    )
     ```
 
 For more examples, see [CLI examples](/examples/cli/README.md) and [SDK examples](/examples/sdk/README.md).

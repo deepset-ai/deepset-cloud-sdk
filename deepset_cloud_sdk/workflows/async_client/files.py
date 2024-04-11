@@ -118,7 +118,7 @@ async def get_upload_session(
         )
 
 
-async def upload(
+async def upload(  # pylint:disable=dangerous-default-value
     paths: List[Path],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
