@@ -331,7 +331,7 @@ class FilesService:
 
     @staticmethod
     def _get_allowed_file_types(desired_file_types: Optional[List[Any]]) -> List[str]:
-        """Filters `SUPPORTED_TYPE_SUFFIXES` by `desired_file_types`.
+        """Filter `SUPPORTED_TYPE_SUFFIXES` by `desired_file_types`.
 
         If desired_file_types is empty, all supported file types are returned.
         :param desired_file_types: A list of desired file types.

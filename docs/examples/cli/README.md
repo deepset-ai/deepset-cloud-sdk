@@ -48,7 +48,7 @@ Replace <command> with one of the supported commands. To list all available comm
 
 You don't have to follow any special folder structure. If there are multiple files with the same name in your folder, they're all uploaded by default. You can change this behavior with the `--write-mode` flag. See the examples below.
 
-This command uploads the file example.txt to your deepset Cloud workspace. 
+This command uploads the file example.txt to your deepset Cloud workspace.
 On MacOS and Linux:
 
 ```shell
@@ -61,7 +61,8 @@ On Windows:
 python -m deepset_cloud_sdk.cli upload ./examples/data/example.txt
 ```
 
-This command uploads the entire data folder located in the _examples_ directory to your deepset Cloud workspace.
+This command uploads all `.txt` and `.pdf` files from the folder located in the _examples_ directory to your deepset Cloud workspace. By default only `.txt` and `.pdf` files are uploaded. To upload different file types see below.
+
 The paths in the examples are relative to the current working directory.
 
 On MacOS and Linux:
@@ -84,6 +85,20 @@ On Windows:
 python -m deepset_cloud_sdk.cli upload ./examples/data --write-mode OVERWRITE
 ```
 This syncs your local files with the files in your deepset Cloud workspace without having to manually delete the files in your workspace.
+
+## Upload different file types
+
+To upload other file types than text, specify the desired file types as a comma-separated string.
+The command below uploads all file types from the ./example/data directory that are supported by deepset Cloud.
+
+```shell
+deepset-cloud upload ./examples/data --desired-file-types .csv, .docx, .html, .json, md, .txt, .pdf, .pptx, .xlsx, .xml
+
+```
+On Windows:
+```shell
+python -m deepset_cloud_sdk.cli upload ./examples/data --desired-file-types .csv, .docx, .html, .json, md, .txt, .pdf, .pptx, .xlsx, .xml
+```
 
 
 ### Downloading Files from deepset Cloud
