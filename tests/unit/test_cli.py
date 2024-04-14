@@ -65,6 +65,23 @@ class TestCLIMethods:
                 show_progress=True,
             )
 
+    class TestDownloadPipelineFiles:
+        @patch("deepset_cloud_sdk.cli.sync_download_pipeline_files")
+        def test_download_pipeline_files(self, mocked_sync_download_pipeline_files: AsyncMock) -> None:
+            mocked_sync_download_pipeline_files.side_effect = Mock()
+            result = runner.invoke(cli_app, ["download-pipeline-files", "my-pipeline", "--workspace-name", "default"])
+            assert result.exit_code == 0
+            mocked_sync_download_pipeline_files.assert_called_once_with(
+                workspace_name="default",
+                pipeline_name="my-pipeline",
+                file_dir=None,
+                batch_size=50,
+                api_key=None,
+                api_url=None,
+                show_progress=True,
+                timeout_s=None,
+            )
+
     class TestListFiles:
         @patch("deepset_cloud_sdk.cli.sync_list_files")
         def test_listing_files(self, sync_list_files_mock: AsyncMock) -> None:
