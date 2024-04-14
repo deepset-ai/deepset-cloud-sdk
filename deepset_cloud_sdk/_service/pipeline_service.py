@@ -39,6 +39,6 @@ class PipelinesService:
     async def get_pipeline_file_ids(
         self, pipeline_name: str, workspace_name: str, status: FileIndexingStatus = FileIndexingStatus.FAILED
     ) -> List[UUID]:
-        return await self._pipelines.get_pipeline_files(
+        return await self._pipelines.get_pipeline_file_ids(
             pipeline_name=pipeline_name, workspace_name=workspace_name, status=status
         )

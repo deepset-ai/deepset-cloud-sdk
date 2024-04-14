@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
 import httpx
+from deepset_cloud_sdk._api.pipelines import PipelinesAPI
 import pytest
 import structlog
 from dotenv import load_dotenv
@@ -69,6 +70,11 @@ def mocked_deepset_cloud_api() -> Mock:
 @pytest.fixture
 def mocked_upload_sessions_api() -> Mock:
     return Mock(spec=UploadSessionsAPI)
+
+
+@pytest.fixture
+def mocked_pipelines() -> Mock:
+    return Mock(spec=PipelinesAPI)
 
 
 @pytest.fixture

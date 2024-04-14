@@ -43,7 +43,7 @@ class PipelinesAPI:
         """
         self._deepset_cloud_api = deepset_cloud_api
 
-    async def get_pipeline_files(
+    async def get_pipeline_file_ids(
         self, pipeline_name: str, workspace_name: str, status: FileIndexingStatus = FileIndexingStatus.FAILED
     ) -> List[UUID]:
         """Get file ids that failed or did not create documents during indexing.
