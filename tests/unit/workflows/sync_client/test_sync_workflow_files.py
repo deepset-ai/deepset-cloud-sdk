@@ -171,7 +171,6 @@ def test_download_pipeline_files() -> None:
             workspace_name="my_workspace",
             pipeline_name="my_pipeline",
             file_dir="./mypath",
-            include_meta=True,
             batch_size=100,
             show_progress=True,
             timeout_s=100,

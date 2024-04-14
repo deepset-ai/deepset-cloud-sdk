@@ -25,10 +25,10 @@ class TestGetFileIds:
     async def test_get_file_ids(
         self,
         mocked_pipelines: Mock,
-        pipeline_service: PipelinesService,
+        pipelines_service: PipelinesService,
     ) -> None:
         mocked_pipelines.get_pipeline_file_ids = AsyncMock(return_value=[UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10")])
-        returned_file_ids = await pipeline_service.get_pipeline_file_ids(
+        returned_file_ids = await pipelines_service.get_pipeline_file_ids(
             workspace_name="test_workspace",
             pipeline_name="test_pipeline",
             status=FileIndexingStatus.INDEXED_NO_DOCUMENTS,

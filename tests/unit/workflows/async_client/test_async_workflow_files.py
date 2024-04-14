@@ -288,12 +288,12 @@ class TestGetUploadSessionStatus:
 @pytest.mark.asyncio
 class TestPipelineFiles:
     @pytest.fixture
-    def mocked_download(self) -> Mock:
-        return Mock()
+    def mocked_download(self) -> AsyncMock:
+        return AsyncMock()
 
     @pytest.fixture
-    def mocked_get_pipeline_file_ids(self) -> Mock:
-        get_file_ids = Mock()
+    def mocked_get_pipeline_file_ids(self) -> AsyncMock:
+        get_file_ids = AsyncMock()
         get_file_ids.return_value = [
             UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
             UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a11"),
@@ -301,7 +301,7 @@ class TestPipelineFiles:
         return get_file_ids
 
     async def test_download_pipeline_files(
-        self, monkeypatch: MonkeyPatch, mocked_download: Mock, mocked_get_pipeline_file_ids: Mock
+        self, monkeypatch: MonkeyPatch, mocked_download: AsyncMock, mocked_get_pipeline_file_ids: AsyncMock
     ) -> None:
         monkeypatch.setattr(PipelinesService, "get_pipeline_file_ids", mocked_get_pipeline_file_ids)
         monkeypatch.setattr(FilesService, "download", mocked_download)
@@ -312,6 +312,7 @@ class TestPipelineFiles:
             batch_size=100,
             timeout_s=100,
         )
+
         # Check that pipeline indexing file ids was called with
         # the correct status for filtering
         assert (
