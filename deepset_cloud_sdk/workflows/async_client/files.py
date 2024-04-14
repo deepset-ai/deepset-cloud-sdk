@@ -13,6 +13,7 @@ from deepset_cloud_sdk._api.config import (
     CommonConfig,
 )
 from deepset_cloud_sdk._api.files import File
+from deepset_cloud_sdk._api.pipelines import FileIndexingStatus
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionDetail,
     UploadSessionStatus,
@@ -20,6 +21,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk._service.pipeline_service import PipelinesService
 
 
 def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:
@@ -200,6 +202,59 @@ async def download(
             show_progress=show_progress,
             timeout_s=timeout_s,
         )
+
+
+async def download_pipeline_files(
+    pipeline_name: str,
+    status: FileIndexingStatus = FileIndexingStatus.FAILED,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    file_dir: Optional[Union[Path, str]] = None,
+    batch_size: int = 50,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    show_progress: bool = True,
+    timeout_s: Optional[int] = None,
+) -> None:
+    """Download all files that led to a error status during indexing.
+
+    :param pipeline_name: Name of the pipeline.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
+    during the upload. Supported file formats are TXT and PDF.
+    :param batch_size: Batch size for the listing.
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param show_progress: Shows the upload progress.
+    :param timeout_s: Timeout in seconds for the download.
+    """
+    file_ids: List[UUID]
+
+    if file_dir is None:
+        file_dir = Path.cwd()
+    if isinstance(file_dir, str):
+        file_dir = Path(file_dir).resolve()
+
+    for status in FileIndexingStatus:
+        status_file_dir = Path(str(file_dir) + f"/{status.value}")
+
+        async with PipelinesService.factory(_get_config(api_key=api_key, api_url=api_url)) as pipeline_service:
+            file_ids = await pipeline_service.get_pipeline_file_ids(
+                pipeline_name=pipeline_name, workspace_name=workspace_name, status=status
+            )
+
+        async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+            # WARNING: This filter might explode if we have many files that failed or did not
+            # create documents. We need to use the download method to get the file names here.
+            file_ids_filters = ",".join([str(_id) for _id in file_ids])
+            await file_service.download(
+                workspace_name=workspace_name,
+                file_dir=status_file_dir,
+                odata_filter=f"file_id in '{file_ids_filters}'",
+                include_meta=True,
+                batch_size=batch_size,
+                show_progress=show_progress,
+                timeout_s=timeout_s,
+            )
 
 
 async def upload_texts(
