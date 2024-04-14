@@ -23,8 +23,12 @@ class FileIndexingStatus(str, Enum):
     INDEXED_NO_DOCUMENTS = "INDEXED_NO_DOCUMENTS"
 
 
-class PipelineFilesNotFound(Exception):
-    """Failed fetching pipeline files"""
+class PipelineNotFoundException(Exception):
+    """Raised if pipeline was not found."""
+
+
+class FailedToFetchFileIdsException(Exception):
+    """Failed fetching pipeline files."""
 
 
 class PipelinesAPI:
@@ -55,7 +59,9 @@ class PipelinesAPI:
 
         params: Dict[str, str] = {"status": status}
         response = await self._deepset_cloud_api.get(workspace_name, f"pipelines/{pipeline_name}/files", params=params)
+        if response.status_code == codes.NOT_FOUND:
+            raise PipelineNotFoundException()
         if response.status_code != codes.OK:
-            raise PipelineFilesNotFound(response.text)
-        file_ids: List[UUID] = response.json()
+            raise FailedToFetchFileIdsException(response.text)
+        file_ids: List[UUID] = [UUID(_id) for _id in response.json()]
         return file_ids

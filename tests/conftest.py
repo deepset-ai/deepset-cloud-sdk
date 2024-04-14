@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
 import httpx
-from deepset_cloud_sdk._api.pipelines import PipelinesAPI
 import pytest
 import structlog
 from dotenv import load_dotenv
@@ -17,6 +16,7 @@ from tenacity import retry, stop_after_delay, wait_fixed
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.files import FilesAPI
+from deepset_cloud_sdk._api.pipelines import PipelinesAPI
 from deepset_cloud_sdk._api.upload_sessions import (
     AWSPrefixedRequestConfig,
     UploadSession,

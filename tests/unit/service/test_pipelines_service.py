@@ -1,11 +1,11 @@
 from unittest.mock import AsyncMock, Mock
 from uuid import UUID
 
-from deepset_cloud_sdk._api.pipelines import FileIndexingStatus
-from deepset_cloud_sdk._service.pipeline_service import PipelinesService
 import pytest
 
 from deepset_cloud_sdk._api.config import CommonConfig
+from deepset_cloud_sdk._api.pipelines import FileIndexingStatus
+from deepset_cloud_sdk._service.pipeline_service import PipelinesService
 
 
 @pytest.fixture
