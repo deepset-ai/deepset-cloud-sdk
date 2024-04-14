@@ -18,6 +18,7 @@ from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
 from deepset_cloud_sdk.models import UserInfo
 from deepset_cloud_sdk.workflows.sync_client.files import (
     download,
+    download_pipeline_files,
     get_upload_session,
     list_files,
     list_upload_sessions,
@@ -144,6 +145,32 @@ def test_download_files() -> None:
             content="test content",
             odata_filter="test",
             file_dir=None,
+            include_meta=True,
+            batch_size=100,
+            show_progress=True,
+            timeout_s=100,
+        )
+
+
+def test_download_pipeline_files() -> None:
+    mocked_async_download_pipeline_files = AsyncMock()
+    with patch(
+        "deepset_cloud_sdk.workflows.sync_client.files.async_download_pipeline_files",
+        new=mocked_async_download_pipeline_files,
+    ):
+        download_pipeline_files(
+            workspace_name="my_workspace",
+            pipeline_name="my_pipeline",
+            file_dir="./mypath",
+            batch_size=100,
+            timeout_s=100,
+        )
+        mocked_async_download_pipeline_files.assert_called_once_with(
+            api_key=None,
+            api_url=None,
+            workspace_name="my_workspace",
+            pipeline_name="my_pipeline",
+            file_dir="./mypath",
             include_meta=True,
             batch_size=100,
             show_progress=True,
