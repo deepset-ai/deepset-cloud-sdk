@@ -1,4 +1,5 @@
 """Sync client for files workflow."""
+
 import asyncio
 from pathlib import Path
 from typing import Generator, List, Optional, Union
@@ -15,6 +16,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
+from deepset_cloud_sdk.workflows.async_client.files import Sources
 from deepset_cloud_sdk.workflows.async_client.files import download as async_download
 from deepset_cloud_sdk.workflows.async_client.files import (
     get_upload_session as async_get_upload_session,
@@ -25,6 +27,7 @@ from deepset_cloud_sdk.workflows.async_client.files import (
 from deepset_cloud_sdk.workflows.async_client.files import (
     list_upload_sessions as async_list_upload_sessions,
 )
+from deepset_cloud_sdk.workflows.async_client.files import sync as async_sync
 from deepset_cloud_sdk.workflows.async_client.files import upload as async_upload
 from deepset_cloud_sdk.workflows.async_client.files import (
     upload_texts as async_upload_texts,
@@ -118,6 +121,33 @@ def download(  # pylint: disable=too-many-arguments
             file_dir=file_dir,
             include_meta=include_meta,
             batch_size=batch_size,
+            show_progress=show_progress,
+            timeout_s=timeout_s,
+        )
+    )
+
+
+def sync(  # pylint: disable=too-many-arguments
+    source: Sources,
+    auth: str,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    path: Optional[str] = None,
+    include_meta: bool = True,
+    batch_size: int = 50,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    show_progress: bool = True,
+    timeout_s: Optional[int] = None,
+) -> None:
+    """TODO"""
+    asyncio.run(
+        async_sync(
+            api_key=api_key,
+            api_url=api_url,
+            workspace_name=workspace_name,
+            source=source,
+            auth=auth,
+            path=path,
             show_progress=show_progress,
             timeout_s=timeout_s,
         )

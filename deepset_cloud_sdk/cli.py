@@ -1,4 +1,5 @@
 """The CLI for the deepset Cloud SDK."""
+
 import json
 import os
 from typing import List, Optional
@@ -9,6 +10,7 @@ from tabulate import tabulate
 
 from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
+from deepset_cloud_sdk.workflows.async_client.files import Sources
 from deepset_cloud_sdk.workflows.sync_client.files import download as sync_download
 from deepset_cloud_sdk.workflows.sync_client.files import (
     get_upload_session as sync_get_upload_session,
@@ -17,12 +19,36 @@ from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_lis
 from deepset_cloud_sdk.workflows.sync_client.files import (
     list_upload_sessions as sync_list_upload_sessions,
 )
+from deepset_cloud_sdk.workflows.sync_client.files import sync as sync_sync
 from deepset_cloud_sdk.workflows.sync_client.files import upload
 
 cli_app = typer.Typer(pretty_exceptions_show_locals=False)
 
 # cli commands
 cli_app.command()(upload)
+
+
+@cli_app.command()
+def sync(
+    source: Sources,
+    auth: str,
+    path: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    batch_size: int = 50,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    show_progress: bool = True,
+) -> None:
+    sync_sync(
+        workspace_name=workspace_name,
+        source=source,
+        auth=auth,
+        path=path,
+        batch_size=batch_size,
+        api_key=api_key,
+        api_url=api_url,
+        show_progress=show_progress,
+    )
 
 
 @cli_app.command()
