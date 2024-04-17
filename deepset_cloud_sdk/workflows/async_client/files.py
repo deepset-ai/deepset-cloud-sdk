@@ -1,5 +1,6 @@
 # pylint:disable=too-many-arguments
 """This module contains async functions for uploading files and folders to deepset Cloud."""
+from enum import Enum
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional, Union
 from uuid import UUID
@@ -20,6 +21,10 @@ from deepset_cloud_sdk._api.upload_sessions import (
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+
+
+class Sources(str, Enum):
+    GDRIVE = "GDRIVE"
 
 
 def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:
@@ -156,6 +161,48 @@ async def upload(
             show_progress=show_progress,
             recursive=recursive,
         )
+
+
+async def download_gdrive(
+    auth: str,
+    path: Optional[str] = None,
+) -> AsyncGenerator[List[Path], None]:
+    """Help"""
+    yield [Path("tests/data/upload_folder/example.txt"), Path("tests/data/upload_folder/example.txt")]
+
+
+async def sync(
+    source: Sources,
+    auth: str,
+    path: Optional[str] = None,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
+    blocking: bool = True,
+    timeout_s: Optional[int] = None,
+    show_progress: bool = True,
+    recursive: bool = False,
+) -> List[S3UploadSummary]:
+    summaries: List[S3UploadSummary] = []
+    if source == Sources.GDRIVE:
+        async for paths in download_gdrive(
+            auth=auth,
+            path=path,
+        ):
+            async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+                summaries.append(
+                    await file_service.upload(
+                        workspace_name=workspace_name,
+                        paths=paths,
+                        write_mode=write_mode,
+                        blocking=blocking,
+                        timeout_s=timeout_s,
+                        show_progress=show_progress,
+                        recursive=recursive,
+                    )
+                )
+    return summaries
 
 
 async def download(
