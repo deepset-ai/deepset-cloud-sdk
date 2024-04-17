@@ -31,7 +31,7 @@ cli_app.command()(upload)
 @cli_app.command()
 def sync(
     source: Sources,
-    auth: str,
+    auth: Optional[str] = None,
     path: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     batch_size: int = 50,
@@ -42,7 +42,7 @@ def sync(
     sync_sync(
         workspace_name=workspace_name,
         source=source,
-        auth=auth,
+        auth=auth or "",
         path=path,
         batch_size=batch_size,
         api_key=api_key,
