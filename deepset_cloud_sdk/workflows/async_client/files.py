@@ -206,7 +206,6 @@ async def download(
 
 async def download_pipeline_files(
     pipeline_name: str,
-    status: FileIndexingStatus = FileIndexingStatus.FAILED,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[Union[Path, str]] = None,
     batch_size: int = 50,
