@@ -17,7 +17,7 @@ logger = structlog.get_logger(__name__)
 
 
 class FileIndexingStatus(str, Enum):
-    """File indexing status"""
+    """File indexing status."""
 
     FAILED = "FAILED"
     INDEXED_NO_DOCUMENTS = "INDEXED_NO_DOCUMENTS"
@@ -56,7 +56,6 @@ class PipelinesAPI:
         :param workspace_name: Name of the workspace.
         :param status: Status that should be used for fetching files
         """
-
         params: Dict[str, str] = {"status": status}
         response = await self._deepset_cloud_api.get(workspace_name, f"pipelines/{pipeline_name}/files", params=params)
         if response.status_code == codes.NOT_FOUND:

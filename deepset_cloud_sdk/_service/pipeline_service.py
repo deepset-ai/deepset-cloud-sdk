@@ -39,6 +39,13 @@ class PipelinesService:
     async def get_pipeline_file_ids(
         self, pipeline_name: str, workspace_name: str, status: FileIndexingStatus = FileIndexingStatus.FAILED
     ) -> List[UUID]:
+        """Get file ids that failed or did not create documents during indexing.
+
+        :param pipeline_name: Name of the pipeline that indexed files.
+        :param workspace_name: Name of the workspace.
+        :param status: Status that should be used for fetching files.
+        :return: List of file ids.
+        """
         return await self._pipelines.get_pipeline_file_ids(
             pipeline_name=pipeline_name, workspace_name=workspace_name, status=status
         )
