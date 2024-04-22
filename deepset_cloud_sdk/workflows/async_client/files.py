@@ -234,12 +234,12 @@ async def download_pipeline_files(
     if isinstance(file_dir, str):
         file_dir = Path(file_dir).resolve()
 
-    for status in FileIndexingStatus:
-        status_file_dir = Path(str(file_dir) + f"/{status.value}")
+    for _status in FileIndexingStatus:
+        status_file_dir = Path(str(file_dir) + f"/{_status.value}")
 
         async with PipelinesService.factory(_get_config(api_key=api_key, api_url=api_url)) as pipeline_service:
             file_ids = await pipeline_service.get_pipeline_file_ids(
-                pipeline_name=pipeline_name, workspace_name=workspace_name, status=status
+                pipeline_name=pipeline_name, workspace_name=workspace_name, status=_status
             )
 
         async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
