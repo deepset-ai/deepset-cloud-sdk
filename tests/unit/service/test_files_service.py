@@ -1,7 +1,9 @@
 import datetime
+import os
+import time
 from pathlib import Path
 from typing import List
-from unittest.mock import AsyncMock, Mock, call
+from unittest.mock import AsyncMock, Mock, PropertyMock, call
 from uuid import UUID
 
 import pytest
@@ -911,7 +913,9 @@ class TestValidateFilePaths:
             [Path("/home/user/file1.pdf"), Path("/home/user/file1.pdf.meta.json")],
         ],
     )
-    async def test_validate_file_paths(self, file_paths: List[Path]) -> None:
+    async def test_validate_file_paths(self, file_paths: List[Path], monkeypatch: MonkeyPatch) -> None:
+        # skip _remove_duplicates since we want to acoid accessing file system
+        monkeypatch.setattr(FilesService, FilesService._remove_duplicates.__name__, Mock(return_value=file_paths))
         FilesService._validate_file_paths(file_paths)
 
     @pytest.mark.parametrize(
@@ -926,9 +930,67 @@ class TestValidateFilePaths:
             [Path("/home/user/file1.txt"), Path("/home/user/file1.pdf.meta.json")],
         ],
     )
-    async def test_validate_file_paths_with_broken_meta_field(self, file_paths: List[Path]) -> None:
+    async def test_validate_file_paths_with_broken_meta_field(
+        self, file_paths: List[Path], monkeypatch: MonkeyPatch
+    ) -> None:
+        # skip _remove_duplicates since we want to acoid accessing file system
+        monkeypatch.setattr(FilesService, FilesService._remove_duplicates.__name__, Mock(return_value=file_paths))
         with pytest.raises(ValueError):
             FilesService._validate_file_paths(file_paths)
+
+
+class TestRemoveDuplicates:
+    @pytest.mark.parametrize(
+        "file_paths, expected",
+        [
+            (
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/file2.txt"),
+                ],
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/file2.txt"),
+                ],
+            ),
+            (
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/old_files/file2.txt"),
+                ],
+                [
+                    Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+                    Path("tests/data/upload_folder_with_duplicates/old_files/file2.txt"),
+                ],
+            ),
+        ],
+    )
+    def test_remove_duplicates_without_dups(self, file_paths: List[Path], expected: List[Path]) -> None:
+        assert FilesService._remove_duplicates(file_paths) == expected
+
+    def test_remove_duplicates_with_dups(self, monkeypatch: MonkeyPatch) -> None:
+        file_paths = [
+            Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+            Path("tests/data/upload_folder_with_duplicates/file2.txt"),
+            Path("tests/data/upload_folder_with_duplicates/old_files/file1.txt"),
+            Path("tests/data/upload_folder_with_duplicates/old_files/file2.txt"),
+        ]
+        expected = [
+            Path("tests/data/upload_folder_with_duplicates/file1.txt"),
+            Path("tests/data/upload_folder_with_duplicates/file2.txt"),
+        ]
+        # mock file age to avoid relying on files in file system
+        timestamp = time.time()
+        monkeypatch.setattr(
+            os.stat_result,
+            "st_mtime",
+            PropertyMock(side_effect=[timestamp, timestamp - 1, timestamp - 2, timestamp - 3]),
+        )
+        with capture_logs() as cap_logs:
+            assert FilesService._remove_duplicates(file_paths) == expected
+            next(
+                (log for log in cap_logs if "Multiple files with the same name found." in log.get("event", None)), None
+            )
 
 
 class TestPreprocessFiles:
@@ -945,3 +1007,19 @@ class TestPreprocessFiles:
             FilesService._preprocess_paths([Path("tests/data/upload_folder/example.txt")], spinner=None)
         except Exception as e:
             assert False, f"No error should have been thrown but got error of type '{type(e).__name__}'"
+
+
+class TestGetFilePaths:
+    def test_directories_excluded_from_path_recursive(self) -> None:
+        paths = [Path("tests/data/upload_folder_nested")]
+        file_paths = FilesService._get_file_paths(paths=paths, recursive=True)
+        assert sorted(file_paths) == [
+            Path("tests/data/upload_folder_nested/example.txt"),
+            Path("tests/data/upload_folder_nested/meta/example.txt.meta.json"),
+            Path("tests/data/upload_folder_nested/nested_folder/second.txt"),
+        ]
+
+    def test_directories_excluded_from_path_non_recursive(self) -> None:
+        paths = [Path("tests/data/upload_folder_nested")]
+        file_paths = FilesService._get_file_paths(paths=paths, recursive=False)
+        assert file_paths == [Path("tests/data/upload_folder_nested/example.txt")]

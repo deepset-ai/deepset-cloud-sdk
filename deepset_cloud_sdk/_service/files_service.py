@@ -5,6 +5,7 @@ import asyncio
 import json
 import os
 import time
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, List, Optional, Union
@@ -110,10 +111,6 @@ class FilesService:
                 total_files=total_files,
                 failed_files=upload_session_status.ingestion_status.failed_files,
             )
-
-        logger.warning(
-            "It may take up to three minutes for the files to be visible in deepset Cloud after they were marked as finished."
-        )
 
     @asynccontextmanager
     async def _create_upload_session(
@@ -264,9 +261,9 @@ class FilesService:
             if path.is_file():
                 file_paths.append(path)
             elif recursive:
-                file_paths.extend([file_path for file_path in path.rglob("*")])
+                file_paths.extend([file_path for file_path in path.rglob("*") if file_path.is_file()])
             else:
-                file_paths.extend([file_path for file_path in path.glob("*")])
+                file_paths.extend([file_path for file_path in path.glob("*") if file_path.is_file()])
         return file_paths
 
     @staticmethod
@@ -281,6 +278,7 @@ class FilesService:
         """
         logger.info("Validating file paths and metadata.")
         allowed_suffixes = {".txt", ".json", ".pdf"}
+        file_paths = FilesService._remove_duplicates(file_paths)
         for file_path in file_paths:
             if file_path.suffix.lower() not in allowed_suffixes:
                 raise ValueError(
@@ -312,6 +310,25 @@ class FilesService:
                 "Map the files using file names like this: '<file_name>' and '<file_name>.meta.json'. "
                 "For example: 'file1.txt' and 'file1.txt.meta.json'."
             )
+
+    @staticmethod
+    def _remove_duplicates(file_paths: List[Path]) -> List[Path]:
+        # Group files by their names
+        files_by_name = defaultdict(list)
+        for file_path in file_paths:
+            files_by_name[file_path.name].append(file_path)
+
+        # For each group, sort by modification time and select the most recent
+        most_recent_files = []
+        for file_name, file_group in files_by_name.items():
+            if len(file_group) > 1:
+                logger.warning(
+                    "Multiple files with the same name found. Keeping the most recent one.", file_name=file_name
+                )
+            most_recent_file = sorted(file_group, key=lambda x: x.stat().st_mtime, reverse=True)[0]
+            most_recent_files.append(most_recent_file)
+
+        return most_recent_files
 
     @staticmethod
     def _preprocess_paths(paths: List[Path], spinner: yaspin.Spinner = None, recursive: bool = False) -> List[Path]:

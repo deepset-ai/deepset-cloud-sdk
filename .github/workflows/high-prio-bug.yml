@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Slack alert for high priority bug
-        uses: act10ns/slack@ed1309ab9862e57e9e583e51c7889486b9a00b0f
+        uses: act10ns/slack@44541246747a30eb3102d87f7a4cc5471b0ffb7d
         with:
           status: High Priority Bug
           message: High Priority Bug ${{ github.event.issue.html_url }}
