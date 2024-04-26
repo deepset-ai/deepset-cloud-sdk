@@ -88,16 +88,16 @@ This syncs your local files with the files in your deepset Cloud workspace witho
 
 ## Upload different file types
 
-To upload other file types than text, specify the desired file types as a comma-separated string.
+To upload other file types than text, specify the desired file types using the flag `--use-type`.
 The command below uploads all file types from the ./example/data directory that are supported by deepset Cloud.
 
 ```shell
-deepset-cloud upload ./examples/data --use-type .csv --use-type .docx--use-type .html --use-type .json --use-type .md --use-type .txt --use-type .pdf --use-type .pptx --use-type .xlsx --use-type .xml
+deepset-cloud upload ./examples/data --use-type .csv --use-type .docx --use-type .html --use-type .json --use-type .md --use-type .txt --use-type .pdf --use-type .pptx --use-type .xlsx --use-type .xml
 
 ```
 On Windows:
 ```shell
-python -m deepset_cloud_sdk.cli upload ./examples/data --desired-file-types --use-type .json --use-type .md --use-type .txt --use-type .pdf --use-type .pptx --use-type .xlsx --use-type .xml
+python -m deepset_cloud_sdk.cli upload ./examples/data --use-type .csv --use-type .docx --use-type .html --use-type .json --use-type .md --use-type .txt --use-type .pdf --use-type .pptx --use-type .xlsx --use-type .xml
 ```
 
 
