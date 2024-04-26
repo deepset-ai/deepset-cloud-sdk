@@ -45,7 +45,7 @@ def upload(  # pylint: disable=too-many-arguments
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
     recursive: bool = False,
-    desired_file_types: List[str] = [".txt", ".pdf"],
+    desired_file_types: Optional[List[str]] = None,
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
@@ -65,8 +65,7 @@ def upload(  # pylint: disable=too-many-arguments
     :param recursive: Uploads files from subfolders as well.
     :param desired_file_types: A list of allowed file types to upload, defaults to ".txt, .pdf".
     """
-    # parse desired_file_types to list of string
-
+    desired_file_types = desired_file_types or [".txt", ".pdf"]
     return asyncio.run(
         async_upload(
             paths=paths,
