@@ -75,8 +75,14 @@ class TestCLIMethods:
                 "./test/data/upload_folder/example.txt",
                 "--workspace-name",
                 "default",
-                "--desired-file-types",
-                ".csv, .pdf,  json,.xml",
+                "--use-type",
+                ".csv",
+                "--use-type",
+                ".pdf",
+                "--use-type",
+                ".json",
+                "--use-type",
+                ".xml",
             ],
         )
         async_upload_mock.assert_called_once_with(
@@ -89,7 +95,7 @@ class TestCLIMethods:
             timeout_s=None,
             show_progress=True,
             recursive=False,
-            desired_file_types=[".csv", ".pdf", "json", ".xml"],
+            desired_file_types=[".csv", ".pdf", ".json", ".xml"],
         )
         assert result.exit_code == 0
 

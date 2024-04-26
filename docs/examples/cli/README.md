@@ -92,12 +92,12 @@ To upload other file types than text, specify the desired file types as a comma-
 The command below uploads all file types from the ./example/data directory that are supported by deepset Cloud.
 
 ```shell
-deepset-cloud upload ./examples/data --desired-file-types .csv, .docx, .html, .json, md, .txt, .pdf, .pptx, .xlsx, .xml
+deepset-cloud upload ./examples/data --use-type .csv --use-type .docx--use-type .html --use-type .json --use-type .md --use-type .txt --use-type .pdf --use-type .pptx --use-type .xlsx --use-type .xml
 
 ```
 On Windows:
 ```shell
-python -m deepset_cloud_sdk.cli upload ./examples/data --desired-file-types .csv, .docx, .html, .json, md, .txt, .pdf, .pptx, .xlsx, .xml
+python -m deepset_cloud_sdk.cli upload ./examples/data --desired-file-types --use-type .json --use-type .md --use-type .txt --use-type .pdf --use-type .pptx --use-type .xlsx --use-type .xml
 ```
 
 
