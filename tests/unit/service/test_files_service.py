@@ -28,7 +28,11 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadResult, S3UploadSummary
-from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk._service.files_service import (
+    SUPPORTED_TYPE_SUFFIXES,
+    DeepsetCloudFile,
+    FilesService,
+)
 from deepset_cloud_sdk.models import UserInfo
 
 
@@ -192,7 +196,7 @@ class TestFilePathsUpload:
             ],
         )
 
-        assert not mocked_upload_sessions_api.create.called, "We should not have created a sessionf for a single file"
+        assert not mocked_upload_sessions_api.create.called, "We should not have created a session for a single file"
 
 
 @pytest.mark.asyncio
@@ -209,6 +213,7 @@ class TestUpload:
             paths=[Path("./tests/data/upload_folder")],
             blocking=True,
             timeout_s=300,
+            desired_file_types=SUPPORTED_TYPE_SUFFIXES,
         )
         assert mocked_upload_file_paths.called
         assert "test_workspace" == mocked_upload_file_paths.call_args[1]["workspace_name"]
@@ -219,8 +224,20 @@ class TestUpload:
             Path("tests/data/upload_folder/example.txt.meta.json")
             in mocked_upload_file_paths.call_args[1]["file_paths"]
         )
+        assert (
+            Path("tests/data/upload_folder/example.csv.meta.json")
+            in mocked_upload_file_paths.call_args[1]["file_paths"]
+        )
         assert Path("tests/data/upload_folder/example.txt") in mocked_upload_file_paths.call_args[1]["file_paths"]
         assert Path("tests/data/upload_folder/example.pdf") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.html") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.md") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.docx") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.xlsx") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.csv") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.pptx") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.json") in mocked_upload_file_paths.call_args[1]["file_paths"]
+        assert Path("tests/data/upload_folder/example.xml") in mocked_upload_file_paths.call_args[1]["file_paths"]
 
     async def test_upload_paths_to_folder_skips_incompatible_file_and_logs_file_name(
         self,
@@ -235,10 +252,38 @@ class TestUpload:
                 paths=[Path("./tests/data/upload_folder")],
                 blocking=True,
                 timeout_s=300,
+                desired_file_types=SUPPORTED_TYPE_SUFFIXES,
             )
             skip_log_line = next((log for log in cap_logs if log.get("event", None) == "Skipping file"), None)
             assert skip_log_line is not None
-            assert str(skip_log_line["file_path"]).endswith(".docx")
+            assert str(skip_log_line["file_path"]).endswith(".jpg")
+
+    async def test_upload_paths_only_uploads_desired_file_types(
+        self,
+        file_service: FilesService,
+        monkeypatch: MonkeyPatch,
+    ) -> None:
+        with capture_logs() as cap_logs:
+            mocked_upload_file_paths = AsyncMock(return_value=None)
+            monkeypatch.setattr(FilesService, "upload_file_paths", mocked_upload_file_paths)
+            await file_service.upload(
+                workspace_name="test_workspace",
+                paths=[Path("./tests/data/upload_folder")],
+                blocking=True,
+                timeout_s=300,
+                desired_file_types=[
+                    ".csv",
+                    ".docx",
+                    ".html",
+                    ".json",
+                    ".md",
+                    ".pptx",
+                    ".xlsx",
+                    ".xml",
+                ],  # exclude txt/pdf/jpg
+            )
+            skipped = sorted([log["file_path"].name for log in cap_logs if log["event"] == "Skipping file"])
+            assert skipped == ["example.jpg", "example.pdf", "example.txt", "example.txt.meta.json"]
 
     async def test_upload_paths_nested(
         self,
@@ -381,7 +426,7 @@ class TestUploadTexts:
         )
         assert result == upload_summary
 
-        assert not mocked_upload_sessions_api.create.called, "We should not have created a sessionf for a single file"
+        assert not mocked_upload_sessions_api.create.called, "We should not have created a session for a single file"
 
         mocked_files_api.direct_upload_text.assert_called_once_with(
             workspace_name="test_workspace",
@@ -909,8 +954,17 @@ class TestValidateFilePaths:
         "file_paths",
         [
             [Path("/home/user/file1.txt"), Path("/home/user/file2.txt")],
+            [Path("/home/user/file1.txt"), Path("/home/user/file1.json")],
             [Path("/home/user/file1.txt"), Path("/home/user/file1.txt.meta.json")],
             [Path("/home/user/file1.pdf"), Path("/home/user/file1.pdf.meta.json")],
+            [Path("/home/user/file1.csv"), Path("/home/user/file1.csv.meta.json")],
+            [Path("/home/user/file1.docx"), Path("/home/user/file1.docx.meta.json")],
+            [Path("/home/user/file1.html"), Path("/home/user/file1.html.meta.json")],
+            [Path("/home/user/file1.json"), Path("/home/user/file1.json.meta.json")],
+            [Path("/home/user/file1.md"), Path("/home/user/file1.md.meta.json")],
+            [Path("/home/user/file1.pptx"), Path("/home/user/file1.pptx.meta.json")],
+            [Path("/home/user/file1.xlsx"), Path("/home/user/file1.xlsx.meta.json")],
+            [Path("/home/user/file1.xml"), Path("/home/user/file1.xml.meta.json")],
         ],
     )
     async def test_validate_file_paths(self, file_paths: List[Path], monkeypatch: MonkeyPatch) -> None:
@@ -922,9 +976,8 @@ class TestValidateFilePaths:
         "file_paths",
         [
             [Path("/home/user/.DS_Store")],
-            [Path("/home/user/file2.json")],
-            [Path("/home/user/file1.md")],
-            [Path("/home/user/file1.docx")],
+            [Path("/home/user/file2.jpg")],
+            [Path("/home/user/file1.exe")],
             [Path("/home/user/file1.pdf"), Path("/home/user/file2.pdf.meta.json")],
             [Path("/home/user/file1.pdf"), Path("/home/user/file1.txt.meta.json")],
             [Path("/home/user/file1.txt"), Path("/home/user/file1.pdf.meta.json")],
@@ -1007,6 +1060,28 @@ class TestPreprocessFiles:
             FilesService._preprocess_paths([Path("tests/data/upload_folder/example.txt")], spinner=None)
         except Exception as e:
             assert False, f"No error should have been thrown but got error of type '{type(e).__name__}'"
+
+
+class TestGetAllowedFileTypes:
+    @pytest.mark.parametrize("input", [[], None])
+    def test_get_allowed_file_types_empty_values(self, input: List[object] | None) -> None:
+        file_types = FilesService._get_allowed_file_types(input)
+        assert file_types == SUPPORTED_TYPE_SUFFIXES
+
+    def test_get_allowed_file_types(self) -> None:
+        desired = [".pdf", ".txt", ".xml"]
+        file_types = sorted(FilesService._get_allowed_file_types(desired))
+        assert file_types == desired
+
+    def test_get_allowed_file_types_unsupported_types(self) -> None:
+        desired = [".pdf", ".foo", "jpg", 2]
+        file_types = sorted(FilesService._get_allowed_file_types(desired))
+        assert file_types == [".pdf"]
+
+    def test_get_allowed_file_types_manages_formatting(self) -> None:
+        desired = [".pdf", "txt", "XML", "PDF"]
+        file_types = sorted(FilesService._get_allowed_file_types(desired))
+        assert file_types == [".pdf", ".txt", ".xml"]
 
 
 class TestGetFilePaths:
