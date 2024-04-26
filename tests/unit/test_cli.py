@@ -80,9 +80,9 @@ class TestCLIMethods:
                 "--use-type",
                 ".pdf",
                 "--use-type",
-                "json",
+                ".json",
                 "--use-type",
-                "xml",
+                ".xml",
             ],
         )
         async_upload_mock.assert_called_once_with(
@@ -95,7 +95,7 @@ class TestCLIMethods:
             timeout_s=None,
             show_progress=True,
             recursive=False,
-            desired_file_types=[".csv", ".pdf", "json", ".xml"],
+            desired_file_types=[".csv", ".pdf", ".json", ".xml"],
         )
         assert result.exit_code == 0
 
