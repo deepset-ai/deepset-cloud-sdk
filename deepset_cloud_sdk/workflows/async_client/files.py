@@ -118,7 +118,7 @@ async def get_upload_session(
         )
 
 
-async def upload(  # pylint:disable=dangerous-default-value
+async def upload(
     paths: List[Path],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
@@ -128,7 +128,7 @@ async def upload(  # pylint:disable=dangerous-default-value
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
     recursive: bool = False,
-    desired_file_types: List[str] = [".txt", ".pdf"],
+    desired_file_types: Optional[List[str]] = None,
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
@@ -148,6 +148,7 @@ async def upload(  # pylint:disable=dangerous-default-value
     :param recursive: Uploads files from subdirectories as well.
     :param desired_file_types: A list of allowed file types to upload, defaults to ['.txt', '.pdf'].
     """
+    desired_file_types = desired_file_types or [".txt", ".pdf"]
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         return await file_service.upload(
             workspace_name=workspace_name,

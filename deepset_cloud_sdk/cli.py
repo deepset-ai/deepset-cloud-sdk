@@ -27,7 +27,7 @@ cli_app = typer.Typer(pretty_exceptions_show_locals=False)
 
 # cli commands
 @cli_app.command()
-def upload(
+def upload(  # pylint: disable=too-many-arguments
     paths: List[Path],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
@@ -37,7 +37,7 @@ def upload(
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
     recursive: bool = False,
-    use_type: List[str] = [".txt", ".pdf"],
+    use_type: Optional[List[str]] = None,
 ) -> None:
     """Upload a folder to deepset Cloud.
 
@@ -57,8 +57,7 @@ def upload(
     :param recursive: Uploads files from subfolders as well.
     :param use_type: A comma-separated string of allowed file types to upload, defaults to ".txt, .pdf".
     """
-    print(use_type)
-
+    use_type = use_type or [".txt", ".pdf"]
     sync_upload(
         paths=paths,
         api_key=api_key,
