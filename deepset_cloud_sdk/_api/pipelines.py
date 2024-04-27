@@ -56,7 +56,7 @@ class PipelinesAPI:
         :param workspace_name: Name of the workspace.
         :param status: Status that should be used for fetching files
         """
-        params: Dict[str, str] = {"status": status}
+        params: Dict[str, str] = {"status": status.value}
         response = await self._deepset_cloud_api.get(workspace_name, f"pipelines/{pipeline_name}/files", params=params)
         if response.status_code == codes.NOT_FOUND:
             raise PipelineNotFoundException()

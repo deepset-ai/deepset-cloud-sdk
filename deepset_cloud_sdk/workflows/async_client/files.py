@@ -1,7 +1,7 @@
 # pylint:disable=too-many-arguments
 """This module contains async functions for uploading files and folders to deepset Cloud."""
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional, Union
+from typing import AsyncGenerator, Generator, List, Optional, Union
 from uuid import UUID
 
 from sniffio import AsyncLibraryNotFoundError
@@ -22,6 +22,12 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
 from deepset_cloud_sdk._service.pipeline_service import PipelinesService
+
+
+def _chunked(iterable: List, chunk_size: int) -> Generator[List, None, None]:
+    """Yield successive n-sized chunks from iterable."""
+    for i in range(0, len(iterable), chunk_size):
+        yield iterable[i : i + chunk_size]
 
 
 def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:
@@ -247,16 +253,18 @@ async def download_pipeline_files(
         async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
             # WARNING: This filter might explode if we have many files that failed or did not
             # create documents. We need to use the download method to get the file names here.
-            file_ids_filters = ",".join([str(_id) for _id in file_ids])
-            await file_service.download(
-                workspace_name=workspace_name,
-                file_dir=status_file_dir,
-                odata_filter=f"file_id in '{file_ids_filters}'",
-                include_meta=True,
-                batch_size=batch_size,
-                show_progress=show_progress,
-                timeout_s=timeout_s,
-            )
+
+            # chunk the file_ids into batches of 10 to avoid a too long URL
+            for chunk in _chunked(file_ids, 10):
+                await file_service.download(
+                    workspace_name=workspace_name,
+                    file_dir=status_file_dir,
+                    odata_filter=" or ".join([f"file_id eq '{_id}'" for _id in chunk]),
+                    include_meta=True,
+                    batch_size=batch_size,
+                    show_progress=show_progress,
+                    timeout_s=timeout_s,
+                )
 
 
 async def upload_texts(
