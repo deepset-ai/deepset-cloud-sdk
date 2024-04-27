@@ -71,6 +71,7 @@ class TestUploadFiles:
             timeout_s=None,
             show_progress=True,
             recursive=False,
+            desired_file_types=[".txt", ".pdf"],
         )
 
     async def test_upload_with_timeout(self, monkeypatch: MonkeyPatch) -> None:
@@ -87,6 +88,7 @@ class TestUploadFiles:
             timeout_s=123,
             show_progress=True,
             recursive=False,
+            desired_file_types=[".txt", ".pdf"],
         )
 
     async def test_upload_texts(self, monkeypatch: MonkeyPatch) -> None:

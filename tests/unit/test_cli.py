@@ -15,6 +15,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionStatus,
     UploadSessionStatusEnum,
     UploadSessionWriteModeEnum,
+    WriteMode,
 )
 from deepset_cloud_sdk.cli import cli_app
 from deepset_cloud_sdk.models import UserInfo
@@ -45,6 +46,58 @@ class TestCLIMethods:
         )
         result = runner.invoke(cli_app, ["upload", "./test/data/upload_folder/example.txt"])
         assert result.exit_code == 1
+
+    @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
+    def test_upload_only_desired_file_types_defaults_to_text(self, async_upload_mock: AsyncMock) -> None:
+        result = runner.invoke(
+            cli_app, ["upload", "./test/data/upload_folder/example.txt", "--workspace-name", "default"]
+        )
+        async_upload_mock.assert_called_once_with(
+            paths=[Path("test/data/upload_folder/example.txt")],
+            api_key=None,
+            api_url=None,
+            workspace_name="default",
+            write_mode=WriteMode.KEEP,
+            blocking=True,
+            timeout_s=None,
+            show_progress=True,
+            recursive=False,
+            desired_file_types=[".txt", ".pdf"],
+        )
+        assert result.exit_code == 0
+
+    @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
+    def test_upload_only_desired_file_types_with_desired_file_types(self, async_upload_mock: AsyncMock) -> None:
+        result = runner.invoke(
+            cli_app,
+            [
+                "upload",
+                "./test/data/upload_folder/example.txt",
+                "--workspace-name",
+                "default",
+                "--use-type",
+                ".csv",
+                "--use-type",
+                ".pdf",
+                "--use-type",
+                ".json",
+                "--use-type",
+                ".xml",
+            ],
+        )
+        async_upload_mock.assert_called_once_with(
+            paths=[Path("test/data/upload_folder/example.txt")],
+            api_key=None,
+            api_url=None,
+            workspace_name="default",
+            write_mode=WriteMode.KEEP,
+            blocking=True,
+            timeout_s=None,
+            show_progress=True,
+            recursive=False,
+            desired_file_types=[".csv", ".pdf", ".json", ".xml"],
+        )
+        assert result.exit_code == 0
 
     class TestDownloadFiles:
         @patch("deepset_cloud_sdk.cli.sync_download")

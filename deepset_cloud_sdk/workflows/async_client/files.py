@@ -130,11 +130,12 @@ async def upload(
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
     recursive: bool = False,
+    desired_file_types: Optional[List[str]] = None,
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported files, they're skipped.
-    during the upload. Supported file formats are TXT and PDF.
+    during the upload. Supported file formats are txt, pdf, docx, pptx, xlsx, xml, csv, html, md, json.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
@@ -147,7 +148,9 @@ async def upload(
     :param timeout_s: Timeout in seconds for the upload.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subdirectories as well.
+    :param desired_file_types: A list of allowed file types to upload, defaults to ['.txt', '.pdf'].
     """
+    desired_file_types = desired_file_types or [".txt", ".pdf"]
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         return await file_service.upload(
             workspace_name=workspace_name,
@@ -157,6 +160,7 @@ async def upload(
             timeout_s=timeout_s,
             show_progress=show_progress,
             recursive=recursive,
+            desired_file_types=desired_file_types,
         )
 
 
@@ -178,8 +182,7 @@ async def download(
     Downloads all files from a workspace to a local folder.
 
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
-    during the upload. Supported file formats are TXT and PDF.
+    :param file_dir: Path to the folder to download.
     :param name: Name of the file to odata_filter by.
     :param content: Content of a file to odata_filter by.
     :param odata_filter: odata_filter by file meta data.

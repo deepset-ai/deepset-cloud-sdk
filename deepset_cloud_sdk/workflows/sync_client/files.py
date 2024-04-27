@@ -38,7 +38,7 @@ from deepset_cloud_sdk.workflows.sync_client.utils import iter_over_async
 logger = structlog.get_logger(__name__)
 
 
-def upload(
+def upload(  # pylint: disable=too-many-arguments
     paths: List[Path],
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
@@ -48,11 +48,12 @@ def upload(
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
     recursive: bool = False,
+    desired_file_types: Optional[List[str]] = None,
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped.
-    deepset Cloud supports TXT and PDF files.
+    deepset Cloud supports csv, docx, html, json, md, txt, pdf, pptx, xlsx, xml.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
@@ -65,7 +66,9 @@ def upload(
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
+    :param desired_file_types: A list of allowed file types to upload, defaults to ".txt, .pdf".
     """
+    desired_file_types = desired_file_types or [".txt", ".pdf"]
     return asyncio.run(
         async_upload(
             paths=paths,
@@ -77,6 +80,7 @@ def upload(
             timeout_s=timeout_s,
             show_progress=show_progress,
             recursive=recursive,
+            desired_file_types=desired_file_types,
         )
     )
 
@@ -99,8 +103,7 @@ def download(  # pylint: disable=too-many-arguments
     Downloads all files from a workspace to a local folder.
 
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
-    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
-    during the upload. Supported file formats are TXT and PDF.
+    :param file_dir: Path to the folder to download.
     :param name: Name of the file to odata_filter by.
     :param content: Content of a file to odata_filter by.
     :param odata_filter: odata_filter by file meta data.
