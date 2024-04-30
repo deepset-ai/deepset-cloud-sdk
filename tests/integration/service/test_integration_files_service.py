@@ -69,8 +69,8 @@ class TestUploadsFileService:
                 timeout_s=timeout,
                 desired_file_types=SUPPORTED_TYPE_SUFFIXES,
             )
-            assert result.total_files == 9
-            assert result.successful_upload_count == 9
+            assert result.total_files == 10
+            assert result.successful_upload_count == 10
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
@@ -160,8 +160,8 @@ class TestUploadsFileService:
                 timeout_s=timeout,
                 desired_file_types=SUPPORTED_TYPE_SUFFIXES,
             )
-            assert result.total_files == 20
-            assert result.successful_upload_count == 20
+            assert result.total_files == 22
+            assert result.successful_upload_count == 22
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
