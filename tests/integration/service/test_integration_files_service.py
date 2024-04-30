@@ -151,20 +151,24 @@ class TestUploadsFileService:
 
             result = await file_service.upload(
                 workspace_name=workspace_name,
-                paths=[Path("./tests/test_data/multiple_file_types")],
+                paths=[
+                    Path("./tests/test_data/multiple_file_types"),
+                    Path("./tests/test_data/multiple_file_types_caps"),  # same file, but with uppercase name
+                ],
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
                 desired_file_types=SUPPORTED_TYPE_SUFFIXES,
             )
-            assert result.total_files == 18
-            assert result.successful_upload_count == 18
+            assert result.total_files == 20
+            assert result.successful_upload_count == 20
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
             local_file_names: List[str] = [
                 file.name
-                for file in Path("./tests/test_data/multiple_file_types").glob("*")
+                for file in list(Path("./tests/test_data/multiple_file_types").glob("*"))
+                + list(Path("./tests/test_data/multiple_file_types_caps").glob("*"))
                 if not file.name.endswith(META_SUFFIX)
             ]
 
@@ -186,6 +190,15 @@ class TestUploadsFileService:
                 assert (
                     file.meta.get("source") == "multiple file types"
                 ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
+
+        # Make sure that the metadata for File00.txt and file00.txt are mapped correctly
+        File00_metadata = [file.meta for file in uploaded_files if file.name == "File00.txt"]
+        assert len(File00_metadata) == 1
+        assert File00_metadata[0].get("file_name_duplicate_check") == "File00.txt"
+
+        file00_metadata = [file.meta for file in uploaded_files if file.name == "file00.txt"]
+        assert len(file00_metadata) == 1
+        assert file00_metadata[0].get("file_name_duplicate_check") == "file00.txt"
 
     async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
