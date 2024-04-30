@@ -10,6 +10,7 @@ from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
 from deepset_cloud_sdk._service.files_service import (
+    META_SUFFIX,
     SUPPORTED_TYPE_SUFFIXES,
     DeepsetCloudFile,
     FilesService,
@@ -37,7 +38,7 @@ class TestUploadsFileService:
             names_of_uploaded_files = [
                 file.name
                 for file in Path("./tests/test_data/msmarco.10").glob("*.txt")
-                if not file.name.endswith(".meta.json")
+                if not file.name.endswith(META_SUFFIX)
             ]
             # Check the metadata was uploaded correctly
             files: List[File] = []
@@ -76,7 +77,7 @@ class TestUploadsFileService:
             local_file_names: List[str] = [
                 file.name
                 for file in Path("./tests/test_data/multiple_file_types").glob("*")
-                if not file.name.endswith(".meta.json")
+                if not file.name.endswith(META_SUFFIX)
             ]
 
             uploaded_files: List[File] = []
@@ -119,7 +120,7 @@ class TestUploadsFileService:
             local_file_names: List[str] = [
                 file.name
                 for file in Path("./tests/test_data/msmarco.10").glob("*.txt")
-                if not file.name.endswith(".meta.json")
+                if not file.name.endswith(META_SUFFIX)
             ]
             # Check the metadata was uploaded correctly
             uploaded_files: List[File] = []
@@ -164,7 +165,7 @@ class TestUploadsFileService:
             local_file_names: List[str] = [
                 file.name
                 for file in Path("./tests/test_data/multiple_file_types").glob("*")
-                if not file.name.endswith(".meta.json")
+                if not file.name.endswith(META_SUFFIX)
             ]
 
             uploaded_files: List[File] = []
