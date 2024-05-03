@@ -180,8 +180,13 @@ class TestUploadsFileService:
             ):
                 uploaded_files += file_batch
 
-        # We already uploaded the same set of files in a previous test, so we expect files to exist twice
-        for local_file_name in local_file_names:
+        # We already uploaded the same set of files in a previous test, so we expect files to exist twice except for the
+        # Therefore we just use the "multiple_file_types" folder to check for duplicates
+        for local_file_name in [
+            file.name
+            for file in list(Path("./tests/test_data/multiple_file_types").glob("*"))
+            if not file.name.endswith(META_SUFFIX)
+        ]:
             count = sum(1 for uploaded_file in uploaded_files if uploaded_file.name == local_file_name)
             assert count >= 2, f"File '{local_file_name}' does not exist twice in uploaded files"
 
