@@ -1,4 +1,5 @@
 """Module for all file-related operations."""
+
 from __future__ import annotations
 
 import asyncio
@@ -35,6 +36,7 @@ from deepset_cloud_sdk.models import DeepsetCloudFile
 logger = structlog.get_logger(__name__)
 
 SUPPORTED_TYPE_SUFFIXES = [".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"]
+META_SUFFIX = ".meta.json"
 DIRECT_UPLOAD_THRESHOLD = 20
 
 
@@ -197,11 +199,11 @@ class FilesService:
             _raw_files = [
                 path
                 for path in file_paths
-                if path.suffix.lower() in SUPPORTED_TYPE_SUFFIXES and not path.name.endswith(".meta.json")
+                if path.suffix in SUPPORTED_TYPE_SUFFIXES and not path.name.endswith(META_SUFFIX)
             ]
             for file_path in _raw_files:
                 meta: Dict[str, Any] = {}
-                meta_path = Path(str(file_path) + ".meta.json")
+                meta_path = Path(str(file_path) + META_SUFFIX)
                 if meta_path in file_paths:
                     with meta_path.open("r") as meta_file:
                         meta = json.loads(meta_file.read())
@@ -240,7 +242,7 @@ class FilesService:
 
         # wait for ingestion to finish
         if blocking:
-            total_files = len(list(filter(lambda x: not os.path.basename(x).endswith(".meta.json"), file_paths)))
+            total_files = len(list(filter(lambda x: not os.path.basename(x).endswith(META_SUFFIX), file_paths)))
             await self._wait_for_finished(
                 workspace_name=workspace_name,
                 session_id=upload_session.session_id,
@@ -282,7 +284,7 @@ class FilesService:
         """
         logger.info("Validating file paths and metadata.")
         for file_path in file_paths:
-            if file_path.suffix.lower() not in SUPPORTED_TYPE_SUFFIXES:
+            if file_path.suffix not in SUPPORTED_TYPE_SUFFIXES:
                 raise ValueError(
                     f"Invalid file extension: {file_path.suffix}. Refer to the list of supported file types in `SUPPORTED_TYPE_SUFFIXES`. "
                     "Metadata files should have the `.meta.json` extension."
@@ -290,16 +292,16 @@ class FilesService:
         meta_file_names = list(
             map(
                 lambda fp: os.path.basename(fp),
-                [file_path for file_path in file_paths if str(file_path).lower().endswith(".meta.json")],
+                [file_path for file_path in file_paths if str(file_path).endswith(META_SUFFIX)],
             )
         )
         file_names = list(map(lambda fp: os.path.basename(fp), file_paths))
-        file_name_set = set(filter(lambda fn: not fn.lower().endswith(".meta.json"), file_names))
+        file_name_set = set(filter(lambda fn: not fn.endswith(META_SUFFIX), file_names))
 
         not_mapped_meta_files = [
             meta_file_name
             for meta_file_name in meta_file_names
-            if meta_file_name.lower().split(".meta.json")[0] not in file_name_set
+            if meta_file_name.split(META_SUFFIX)[0] not in file_name_set
         ]
 
         if len(not_mapped_meta_files) > 0:
@@ -341,7 +343,7 @@ class FilesService:
             return SUPPORTED_TYPE_SUFFIXES
 
         desired_types_processed: Set[str] = {
-            str(file_type).lower() if str(file_type).startswith(".") else f".{str(file_type).lower()}"
+            str(file_type) if str(file_type).startswith(".") else f".{str(file_type)}"
             for file_type in desired_file_types
         }
         allowed_types: Set[str] = {
@@ -362,14 +364,11 @@ class FilesService:
         allowed_file_types: List[str] = FilesService._get_allowed_file_types(desired_file_types)
         allowed_meta_types: Tuple = tuple(f"{file_type}.meta.json" for file_type in allowed_file_types)
 
-        meta_file_path = [
-            path for path in all_files if path.is_file() and str(path).lower().endswith(allowed_meta_types)
-        ]
+        meta_file_path = [path for path in all_files if path.is_file() and str(path).endswith(allowed_meta_types)]
         file_paths = [
             path
             for path in all_files
-            if path.is_file()
-            and (path.suffix.lower() in allowed_file_types and not str(path).lower().endswith(".meta.json"))
+            if path.is_file() and (path.suffix in allowed_file_types and not str(path).endswith(META_SUFFIX))
         ]
         combined_paths = meta_file_path + file_paths
 

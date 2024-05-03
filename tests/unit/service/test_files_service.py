@@ -1079,7 +1079,7 @@ class TestGetAllowedFileTypes:
         assert file_types == [".pdf"]
 
     def test_get_allowed_file_types_manages_formatting(self) -> None:
-        desired = [".pdf", "txt", "XML", "PDF"]
+        desired = [".pdf", "txt", "xml", "XML", "PDF"]
         file_types = sorted(FilesService._get_allowed_file_types(desired))
         assert file_types == [".pdf", ".txt", ".xml"]
 
