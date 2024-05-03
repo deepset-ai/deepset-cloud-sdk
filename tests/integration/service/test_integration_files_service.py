@@ -198,11 +198,13 @@ class TestUploadsFileService:
 
         # Make sure that the metadata for File00.txt and file00.txt are mapped correctly
         File00_metadata = [file.meta for file in uploaded_files if file.name == "File00.txt"]
-        assert len(File00_metadata) == 1
+        assert File00_metadata == {"file_name_duplicate_check": "File00.txt", "source": "multiple file types"}
+
         assert File00_metadata[0].get("file_name_duplicate_check") == "File00.txt"
 
         file00_metadata = [file.meta for file in uploaded_files if file.name == "file00.txt"]
-        assert len(file00_metadata) == 1
+        assert file00_metadata == {"file_name_duplicate_check": "file00.txt", "source": "multiple file types"}
+
         assert file00_metadata[0].get("file_name_duplicate_check") == "file00.txt"
 
     async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:
