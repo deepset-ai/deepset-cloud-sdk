@@ -200,12 +200,8 @@ class TestUploadsFileService:
         File00_metadata = [file.meta for file in uploaded_files if file.name == "File00.txt"]
         assert File00_metadata == {"file_name_duplicate_check": "File00.txt", "source": "multiple file types"}
 
-        assert File00_metadata[0].get("file_name_duplicate_check") == "File00.txt"
-
         file00_metadata = [file.meta for file in uploaded_files if file.name == "file00.txt"]
         assert file00_metadata == {"file_name_duplicate_check": "file00.txt", "source": "multiple file types"}
-
-        assert file00_metadata[0].get("file_name_duplicate_check") == "file00.txt"
 
     async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
