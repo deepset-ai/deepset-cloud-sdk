@@ -316,7 +316,19 @@ def main(
         None, "--version", callback=version_callback, is_eager=True, help="Show the SDK version and exit."
     )
 ) -> None:  # noqa
-    """The CLI for the deepset Cloud SDK."""
+    """The CLI for the deepset Cloud SDK.
+
+    This documentation uses pythons type hints to provide information about the arguments and return values.
+    Typer turns these type hints into a CLI interface. To see how these arguments are used in the CLI, check the
+    Typer documentation: https://typer.tiangolo.com/tutorial/arguments/optional or run
+    `deepset-cloud <command> --help` to see the arguments for a specific command.
+
+    Boolean values are converted to `-no-<variable>` or `-<variable>` flags in the CLI. For example, to disable
+    the progress bar, use `--no-show-progress`.
+
+    Lists can be passed by using the same flag multiple times. For example, to scan only `.txt` and `.pdf` files,
+    when uploading use `--use-type .txt --use-type .pdf`.
+    """
 
 
 def run_packaged() -> None:
