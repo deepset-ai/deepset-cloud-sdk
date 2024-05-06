@@ -681,6 +681,59 @@ class TestDownloadFilesService:
             after_value=None,
         )
 
+    async def test_download_files_with_filter_and_progress_bar(
+        self, file_service: FilesService, monkeypatch: MonkeyPatch
+    ) -> None:
+        mocked_list_paginated = AsyncMock(
+            return_value=FileList(
+                total=1,
+                data=[
+                    File(
+                        file_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+                        url="/api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10",
+                        name="silly_things_2.txt",
+                        size=611,
+                        created_at=datetime.datetime.fromisoformat("2022-06-21T16:40:00.634653+00:00"),
+                        meta={},
+                    )
+                ],
+                has_more=False,
+            ),
+        )
+
+        monkeypatch.setattr(file_service._files, "list_paginated", mocked_list_paginated)
+
+        mocked_download = AsyncMock(return_value=None)
+        monkeypatch.setattr(file_service._files, "download", mocked_download)
+
+        await file_service.download(
+            workspace_name="test_workspace",
+            show_progress=True,  # This requires a previous cal that checks the total number of files
+            odata_filter="category eq 'news'",
+            name="asdf",
+            content="bsdf",
+            batch_size=54,
+        )
+
+        mocked_list_paginated.mock_calls == [
+            call(
+                workspace_name="test_workspace",
+                name="asdf",
+                content="bsdf",
+                odata_filter="category eq 'news'",
+                limit=54,
+            ),
+            call(
+                workspace_name="test_workspace",
+                name="asdf",
+                content="bsdf",
+                odata_filter="category eq 'news'",
+                limit=54,
+                after_file_id=None,
+                after_value=None,
+            ),
+        ]
+
     async def test_download_all_files_with_file_not_found(
         self, file_service: FilesService, monkeypatch: MonkeyPatch
     ) -> None:

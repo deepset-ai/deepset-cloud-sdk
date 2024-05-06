@@ -490,7 +490,15 @@ class FilesService:
 
         pbar: Optional[tqdm] = None
         if show_progress:
-            total = (await self._files.list_paginated(workspace_name, limit=1)).total
+            total = (
+                await self._files.list_paginated(
+                    workspace_name,
+                    name=name,
+                    content=content,
+                    odata_filter=odata_filter,
+                    limit=1,
+                )
+            ).total
             pbar = tqdm(total=total, desc="Download Progress")
 
         after_value = None
