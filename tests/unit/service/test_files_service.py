@@ -685,7 +685,7 @@ class TestDownloadFilesService:
         self, file_service: FilesService, monkeypatch: MonkeyPatch
     ) -> None:
         mocked_list_paginated = AsyncMock(
-            side_effect=[
+            return_value=[
                 FileList(
                     total=1,
                     data=[
