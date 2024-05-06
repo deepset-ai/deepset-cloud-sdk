@@ -1,9 +1,6 @@
 name: API Docs
 
-
-
 on:
-  pull_request:
   release:
     types:
       - published
@@ -42,20 +39,20 @@ jobs:
       - name: Generate API docs
         run: ./.github/utils/pydoc-markdown.sh
 
-      # - name: Configure git to push docs
-      #   run: |
-      #     git config --global user.name docs-bot
-      #     git config --global user.email docs@bot.com
-      #     git config pull.rebase false
-      #     git pull --allow-unrelated-histories origin gh-pages
+      - name: Configure git to push docs
+        run: |
+          git config --global user.name docs-bot
+          git config --global user.email docs@bot.com
+          git config pull.rebase false
+          git pull --allow-unrelated-histories origin gh-pages
 
-      # - name: Install dependencies for doc deployment
-      #   run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
+      - name: Install dependencies for doc deployment
+        run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
 
-      # - name: Publish docs to pages
-      #   run: |
-      #     mike deploy --push --update-aliases ${{github.ref_name}} && \
-      #     mike set-default --push ${{github.ref_name}}
+      - name: Publish docs to pages
+        run: |
+          mike deploy --push --update-aliases ${{github.ref_name}} && \
+          mike set-default --push ${{github.ref_name}}
 
       - name: Add Category ID to all API docs
         run: python ./.github/utils/add-category-id.py
