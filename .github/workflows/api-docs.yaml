@@ -58,7 +58,7 @@ jobs:
         run: python ./.github/utils/add-category-id.py
         env:
           MARKDOWN_FILES_DIRECTORY: docs/_pydoc/temp/
-          CATEGORY_ID: 6638c26fe71b7e006546b54e
+          CATEGORY_ID: ${{env.CATEGORY_ID}}
 
       - name: Run `docs` command 🚀
         uses: readmeio/rdme@v8
