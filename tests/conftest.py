@@ -16,6 +16,7 @@ from tenacity import retry, stop_after_delay, wait_fixed
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.files import FilesAPI
+from deepset_cloud_sdk._api.pipelines import PipelinesAPI
 from deepset_cloud_sdk._api.upload_sessions import (
     AWSPrefixedRequestConfig,
     UploadSession,
@@ -69,6 +70,11 @@ def mocked_deepset_cloud_api() -> Mock:
 @pytest.fixture
 def mocked_upload_sessions_api() -> Mock:
     return Mock(spec=UploadSessionsAPI)
+
+
+@pytest.fixture
+def mocked_pipelines() -> Mock:
+    return Mock(spec=PipelinesAPI)
 
 
 @pytest.fixture

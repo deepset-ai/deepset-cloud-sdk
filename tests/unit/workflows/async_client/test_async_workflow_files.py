@@ -1,7 +1,7 @@
 import datetime
 from pathlib import Path
 from typing import Any, AsyncGenerator, List
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock, call
 from uuid import UUID
 
 import pytest
@@ -10,6 +10,7 @@ from sniffio import AsyncLibraryNotFoundError
 
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk._api.files import File
+from deepset_cloud_sdk._api.pipelines import FileIndexingStatus
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionDetail,
     UploadSessionIngestionStatus,
@@ -19,9 +20,11 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk._service.pipeline_service import PipelinesService
 from deepset_cloud_sdk.models import UserInfo
 from deepset_cloud_sdk.workflows.async_client.files import (
     download,
+    download_pipeline_files,
     get_upload_session,
     list_files,
     list_upload_sessions,
@@ -282,3 +285,132 @@ class TestGetUploadSessionStatus:
         monkeypatch.setattr(FilesService, "get_upload_session", mocked_get_upload_session)
         returned_upload_session = await get_upload_session(session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"))
         assert returned_upload_session == mocked_upload_session
+
+
+@pytest.mark.asyncio
+class TestPipelineFiles:
+    @pytest.fixture
+    def mocked_download(self) -> AsyncMock:
+        return AsyncMock()
+
+    @pytest.fixture
+    def mocked_get_pipeline_file_ids(self) -> AsyncMock:
+        get_file_ids = AsyncMock()
+        get_file_ids.return_value = [
+            UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
+            UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a11"),
+        ]
+        return get_file_ids
+
+    async def test_download_pipeline_files(
+        self, monkeypatch: MonkeyPatch, mocked_download: AsyncMock, mocked_get_pipeline_file_ids: AsyncMock
+    ) -> None:
+        monkeypatch.setattr(PipelinesService, "get_pipeline_file_ids", mocked_get_pipeline_file_ids)
+        monkeypatch.setattr(FilesService, "download", mocked_download)
+
+        await download_pipeline_files(
+            workspace_name="my_workspace",
+            pipeline_name="my_pipeline",
+            batch_size=100,
+            timeout_s=100,
+        )
+
+        # Check that pipeline indexing file ids was called with
+        # the correct status for filtering
+        assert (
+            call(pipeline_name="my_pipeline", workspace_name="my_workspace", status=FileIndexingStatus.FAILED)
+            in mocked_get_pipeline_file_ids.call_args_list
+        )
+        assert (
+            call(
+                pipeline_name="my_pipeline",
+                workspace_name="my_workspace",
+                status=FileIndexingStatus.INDEXED_NO_DOCUMENTS,
+            )
+            in mocked_get_pipeline_file_ids.call_args_list
+        )
+
+        # Assert that download calls are correctly called for
+        # failed files
+        assert (
+            call(
+                workspace_name="my_workspace",
+                file_dir=Path("./FAILED"),
+                odata_filter=f"file_id in 'cd16435f-f6eb-423f-bf6f-994dc8a36a10,cd16435f-f6eb-423f-bf6f-994dc8a36a11'",
+                include_meta=True,
+                batch_size=100,
+                show_progress=True,
+                timeout_s=100,
+            )
+            in mocked_download.call_args_list
+        )
+        assert (
+            call(
+                workspace_name="my_workspace",
+                file_dir=Path("./INDEXED_NO_DOCUMENTS"),
+                odata_filter=f"file_id in 'cd16435f-f6eb-423f-bf6f-994dc8a36a10,cd16435f-f6eb-423f-bf6f-994dc8a36a11'",
+                include_meta=True,
+                batch_size=100,
+                show_progress=True,
+                timeout_s=100,
+            )
+            in mocked_download.call_args_list
+        )
+
+    async def test_download_parses_path_for_string(
+        self, monkeypatch: MonkeyPatch, mocked_download: Mock, mocked_get_pipeline_file_ids: Mock
+    ) -> None:
+        monkeypatch.setattr(PipelinesService, "get_pipeline_file_ids", mocked_get_pipeline_file_ids)
+        monkeypatch.setattr(FilesService, "download", mocked_download)
+
+        await download_pipeline_files(
+            workspace_name="my_workspace",
+            pipeline_name="my_pipeline",
+            file_dir="./my-path",
+            batch_size=100,
+            timeout_s=100,
+        )
+
+        # Assert that download calls are correctly called for
+        # failed files
+        assert (
+            call(
+                workspace_name="my_workspace",
+                file_dir=Path("./my-path/FAILED"),  # THIS IS TESTED
+                odata_filter=f"file_id in 'cd16435f-f6eb-423f-bf6f-994dc8a36a10,cd16435f-f6eb-423f-bf6f-994dc8a36a11'",
+                include_meta=True,
+                batch_size=100,
+                show_progress=True,
+                timeout_s=100,
+            )
+            in mocked_download.call_args_list
+        )
+
+    async def test_download_parses_path_for_path_type(
+        self, monkeypatch: MonkeyPatch, mocked_download: Mock, mocked_get_pipeline_file_ids: Mock
+    ) -> None:
+        monkeypatch.setattr(PipelinesService, "get_pipeline_file_ids", mocked_get_pipeline_file_ids)
+        monkeypatch.setattr(FilesService, "download", mocked_download)
+
+        await download_pipeline_files(
+            workspace_name="my_workspace",
+            pipeline_name="my_pipeline",
+            file_dir=Path("./my-path"),
+            batch_size=100,
+            timeout_s=100,
+        )
+
+        # Assert that download calls are correctly called for
+        # failed files
+        assert (
+            call(
+                workspace_name="my_workspace",
+                file_dir=Path("./my-path/FAILED"),  # THIS IS TESTED
+                odata_filter=f"file_id in 'cd16435f-f6eb-423f-bf6f-994dc8a36a10,cd16435f-f6eb-423f-bf6f-994dc8a36a11'",
+                include_meta=True,
+                batch_size=100,
+                show_progress=True,
+                timeout_s=100,
+            )
+            in mocked_download.call_args_list
+        )

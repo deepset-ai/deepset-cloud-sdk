@@ -14,6 +14,9 @@ from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
 from deepset_cloud_sdk.workflows.sync_client.files import download as sync_download
 from deepset_cloud_sdk.workflows.sync_client.files import (
+    download_pipeline_files as sync_download_pipeline_files,
+)
+from deepset_cloud_sdk.workflows.sync_client.files import (
     get_upload_session as sync_get_upload_session,
 )
 from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_list_files
@@ -69,6 +72,41 @@ def upload(  # pylint: disable=too-many-arguments
         show_progress=show_progress,
         recursive=recursive,
         desired_file_types=use_type,
+    )
+
+
+@cli_app.command()
+def download_pipeline_files(  # pylint: disable=too-many-arguments
+    pipeline_name: str,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    file_dir: Optional[str] = None,
+    batch_size: int = 50,
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    show_progress: bool = True,
+    timeout_s: Optional[int] = None,
+) -> None:
+    """Download all files that led to a error status during indexing.
+
+    :param pipeline_name: Name of the pipeline.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
+    during the upload. Supported file formats are TXT and PDF.
+    :param batch_size: Batch size for the listing.
+    :param api_key: API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param show_progress: Shows the upload progress.
+    :param timeout_s: Timeout in seconds for the download.
+    """
+    sync_download_pipeline_files(
+        workspace_name=workspace_name,
+        pipeline_name=pipeline_name,
+        file_dir=file_dir,
+        batch_size=batch_size,
+        api_key=api_key,
+        api_url=api_url,
+        show_progress=show_progress,
+        timeout_s=timeout_s,
     )
 
 
