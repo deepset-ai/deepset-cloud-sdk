@@ -120,7 +120,7 @@ class UploadSessionsAPI:
         self._deepset_cloud_api = deepset_cloud_api
 
     async def create(self, workspace_name: str, write_mode: WriteMode = WriteMode.KEEP) -> UploadSession:
-        """Create and upload session.
+        """Create an upload session.
 
         This method creates an upload session for a given workspace. Use this session to upload files to deepset Cloud.
 

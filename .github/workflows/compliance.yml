@@ -47,7 +47,7 @@ jobs:
           run-tests: true
 
       - name: Send Slack notification if license check failed
-        uses: act10ns/slack@ed1309ab9862e57e9e583e51c7889486b9a00b0f
+        uses: act10ns/slack@44541246747a30eb3102d87f7a4cc5471b0ffb7d
         if: failure() && github.ref == 'refs/heads/main'
         with:
           status: ${{ job.status }}

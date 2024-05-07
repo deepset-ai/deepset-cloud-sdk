@@ -1,6 +1,8 @@
 """The CLI for the deepset Cloud SDK."""
+
 import json
 import os
+from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
 
@@ -9,6 +11,7 @@ from tabulate import tabulate
 
 from deepset_cloud_sdk.__about__ import __version__
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
+from deepset_cloud_sdk._api.upload_sessions import WriteMode
 from deepset_cloud_sdk.workflows.sync_client.files import download as sync_download
 from deepset_cloud_sdk.workflows.sync_client.files import (
     get_upload_session as sync_get_upload_session,
@@ -17,12 +20,56 @@ from deepset_cloud_sdk.workflows.sync_client.files import list_files as sync_lis
 from deepset_cloud_sdk.workflows.sync_client.files import (
     list_upload_sessions as sync_list_upload_sessions,
 )
-from deepset_cloud_sdk.workflows.sync_client.files import upload
+from deepset_cloud_sdk.workflows.sync_client.files import upload as sync_upload
 
 cli_app = typer.Typer(pretty_exceptions_show_locals=False)
 
+
 # cli commands
-cli_app.command()(upload)
+@cli_app.command()
+def upload(  # pylint: disable=too-many-arguments
+    paths: List[Path],
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
+    blocking: bool = True,
+    timeout_s: Optional[int] = None,
+    show_progress: bool = True,
+    recursive: bool = False,
+    use_type: Optional[List[str]] = None,
+) -> None:
+    """Upload a folder to deepset Cloud.
+
+    :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped.
+    deepset Cloud supports csv, docx, html, json, md, txt, pdf, pptx, xlsx, xml.
+    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+    Possible options are:
+    KEEP - uploads the file with the same name and keeps both files in the workspace.
+    OVERWRITE - overwrites the file that is in the workspace.
+    FAIL - fails to upload the file with the same name.
+    :param blocking: Whether to wait for the files to be uploaded and displayed in deepset Cloud.
+    :param timeout_s: Timeout in seconds for the `blocking` parameter.
+    :param show_progress: Shows the upload progress.
+    :param recursive: Uploads files from subfolders as well.
+    :param use_type: A comma-separated string of allowed file types to upload, defaults to ".txt, .pdf".
+    """
+    use_type = use_type or [".txt", ".pdf"]
+    sync_upload(
+        paths=paths,
+        api_key=api_key,
+        api_url=api_url,
+        workspace_name=workspace_name,
+        write_mode=write_mode,
+        blocking=blocking,
+        timeout_s=timeout_s,
+        show_progress=show_progress,
+        recursive=recursive,
+        desired_file_types=use_type,
+    )
 
 
 @cli_app.command()
@@ -41,13 +88,12 @@ def download(  # pylint: disable=too-many-arguments
     """Download files from deepset Cloud to your local machine.
 
     :param workspace_name: Name of the workspace to download the files from. Uses the workspace from the .ENV file by default.
-    :param file_dir: Path to the folder to download. If the folder contains unsupported files, they're skipped.
-    during the upload. Supported file formats are TXT and PDF.
+    :param file_dir: Path to the folder where you want to download the files.
     :param name: Name of the file to odata_filter for.
     :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
-    :param include_meta: Whether to include the file meta in the folder.
-    :param batch_size: Batch size for the listing.
+    :param include_meta: Downloads metadata of the files.
+    :param batch_size: Batch size for file listing.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
@@ -90,7 +136,7 @@ def login() -> None:
     with open(ENV_FILE_PATH, "w", encoding="utf-8") as env_file:
         env_file.write(env_content)
 
-    typer.echo(f"{ENV_FILE_PATH} created successfully!")
+    typer.echo(f"{ENV_FILE_PATH} created successfully.")
 
 
 @cli_app.command()
@@ -270,7 +316,19 @@ def main(
         None, "--version", callback=version_callback, is_eager=True, help="Show the SDK version and exit."
     )
 ) -> None:  # noqa
-    """The CLI for the deepset Cloud SDK."""
+    """The CLI for the deepset Cloud SDK.
+
+    This documentation uses Python type hints to provide information about the arguments and return values.
+    Typer turns these type hints into a CLI interface. To see how these arguments are used in the CLI, check the
+    Typer documentation: https://typer.tiangolo.com/tutorial/arguments/optional or run
+    `deepset-cloud <command> --help` to see the arguments for a specific command.
+
+    Boolean values are converted to `-no-<variable>` or `-<variable>` flags in the CLI. For example, to disable
+    the progress bar, use `--no-show-progress`.
+
+    Lists can be passed by using the same flag multiple times. For example, to scan only `.txt` and `.pdf` files,
+    when uploading use `--use-type .txt --use-type .pdf`.
+    """
 
 
 def run_packaged() -> None:

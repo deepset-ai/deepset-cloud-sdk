@@ -1,13 +1,15 @@
 """Module for all file-related operations."""
+
 from __future__ import annotations
 
 import asyncio
 import json
 import os
 import time
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, List, Optional, Union
+from typing import Any, AsyncGenerator, Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
 import structlog
@@ -33,7 +35,8 @@ from deepset_cloud_sdk.models import DeepsetCloudFile
 
 logger = structlog.get_logger(__name__)
 
-ALLOWED_TYPE_SUFFIXES = [".txt", ".pdf"]
+SUPPORTED_TYPE_SUFFIXES = [".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"]
+META_SUFFIX = ".meta.json"
 DIRECT_UPLOAD_THRESHOLD = 20
 
 
@@ -110,10 +113,6 @@ class FilesService:
                 total_files=total_files,
                 failed_files=upload_session_status.ingestion_status.failed_files,
             )
-
-        logger.warning(
-            "It may take up to three minutes for the files to be visible in deepset Cloud after they were marked as finished."
-        )
 
     @asynccontextmanager
     async def _create_upload_session(
@@ -197,10 +196,14 @@ class FilesService:
         if len(file_paths) <= DIRECT_UPLOAD_THRESHOLD:
             logger.info("Uploading files to deepset Cloud.", file_paths=file_paths)
             _coroutines = []
-            _raw_files = [path for path in file_paths if path.suffix.lower() in ALLOWED_TYPE_SUFFIXES]
+            _raw_files = [
+                path
+                for path in file_paths
+                if path.suffix in SUPPORTED_TYPE_SUFFIXES and not path.name.endswith(META_SUFFIX)
+            ]
             for file_path in _raw_files:
                 meta: Dict[str, Any] = {}
-                meta_path = Path(str(file_path) + ".meta.json")
+                meta_path = Path(str(file_path) + META_SUFFIX)
                 if meta_path in file_paths:
                     with meta_path.open("r") as meta_file:
                         meta = json.loads(meta_file.read())
@@ -239,7 +242,7 @@ class FilesService:
 
         # wait for ingestion to finish
         if blocking:
-            total_files = len(list(filter(lambda x: not os.path.basename(x).endswith(".meta.json"), file_paths)))
+            total_files = len(list(filter(lambda x: not os.path.basename(x).endswith(META_SUFFIX), file_paths)))
             await self._wait_for_finished(
                 workspace_name=workspace_name,
                 session_id=upload_session.session_id,
@@ -264,9 +267,9 @@ class FilesService:
             if path.is_file():
                 file_paths.append(path)
             elif recursive:
-                file_paths.extend([file_path for file_path in path.rglob("*")])
+                file_paths.extend([file_path for file_path in path.rglob("*") if file_path.is_file()])
             else:
-                file_paths.extend([file_path for file_path in path.glob("*")])
+                file_paths.extend([file_path for file_path in path.glob("*") if file_path.is_file()])
         return file_paths
 
     @staticmethod
@@ -280,62 +283,110 @@ class FilesService:
         :raises ValueError: If the file paths are invalid.
         """
         logger.info("Validating file paths and metadata.")
-        allowed_suffixes = {".txt", ".json", ".pdf"}
         for file_path in file_paths:
-            if file_path.suffix.lower() not in allowed_suffixes:
+            if file_path.suffix not in SUPPORTED_TYPE_SUFFIXES:
                 raise ValueError(
-                    f"Invalid file extension: {file_path.suffix}. You can upload TXT and PDF files. Metadata files should have the `.meta.json` extension."
-                )
-            if file_path.suffix.lower() == ".json" and not str(file_path).endswith(".meta.json"):
-                raise ValueError(
-                    f"JSON files are only supported for metadata files. Make sure you follow this naming format for your metadata files: '<file_name>.meta.json'. Got {file_path.name}."
+                    f"Invalid file extension: {file_path.suffix}. Refer to the list of supported file types in `SUPPORTED_TYPE_SUFFIXES`. "
+                    "Metadata files should have the `.meta.json` extension."
                 )
         meta_file_names = list(
             map(
                 lambda fp: os.path.basename(fp),
-                [file_path for file_path in file_paths if file_path.suffix.lower() == ".json"],
+                [file_path for file_path in file_paths if str(file_path).endswith(META_SUFFIX)],
             )
         )
         file_names = list(map(lambda fp: os.path.basename(fp), file_paths))
-        file_name_set = set(filter(lambda fn: not fn.endswith(".meta.json"), file_names))
+        file_name_set = set(filter(lambda fn: not fn.endswith(META_SUFFIX), file_names))
 
         not_mapped_meta_files = [
             meta_file_name
             for meta_file_name in meta_file_names
-            if meta_file_name.split(".meta.json")[0] not in file_name_set
+            if meta_file_name.split(META_SUFFIX)[0] not in file_name_set
         ]
 
         if len(not_mapped_meta_files) > 0:
             raise ValueError(
-                f"Metadata files without corresponding text files were found: {not_mapped_meta_files}. "
-                "Make sure each metadata file has a corresponding text or PDF file."
+                f"Metadata files without corresponding files were found: {not_mapped_meta_files}. "
+                "Make sure each metadata file has a corresponding file. "
                 "Map the files using file names like this: '<file_name>' and '<file_name>.meta.json'. "
                 "For example: 'file1.txt' and 'file1.txt.meta.json'."
             )
 
     @staticmethod
-    def _preprocess_paths(paths: List[Path], spinner: yaspin.Spinner = None, recursive: bool = False) -> List[Path]:
+    def _remove_duplicates(file_paths: List[Path]) -> List[Path]:
+        # Group files by their names
+        files_by_name = defaultdict(list)
+        for file_path in file_paths:
+            files_by_name[file_path.name].append(file_path)
+
+        # For each group, sort by modification time and select the most recent
+        most_recent_files = []
+        for file_name, file_group in files_by_name.items():
+            if len(file_group) > 1:
+                logger.warning(
+                    "Multiple files with the same name found. Keeping the most recent one.", file_name=file_name
+                )
+            most_recent_file = sorted(file_group, key=lambda x: x.stat().st_mtime, reverse=True)[0]
+            most_recent_files.append(most_recent_file)
+
+        return most_recent_files
+
+    @staticmethod
+    def _get_allowed_file_types(desired_file_types: Optional[List[Any]]) -> List[str]:
+        """Filter `SUPPORTED_TYPE_SUFFIXES` by `desired_file_types`.
+
+        If desired_file_types is empty, all supported file types are returned.
+        :param desired_file_types: A list of desired file types.
+        :return: A list of desired file types that can be processed by deepset Cloud.
+        """
+        if not desired_file_types:
+            return SUPPORTED_TYPE_SUFFIXES
+
+        desired_types_processed: Set[str] = {
+            str(file_type) if str(file_type).startswith(".") else f".{str(file_type)}"
+            for file_type in desired_file_types
+        }
+        allowed_types: Set[str] = {
+            file_type for file_type in SUPPORTED_TYPE_SUFFIXES if file_type in desired_types_processed
+        }
+
+        return list(allowed_types)
+
+    @staticmethod
+    def _preprocess_paths(
+        paths: List[Path],
+        spinner: yaspin.Spinner = None,
+        recursive: bool = False,
+        desired_file_types: Optional[List[str]] = None,
+    ) -> List[Path]:
         all_files = FilesService._get_file_paths(paths, recursive=recursive)
+
+        allowed_file_types: List[str] = FilesService._get_allowed_file_types(desired_file_types)
+        allowed_meta_types: Tuple = tuple(f"{file_type}.meta.json" for file_type in allowed_file_types)
+
+        meta_file_path = [path for path in all_files if path.is_file() and str(path).endswith(allowed_meta_types)]
         file_paths = [
             path
             for path in all_files
-            if path.is_file() and ((path.suffix in ALLOWED_TYPE_SUFFIXES) or path.name.endswith("meta.json"))
+            if path.is_file() and (path.suffix in allowed_file_types and not str(path).endswith(META_SUFFIX))
         ]
+        combined_paths = meta_file_path + file_paths
 
-        if len(file_paths) < len(all_files):
+        combined_paths = FilesService._remove_duplicates(combined_paths)
+        if len(combined_paths) < len(all_files):
             logger.warning(
                 "Skipping files with unsupported file format.",
                 paths=paths,
-                skipped_files=len(all_files) - len(file_paths),
+                skipped_files=len(all_files) - len(combined_paths),
             )
-            for skipped_file in set(all_files) - set(file_paths):
+            for skipped_file in set(all_files) - set(combined_paths):
                 logger.warning("Skipping file", file_path=skipped_file)
 
         if spinner is not None:
             spinner.text = "Validating files and metadata."
-        FilesService._validate_file_paths(file_paths)
+        FilesService._validate_file_paths(combined_paths)
 
-        return file_paths
+        return combined_paths
 
     async def upload(
         self,
@@ -346,6 +397,7 @@ class FilesService:
         timeout_s: Optional[int] = None,
         show_progress: bool = True,
         recursive: bool = False,
+        desired_file_types: List[str] = [".txt", ".pdf"],
     ) -> S3UploadSummary:
         """Upload a list of file or folder paths to a workspace.
 
@@ -365,6 +417,7 @@ class FilesService:
         :param timeout_s: Timeout in seconds for the `blocking` parameter.
         :param show_progress If True, shows a progress bar for S3 uploads.
         :param recursive: If True, recursively uploads all files in the folder.
+        :param desired_file_types: A list of allowed file types to upload, defaults to ['.txt', '.pdf']
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         logger.info("Getting valid files from file path. This may take a few minutes.", recursive=recursive)
@@ -372,9 +425,11 @@ class FilesService:
         if show_progress:
             with yaspin().arc as sp:
                 sp.text = "Finding uploadable files in the given paths."
-                file_paths = self._preprocess_paths(paths, spinner=sp, recursive=recursive)
+                file_paths = self._preprocess_paths(
+                    paths, spinner=sp, recursive=recursive, desired_file_types=desired_file_types
+                )
         else:
-            file_paths = self._preprocess_paths(paths, recursive=recursive)
+            file_paths = self._preprocess_paths(paths, recursive=recursive, desired_file_types=desired_file_types)
 
         return await self.upload_file_paths(
             workspace_name=workspace_name,
@@ -435,7 +490,15 @@ class FilesService:
 
         pbar: Optional[tqdm] = None
         if show_progress:
-            total = (await self._files.list_paginated(workspace_name, limit=1)).total
+            total = (
+                await self._files.list_paginated(
+                    workspace_name,
+                    name=name,
+                    content=content,
+                    odata_filter=odata_filter,
+                    limit=1,
+                )
+            ).total
             pbar = tqdm(total=total, desc="Download Progress")
 
         after_value = None
