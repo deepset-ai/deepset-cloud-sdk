@@ -29,9 +29,7 @@ class DeepsetCloudFileBase:  # pylint: disable=too-few-public-methods
 
     @abstractmethod
     def content(self) -> bytes:
-        """
-        An abstract method that will enable sub classes to give custom implementations of content.
-        """
+        """Return content."""
         raise NotImplementedError
 
 
@@ -51,7 +49,7 @@ class DeepsetCloudFile(DeepsetCloudFileBase):  # pylint: disable=too-few-public-
 
     def content(self) -> bytes:
         """
-        Returns the content of the file in bytes
+        Return the content of the file in bytes.
 
         :return: The text of the file in bytes.
         """
@@ -79,9 +77,8 @@ class DeepsetCloudFileBytes(DeepsetCloudFileBase):  # pylint: disable=too-few-pu
 
     def content(self) -> bytes:
         """
-        Returns the content of the file in bytes
+        Return the content of the file in bytes.
 
         :return: The content of the file in bytes.
         """
-
         return self.file_bytes
