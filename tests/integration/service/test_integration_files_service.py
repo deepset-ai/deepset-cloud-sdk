@@ -212,7 +212,7 @@ class TestUploadsFileService:
                 DeepsetCloudFile("file4", "file4.txt", {"which": 4}),
                 DeepsetCloudFile("file5", "file5.txt", {"which": 5}),
             ]
-            result = await file_service.upload_texts(
+            result = await file_service.upload_in_memory(
                 workspace_name=workspace_name,
                 files=files,
                 blocking=True,
@@ -236,7 +236,7 @@ class TestUploadsFileService:
                 DeepsetCloudFile("file4", "file4.txt", {"which": 4}),
                 DeepsetCloudFile("file5", "file5.txt", {"which": 5}),
             ]
-            result = await file_service.upload_texts(
+            result = await file_service.upload_in_memory(
                 workspace_name=workspace_name,
                 files=files,
                 blocking=True,

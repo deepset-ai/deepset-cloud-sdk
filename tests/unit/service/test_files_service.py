@@ -364,7 +364,7 @@ class TestUploadTexts:
                 finished_files=1,
             ),
         )
-        result = await file_service.upload_texts(
+        result = await file_service.upload_in_memory(
             workspace_name="test_workspace",
             files=files,
             write_mode=WriteMode.OVERWRITE,
@@ -416,7 +416,7 @@ class TestUploadTexts:
                 finished_files=1,
             ),
         )
-        result = await file_service.upload_texts(
+        result = await file_service.upload_in_memory(
             workspace_name="test_workspace",
             files=files,
             write_mode=WriteMode.OVERWRITE,

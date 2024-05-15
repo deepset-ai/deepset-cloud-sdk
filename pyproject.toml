@@ -51,6 +51,7 @@ path = "deepset_cloud_sdk/__about__.py"
 tests-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
 tests-unit = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
 tests-integration = "pytest tests/integration"
+try = "python try.py"
 
 [[tool.hatch.envs.all.matrix]]
 python = ["3.10"]
