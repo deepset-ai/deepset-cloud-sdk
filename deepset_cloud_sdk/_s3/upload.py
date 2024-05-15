@@ -188,7 +188,7 @@ class S3:
         content: bytes,
         client_session: aiohttp.ClientSession,
     ) -> S3UploadResult:
-        """Upload text to the prefixed S3 namespace.
+        """Upload content to the prefixed S3 namespace.
 
         :param file_name: Name of the file.
         :param upload_session: UploadSession to associate the upload with.
@@ -270,10 +270,10 @@ class S3:
     async def upload_in_memory(
         self, upload_session: UploadSession, files: Sequence[DeepsetCloudFileBase], show_progress: bool = True
     ) -> S3UploadSummary:
-        """Upload a set of texts to the prefixed S3 namespace given a list of paths.
+        """Upload a set of files to the prefixed S3 namespace given a list of paths.
 
         :param upload_session: UploadSession to associate the upload with.
-        :param files: A list of DeepsetCloudFiles to upload.
+        :param files: A list of DeepsetCloudFileBase to upload.
         :param show_progress: Whether to show a progress bar on the upload.
         :return: S3UploadSummary object.
         """

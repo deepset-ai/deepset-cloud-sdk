@@ -203,7 +203,7 @@ class TestUploadsFileService:
         file00_metadata = next((file.meta for file in uploaded_files if file.name == "file00.txt"), None)
         assert file00_metadata == {"file_name_duplicate_check": "file00.txt", "source": "multiple file types"}
 
-    async def test_upload_texts(self, integration_config: CommonConfig, workspace_name: str) -> None:
+    async def test_upload_in_memory(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
             files = [
                 DeepsetCloudFile("file1", "file1.txt", {"which": 1}),
@@ -224,7 +224,7 @@ class TestUploadsFileService:
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
-    async def test_upload_texts_less_than_session_threshold(
+    async def test_upload_in_memory_less_than_session_threshold(
         self, integration_config: CommonConfig, workspace_name: str, monkeypatch: MonkeyPatch
     ) -> None:
         monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", -1)

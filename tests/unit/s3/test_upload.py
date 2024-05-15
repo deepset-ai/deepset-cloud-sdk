@@ -35,7 +35,7 @@ class TestUploadsS3:
     @pytest.mark.asyncio
     class TestS3:
         @patch.object(tqdm, "gather")
-        async def test_upload_texts_with_progress(
+        async def test_upload_in_memory_with_progress(
             self, tqdm_gather: Mock, post: Mock, upload_session_response: UploadSession
         ) -> None:
             s3 = S3()
@@ -48,7 +48,7 @@ class TestUploadsS3:
 
             assert tqdm_gather.call_count == 1
 
-        async def test_upload_texts_with_progress_check_http_calls(
+        async def test_upload_in_memory_with_progress_check_http_calls(
             self, post: Mock, upload_session_response: UploadSession
         ) -> None:
             s3 = S3()
@@ -62,7 +62,7 @@ class TestUploadsS3:
             assert post.call_count == 3
 
         @patch.object(tqdm, "gather")
-        async def test_upload_texts_without_progress(
+        async def test_upload_in_memory_without_progress(
             self, tqdm_gather: Mock, post: Mock, upload_session_response: UploadSession
         ) -> None:
             s3 = S3()
@@ -155,7 +155,7 @@ class TestUploadsS3:
                 assert [f.file_name for f in results.failed] == ["16675.txt", "16675.txt.meta.json"]
                 assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
-        async def test_upload_texts_http_error(self, upload_session_response: UploadSession) -> None:
+        async def test_upload_in_memory_http_error(self, upload_session_response: UploadSession) -> None:
             exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=503)
             with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
                 s3 = S3()
@@ -179,7 +179,7 @@ class TestUploadsS3:
                 ]
                 assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
-        async def test_upload_texts_with_metadata_http_error(self, upload_session_response: UploadSession) -> None:
+        async def test_upload_in_memory_with_metadata_http_error(self, upload_session_response: UploadSession) -> None:
             exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=503)
             with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
                 s3 = S3()
