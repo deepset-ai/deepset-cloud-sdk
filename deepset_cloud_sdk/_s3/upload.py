@@ -19,7 +19,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     AWSPrefixedRequestConfig,
     UploadSession,
 )
-from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBase
+from deepset_cloud_sdk.models import DeepsetCloudFileBase
 
 logger = structlog.get_logger(__name__)
 
@@ -283,7 +283,7 @@ class S3:
             for file in files:
                 # raw data
                 file_name = file.name
-                tasks.append(self.upload_from_memory(file_name, upload_session, file._content(), client_session))
+                tasks.append(self.upload_from_memory(file_name, upload_session, file.content(), client_session))
 
                 # meta
                 if file.meta is not None:

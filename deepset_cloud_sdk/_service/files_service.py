@@ -592,7 +592,7 @@ class FilesService:
                         workspace_name=workspace_name,
                         file_name=file.name,
                         meta=file.meta or {},
-                        content=file._content(),
+                        content=file.content(),
                         write_mode=write_mode,
                     )
                 )

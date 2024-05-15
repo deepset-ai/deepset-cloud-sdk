@@ -24,12 +24,11 @@ class DeepsetCloudFileBase:
         :param name: The file name
         :param meta: The file's metadata
         """
-
         self.name = name
         self.meta = meta
 
     @abstractmethod
-    def _content(self) -> bytes:
+    def content(self) -> bytes:
         raise NotImplementedError
 
 
@@ -44,11 +43,10 @@ class DeepsetCloudFile(DeepsetCloudFileBase):
         :param text: The text content of the file
         :param meta: The file's metadata
         """
-
         super().__init__(name, meta)
         self.text = text
 
-    def _content(self) -> bytes:
+    def content(self) -> bytes:
         return bytes(self.text, "utf-8")
 
 
@@ -68,9 +66,8 @@ class DeepsetCloudFileBytes(DeepsetCloudFileBase):
         :param text: The content of the file represented in bytes
         :param meta: The file's metadata
         """
-
         super().__init__(name, meta)
         self.file_bytes = file_bytes
 
-    def _content(self) -> bytes:
+    def content(self) -> bytes:
         return self.file_bytes
