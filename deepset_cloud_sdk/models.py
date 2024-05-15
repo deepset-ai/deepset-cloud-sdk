@@ -18,6 +18,13 @@ class DeepsetCloudFileBase:
     """Base class for deepset Cloud files."""
 
     def __init__(self, name: str, meta: Optional[Dict[str, Any]] = None):
+        """
+        Initialize DeepsetCloudFileBase.
+
+        :param name: The file name
+        :param meta: The file's metadata
+        """
+
         self.name = name
         self.meta = meta
 
@@ -30,6 +37,14 @@ class DeepsetCloudFile(DeepsetCloudFileBase):
     """Data class for text files in deepset Cloud."""
 
     def __init__(self, name: str, text: str, meta: Optional[Dict[str, Any]] = None):
+        """
+        Initialize DeepsetCloudFileBase.
+
+        :param name: The file name
+        :param text: The text content of the file
+        :param meta: The file's metadata
+        """
+
         super().__init__(name, meta)
         self.text = text
 
@@ -46,6 +61,14 @@ class DeepsetCloudFileBytes(DeepsetCloudFileBase):
     """Data class for uploading files of any valid type in deepset Cloud."""
 
     def __init__(self, name: str, file_bytes: bytes, meta: Optional[Dict[str, Any]] = None):
+        """
+        Initialize DeepsetCloudFileBase.
+
+        :param name: The file name
+        :param text: The content of the file represented in bytes
+        :param meta: The file's metadata
+        """
+
         super().__init__(name, meta)
         self.file_bytes = file_bytes
 

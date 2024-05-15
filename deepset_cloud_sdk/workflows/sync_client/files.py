@@ -181,9 +181,9 @@ def upload_bytes(
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
 ) -> S3UploadSummary:
-    """Upload texts to deepset Cloud.
+    """Upload any supported file types to deepset Cloud. These include .csv, .docx, .html, .json, .md, .txt, .pdf, .pptx, .xlsx and .xml.
 
-    :param files: List of DeepsetCloudFiles to upload.
+    :param files: List of DeepsetCloudFilesBytes to upload.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
