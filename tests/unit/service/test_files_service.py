@@ -428,7 +428,7 @@ class TestUploadTexts:
 
         assert not mocked_upload_sessions_api.create.called, "We should not have created a session for a single file"
 
-        mocked_files_api.direct_upload_text.assert_called_once_with(
+        mocked_files_api.direct_upload_in_memory.assert_called_once_with(
             workspace_name="test_workspace",
             text="test content",
             meta={"test": "test"},

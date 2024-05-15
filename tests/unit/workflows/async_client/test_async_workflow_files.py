@@ -90,7 +90,7 @@ class TestUploadFiles:
 
     async def test_upload_texts(self, monkeypatch: MonkeyPatch) -> None:
         mocked_upload_texts = AsyncMock(return_value=None)
-        monkeypatch.setattr(FilesService, "upload_texts", mocked_upload_texts)
+        monkeypatch.setattr(FilesService, "upload_in_memory", mocked_upload_texts)
         files = [
             DeepsetCloudFile(
                 name="test_file.txt",

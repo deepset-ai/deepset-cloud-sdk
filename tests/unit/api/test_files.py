@@ -418,9 +418,7 @@ class TestDirectUploadText:
         mocked_deepset_cloud_api.post.assert_called_once_with(
             "test_workspace",
             "files",
-            data={"text": "some text", "meta": json.dumps({"key": "value"})},
-            params={
-                "write_mode": "OVERWRITE",
-                "file_name": "basic.txt",
-            },
+            files={"file": ("basic.txt", b"some text")},
+            data={"meta": json.dumps({"key": "value"})},
+            params={"write_mode": "OVERWRITE"},
         )
