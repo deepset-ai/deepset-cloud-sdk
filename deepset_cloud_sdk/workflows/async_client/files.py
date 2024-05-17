@@ -19,8 +19,8 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
-from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
-from deepset_cloud_sdk.models import DeepsetCloudFileBytes
+from deepset_cloud_sdk._service.files_service import FilesService
+from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 
 
 def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:

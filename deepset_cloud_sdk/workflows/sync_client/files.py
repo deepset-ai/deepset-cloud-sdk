@@ -15,8 +15,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
-from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
-from deepset_cloud_sdk.models import DeepsetCloudFileBytes
+from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 from deepset_cloud_sdk.workflows.async_client.files import download as async_download
 from deepset_cloud_sdk.workflows.async_client.files import (
     get_upload_session as async_get_upload_session,

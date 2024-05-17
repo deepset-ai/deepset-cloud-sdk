@@ -34,10 +34,11 @@ class DeepsetCloudFileBase:  # pylint: disable=too-few-public-methods
         raise NotImplementedError
 
     def meta_as_string(self) -> str:
+        """Return metadata as a string."""
         if self.meta:
             return json.dumps(self.meta)
-        else:
-            return json.dumps({})
+
+        return json.dumps({})
 
 
 class DeepsetCloudFile(DeepsetCloudFileBase):  # pylint: disable=too-few-public-methods
