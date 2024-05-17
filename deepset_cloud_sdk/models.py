@@ -43,7 +43,7 @@ class DeepsetCloudFileBase:  # pylint: disable=too-few-public-methods
 class DeepsetCloudFile(DeepsetCloudFileBase):  # pylint: disable=too-few-public-methods
     """Data class for text files in deepset Cloud."""
 
-    def __init__(self, name: str, text: str, meta: Optional[Dict[str, Any]] = None):
+    def __init__(self, text: str, name: str, meta: Optional[Dict[str, Any]] = None):
         """
         Initialize DeepsetCloudFileBase.
 
@@ -71,7 +71,7 @@ class DeepsetCloudFile(DeepsetCloudFileBase):  # pylint: disable=too-few-public-
 class DeepsetCloudFileBytes(DeepsetCloudFileBase):  # pylint: disable=too-few-public-methods
     """Data class for uploading files of any valid type in deepset Cloud."""
 
-    def __init__(self, name: str, file_bytes: bytes, meta: Optional[Dict[str, Any]] = None):
+    def __init__(self, file_bytes: bytes, name: str, meta: Optional[Dict[str, Any]] = None):
         """
         Initialize DeepsetCloudFileBase.
 
