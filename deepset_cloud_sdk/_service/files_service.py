@@ -159,7 +159,12 @@ class FilesService:
             return S3UploadResult(file_name=file_path.name, success=False, exception=error)
 
     async def _wrapped_direct_upload_in_memory(
-        self, workspace_name: str, content: bytes, file_name: str, meta: Dict[str, Any], write_mode: WriteMode
+        self,
+        workspace_name: str,
+        content: Union[str, bytes],
+        file_name: str,
+        meta: Dict[str, Any],
+        write_mode: WriteMode,
     ) -> S3UploadResult:
         try:
             await self._files.direct_upload_in_memory(

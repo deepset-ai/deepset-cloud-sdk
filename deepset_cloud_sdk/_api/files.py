@@ -208,7 +208,7 @@ class FilesAPI:
     async def direct_upload_in_memory(
         self,
         workspace_name: str,
-        content: bytes,
+        content: Union[bytes, str],
         file_name: str,
         meta: Optional[Dict[str, Any]] = None,
         write_mode: WriteMode = WriteMode.KEEP,

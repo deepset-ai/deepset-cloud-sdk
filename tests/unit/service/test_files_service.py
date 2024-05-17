@@ -429,7 +429,7 @@ class TestUploadTexts:
 
         mocked_files_api.direct_upload_in_memory.assert_called_once_with(
             workspace_name="test_workspace",
-            content=b"test content",
+            content="test content",
             meta={"test": "test"},
             file_name="test_file.txt",
             write_mode=WriteMode.OVERWRITE,

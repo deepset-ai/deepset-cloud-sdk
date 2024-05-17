@@ -2,7 +2,7 @@
 import json
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from uuid import UUID
 
 
@@ -29,7 +29,7 @@ class DeepsetCloudFileBase:  # pylint: disable=too-few-public-methods
         self.meta = meta
 
     @abstractmethod
-    def content(self) -> bytes:
+    def content(self) -> Union[str, bytes]:
         """Return content."""
         raise NotImplementedError
 
@@ -55,13 +55,13 @@ class DeepsetCloudFile(DeepsetCloudFileBase):  # pylint: disable=too-few-public-
         super().__init__(name, meta)
         self.text = text
 
-    def content(self) -> bytes:
+    def content(self) -> str:
         """
-        Return the content of the file in bytes.
+        Return the content of the file.
 
-        :return: The text of the file in bytes.
+        :return: The text of the file.
         """
-        return bytes(self.text, "utf-8")
+        return self.text
 
 
 # Didn't want to cause breaking changes in the DeepsetCloudFile class, though it
