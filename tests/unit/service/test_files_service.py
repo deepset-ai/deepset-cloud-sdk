@@ -30,10 +30,9 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk._s3.upload import S3UploadResult, S3UploadSummary
 from deepset_cloud_sdk._service.files_service import (
     SUPPORTED_TYPE_SUFFIXES,
-    DeepsetCloudFile,
     FilesService,
 )
-from deepset_cloud_sdk.models import UserInfo
+from deepset_cloud_sdk.models import DeepsetCloudFile, UserInfo
 
 
 @pytest.fixture
