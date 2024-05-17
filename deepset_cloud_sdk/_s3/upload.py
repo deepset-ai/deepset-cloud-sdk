@@ -1,6 +1,5 @@
 """Module for upload-related S3 operations."""
 import asyncio
-import json
 import os
 import re
 from dataclasses import dataclass
@@ -185,7 +184,7 @@ class S3:
         self,
         file_name: str,
         upload_session: UploadSession,
-        content: bytes,
+        content: Union[bytes, str],
         client_session: aiohttp.ClientSession,
     ) -> S3UploadResult:
         """Upload content to the prefixed S3 namespace.
@@ -288,8 +287,9 @@ class S3:
                 # meta
                 if file.meta is not None:
                     meta_name = f"{file_name}.meta.json"
-                    metadata = bytes(json.dumps(file.meta), encoding="utf-8")
-                    tasks.append(self.upload_from_memory(meta_name, upload_session, metadata, client_session))
+                    tasks.append(
+                        self.upload_from_memory(meta_name, upload_session, file.meta_as_string(), client_session)
+                    )
 
             result_summary = await self._process_results(tasks, show_progress=show_progress)
 

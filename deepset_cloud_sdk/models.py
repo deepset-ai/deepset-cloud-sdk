@@ -1,4 +1,5 @@
 """General data classes for deepset Cloud SDK."""
+import json
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
@@ -31,6 +32,12 @@ class DeepsetCloudFileBase:  # pylint: disable=too-few-public-methods
     def content(self) -> bytes:
         """Return content."""
         raise NotImplementedError
+
+    def meta_as_string(self) -> str:
+        if self.meta:
+            return json.dumps(self.meta)
+        else:
+            return json.dumps({})
 
 
 class DeepsetCloudFile(DeepsetCloudFileBase):  # pylint: disable=too-few-public-methods
