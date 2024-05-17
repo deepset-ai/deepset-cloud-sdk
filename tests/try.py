@@ -1,3 +1,4 @@
+# Can use this file to test e2e uploads manually
 import httpx
 
 from deepset_cloud_sdk.workflows.sync_client.files import (
@@ -7,7 +8,7 @@ from deepset_cloud_sdk.workflows.sync_client.files import (
     upload_bytes,
 )
 
-api_key = "api_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwYjYwYzE2YS00NjJlLTRkNmMtYjg2ZS1mYTI3M2RhNGU2Nzh8NjI5NzY4NWVmMzdiNTIwMDY4NDU3ODMxIiwiZXhwIjoxNzE2NTA1MjAwLCJhdWQiOlsiaHR0cHM6Ly9hcGkuZGV2LmNsb3VkLmRwc3QuZGV2Il19.MjfWK8JtrkVpSLwb-wJ06vxkw2sQM3sB6Okd47PX3Cw"
+api_key = "api key goes here"
 
 menu = httpx.get("https://www.beefeater.co.uk/en-gb/main-menu/beefeater_main_menu_band3.pdf")
 md = httpx.get("https://raw.githubusercontent.com/facebook/react/main/SECURITY.md")
