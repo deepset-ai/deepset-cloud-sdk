@@ -18,8 +18,8 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionWriteModeEnum,
     WriteMode,
 )
-from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
-from deepset_cloud_sdk.models import UserInfo
+from deepset_cloud_sdk._service.files_service import FilesService
+from deepset_cloud_sdk.models import DeepsetCloudFile, UserInfo
 from deepset_cloud_sdk.workflows.async_client.files import (
     download,
     get_upload_session,
@@ -90,7 +90,7 @@ class TestUploadFiles:
 
     async def test_upload_texts(self, monkeypatch: MonkeyPatch) -> None:
         mocked_upload_texts = AsyncMock(return_value=None)
-        monkeypatch.setattr(FilesService, "upload_texts", mocked_upload_texts)
+        monkeypatch.setattr(FilesService, "upload_in_memory", mocked_upload_texts)
         files = [
             DeepsetCloudFile(
                 name="test_file.txt",

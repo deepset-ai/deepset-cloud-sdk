@@ -15,7 +15,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
-from deepset_cloud_sdk._service.files_service import DeepsetCloudFile
+from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 from deepset_cloud_sdk.workflows.async_client.files import download as async_download
 from deepset_cloud_sdk.workflows.async_client.files import (
     get_upload_session as async_get_upload_session,
@@ -27,6 +27,9 @@ from deepset_cloud_sdk.workflows.async_client.files import (
     list_upload_sessions as async_list_upload_sessions,
 )
 from deepset_cloud_sdk.workflows.async_client.files import upload as async_upload
+from deepset_cloud_sdk.workflows.async_client.files import (
+    upload_bytes as async_upload_bytes,
+)
 from deepset_cloud_sdk.workflows.async_client.files import (
     upload_texts as async_upload_texts,
 )
@@ -155,6 +158,45 @@ def upload_texts(
     """
     return asyncio.run(
         async_upload_texts(
+            files=files,
+            api_key=api_key,
+            api_url=api_url,
+            workspace_name=workspace_name,
+            write_mode=write_mode,
+            blocking=blocking,
+            timeout_s=timeout_s,
+            show_progress=show_progress,
+        )
+    )
+
+
+def upload_bytes(
+    files: List[DeepsetCloudFileBytes],
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
+    blocking: bool = True,
+    timeout_s: Optional[int] = None,
+    show_progress: bool = True,
+) -> S3UploadSummary:
+    """Upload any supported file types to deepset Cloud. These include .csv, .docx, .html, .json, .md, .txt, .pdf, .pptx, .xlsx and .xml.
+
+    :param files: List of DeepsetCloudFilesBytes to upload.
+    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+    Possible options are:
+    KEEP - uploads the file with the same name and keeps both files in the workspace.
+    OVERWRITE - overwrites the file that is in the workspace.
+    FAIL - fails to upload the file with the same name.
+    :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
+    :param timeout_s: Timeout in seconds for the `blocking` parameter.
+    :param show_progress: Shows the upload progress.
+    """
+    return asyncio.run(
+        async_upload_bytes(
             files=files,
             api_key=api_key,
             api_url=api_url,

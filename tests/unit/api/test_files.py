@@ -380,10 +380,10 @@ class TestDirectUploadFilePath:
 class TestDirectUploadText:
     async def test_direct_upload_file_for_wrong_file_type_name(self, files_api: FilesAPI) -> None:
         with pytest.raises(NotMatchingFileTypeException):
-            await files_api.direct_upload_text(
+            await files_api.direct_upload_in_memory(
                 workspace_name="test_workspace",
-                file_name="basic.json",
-                text="some text",
+                file_name="basic.xls",
+                content=b"some text",
                 meta={},
             )
 
@@ -395,10 +395,10 @@ class TestDirectUploadText:
             status_code=error_code,
         )
         with pytest.raises(FailedToUploadFileException):
-            await files_api.direct_upload_text(
+            await files_api.direct_upload_in_memory(
                 workspace_name="test_workspace",
                 file_name="basic.txt",
-                text="some text",
+                content=b"some text",
                 meta={},
             )
 
@@ -407,10 +407,10 @@ class TestDirectUploadText:
             status_code=httpx.codes.CREATED,
             json={"file_id": "cd16435f-f6eb-423f-bf6f-994dc8a36a10"},
         )
-        file_id = await files_api.direct_upload_text(
+        file_id = await files_api.direct_upload_in_memory(
             workspace_name="test_workspace",
             file_name="basic.txt",
-            text="some text",
+            content=b"some text",
             meta={"key": "value"},
             write_mode=WriteMode.OVERWRITE,
         )
@@ -418,9 +418,7 @@ class TestDirectUploadText:
         mocked_deepset_cloud_api.post.assert_called_once_with(
             "test_workspace",
             "files",
-            data={"text": "some text", "meta": json.dumps({"key": "value"})},
-            params={
-                "write_mode": "OVERWRITE",
-                "file_name": "basic.txt",
-            },
+            files={"file": ("basic.txt", b"some text")},
+            data={"meta": json.dumps({"key": "value"})},
+            params={"write_mode": "OVERWRITE"},
         )
