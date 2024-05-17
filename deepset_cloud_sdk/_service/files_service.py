@@ -42,7 +42,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
 )
 from deepset_cloud_sdk._s3.upload import S3, S3UploadResult, S3UploadSummary
 from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
-from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBase
+from deepset_cloud_sdk.models import DeepsetCloudFileBase
 
 logger = structlog.get_logger(__name__)
 
