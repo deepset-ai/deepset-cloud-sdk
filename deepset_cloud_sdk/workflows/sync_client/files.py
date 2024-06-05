@@ -155,6 +155,25 @@ def upload_texts(
     :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
+
+    Example:
+    ```python
+    from deepset_cloud_sdk.workflows.sync_client.files import upload_texts, DeepsetCloudFile
+
+    upload_texts(
+        api_key="<deepsetCloud_API_key>",
+        workspace_name="<default_workspace>", # optional, by default the environment variable "DEFAULT_WORKSPACE_NAME" is used
+        files=[
+            DeepsetCloudFile(
+            name="example.txt",
+            text="this is text",
+            meta={"key": "value"},  # optional
+        )
+    ],
+        blocking=True,  # optional, by default True
+        timeout_s=300,  # optional, by default 300
+)
+    ```
     """
     return asyncio.run(
         async_upload_texts(
