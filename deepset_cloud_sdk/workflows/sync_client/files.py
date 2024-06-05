@@ -172,7 +172,7 @@ def upload_texts(
     ],
         blocking=True,  # optional, by default True
         timeout_s=300,  # optional, by default 300
-)
+    )
     ```
     """
     return asyncio.run(
