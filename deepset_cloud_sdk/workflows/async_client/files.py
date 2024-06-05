@@ -252,9 +252,9 @@ async def upload_texts(
             timeout_s=300,  # optional, by default 300
     )
 
-# Run the async function
-if __name__ == "__main__":
-    asyncio.run(my_async_context())
+    # Run the async function
+    if __name__ == "__main__":
+        asyncio.run(my_async_context())
     ```
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
