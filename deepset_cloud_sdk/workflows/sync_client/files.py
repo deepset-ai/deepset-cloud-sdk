@@ -165,11 +165,11 @@ def upload_texts(
         workspace_name="<default_workspace>", # optional, by default the environment variable "DEFAULT_WORKSPACE_NAME" is used
         files=[
             DeepsetCloudFile(
-            name="example.txt",
-            text="this is text",
-            meta={"key": "value"},  # optional
-        )
-    ],
+                name="example.txt",
+                text="this is text",
+                meta={"key": "value"},  # optional
+            )
+        ],
         blocking=True,  # optional, by default True
         timeout_s=300,  # optional, by default 300
     )

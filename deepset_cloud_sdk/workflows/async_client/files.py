@@ -236,7 +236,7 @@ async def upload_texts(
     ```python
     import asyncio
     from deepset_cloud_sdk.workflows.async_client.files import upload_texts, DeepsetCloudFile
-    
+
     async def my_async_context() -> None:
         await upload_texts(
             api_key="<deepsetCloud_API_key>",
@@ -246,11 +246,11 @@ async def upload_texts(
                     name="example.txt",
                     text="this is text",
                     meta={"key": "value"},  # optional
-          )
-        ],
+                )
+            ],
             blocking=True,  # optional, by default True
             timeout_s=300,  # optional, by default 300
-    )
+        )
 
     # Run the async function
     if __name__ == "__main__":
