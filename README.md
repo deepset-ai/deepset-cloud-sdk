@@ -64,3 +64,15 @@ deepset Cloud is powered by Haystack, an open source framework for building end-
 
  -    [Project website](https://haystack.deepset.ai/)
  -    [GitHub repository](https://github.com/deepset-ai/haystack)
+
+---
+
+# Licenses
+
+The SDK is licensed under Apache 2.0, you can see the license [here](https://github.com/deepset-ai/deepset-cloud-sdk/blob/main/LICENSE)
+
+We use several libraries in this SDK that are licensed under the [MPL 2.0 license](https://www.mozilla.org/en-US/MPL/2.0/)
+
+- [tqdm](https://github.com/tqdm/tqdm) for progress bars
+- [pathspec](https://github.com/cpburnz/python-pathspec) for pattern matching file paths
+- [certifi](https://github.com/certifi/python-certifi) for validating trustworthiness of SSL certificates
