@@ -30,10 +30,9 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk._s3.upload import S3UploadResult, S3UploadSummary
 from deepset_cloud_sdk._service.files_service import (
     SUPPORTED_TYPE_SUFFIXES,
-    DeepsetCloudFile,
     FilesService,
 )
-from deepset_cloud_sdk.models import UserInfo
+from deepset_cloud_sdk.models import DeepsetCloudFile, UserInfo
 
 
 @pytest.fixture
@@ -336,7 +335,7 @@ class TestUpload:
 
 @pytest.mark.asyncio
 class TestUploadTexts:
-    async def test_upload_texts_via_sessions(
+    async def test_upload_in_memory_via_sessions(
         self,
         file_service: FilesService,
         mocked_upload_sessions_api: Mock,
@@ -346,7 +345,7 @@ class TestUploadTexts:
     ) -> None:
         monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", -1)
         upload_summary = S3UploadSummary(total_files=1, successful_upload_count=1, failed_upload_count=0, failed=[])
-        mocked_s3.upload_texts.return_value = upload_summary
+        mocked_s3.upload_in_memory.return_value = upload_summary
         files = [
             DeepsetCloudFile(
                 name="test_file.txt",
@@ -364,7 +363,7 @@ class TestUploadTexts:
                 finished_files=1,
             ),
         )
-        result = await file_service.upload_texts(
+        result = await file_service.upload_in_memory(
             workspace_name="test_workspace",
             files=files,
             write_mode=WriteMode.OVERWRITE,
@@ -378,7 +377,7 @@ class TestUploadTexts:
             workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
         )
 
-        mocked_s3.upload_texts.assert_called_once_with(
+        mocked_s3.upload_in_memory.assert_called_once_with(
             upload_session=upload_session_response, files=files, show_progress=False
         )
 
@@ -389,7 +388,7 @@ class TestUploadTexts:
             workspace_name="test_workspace", session_id=upload_session_response.session_id
         )
 
-    async def test_upload_texts_via_sync_upload(
+    async def test_upload_in_memory_via_sync_upload(
         self,
         file_service: FilesService,
         mocked_upload_sessions_api: Mock,
@@ -398,7 +397,7 @@ class TestUploadTexts:
         mocked_files_api: Mock,
     ) -> None:
         upload_summary = S3UploadSummary(total_files=1, successful_upload_count=1, failed_upload_count=0, failed=[])
-        mocked_s3.upload_texts.return_value = upload_summary
+        mocked_s3.upload_in_memory.return_value = upload_summary
         files = [
             DeepsetCloudFile(
                 name="test_file.txt",
@@ -416,7 +415,7 @@ class TestUploadTexts:
                 finished_files=1,
             ),
         )
-        result = await file_service.upload_texts(
+        result = await file_service.upload_in_memory(
             workspace_name="test_workspace",
             files=files,
             write_mode=WriteMode.OVERWRITE,
@@ -428,9 +427,9 @@ class TestUploadTexts:
 
         assert not mocked_upload_sessions_api.create.called, "We should not have created a session for a single file"
 
-        mocked_files_api.direct_upload_text.assert_called_once_with(
+        mocked_files_api.direct_upload_in_memory.assert_called_once_with(
             workspace_name="test_workspace",
-            text="test content",
+            content="test content",
             meta={"test": "test"},
             file_name="test_file.txt",
             write_mode=WriteMode.OVERWRITE,

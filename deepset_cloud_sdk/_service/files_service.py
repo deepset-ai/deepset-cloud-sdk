@@ -9,7 +9,17 @@ import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, List, Optional, Set, Tuple, Union
+from typing import (
+    Any,
+    AsyncGenerator,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
 from uuid import UUID
 
 import structlog
@@ -31,11 +41,11 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3, S3UploadResult, S3UploadSummary
-from deepset_cloud_sdk.models import DeepsetCloudFile
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
+from deepset_cloud_sdk.models import DeepsetCloudFileBase
 
 logger = structlog.get_logger(__name__)
 
-SUPPORTED_TYPE_SUFFIXES = [".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"]
 META_SUFFIX = ".meta.json"
 DIRECT_UPLOAD_THRESHOLD = 20
 
@@ -148,13 +158,18 @@ class FilesService:
             logger.error("Failed uploading file.", file_path=file_path, error=error)
             return S3UploadResult(file_name=file_path.name, success=False, exception=error)
 
-    async def _wrapped_direct_upload_text(
-        self, workspace_name: str, text: str, file_name: str, meta: Dict[str, Any], write_mode: WriteMode
+    async def _wrapped_direct_upload_in_memory(
+        self,
+        workspace_name: str,
+        content: Union[str, bytes],
+        file_name: str,
+        meta: Dict[str, Any],
+        write_mode: WriteMode,
     ) -> S3UploadResult:
         try:
-            await self._files.direct_upload_text(
+            await self._files.direct_upload_in_memory(
                 workspace_name=workspace_name,
-                text=text,
+                content=content,
                 meta=meta,
                 file_name=file_name,
                 write_mode=write_mode,
@@ -543,10 +558,10 @@ class FilesService:
             if pbar is not None:
                 pbar.close()
 
-    async def upload_texts(
+    async def upload_in_memory(
         self,
         workspace_name: str,
-        files: List[DeepsetCloudFile],
+        files: Sequence[DeepsetCloudFileBase],
         write_mode: WriteMode = WriteMode.KEEP,
         blocking: bool = True,
         timeout_s: Optional[int] = None,
@@ -578,11 +593,11 @@ class FilesService:
             _coroutines = []
             for file in files:
                 _coroutines.append(
-                    self._wrapped_direct_upload_text(
+                    self._wrapped_direct_upload_in_memory(
                         workspace_name=workspace_name,
                         file_name=file.name,
                         meta=file.meta or {},
-                        text=file.text,
+                        content=file.content(),
                         write_mode=write_mode,
                     )
                 )
@@ -601,7 +616,7 @@ class FilesService:
 
         # create session to upload files to
         async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
-            upload_summary = await self._s3.upload_texts(
+            upload_summary = await self._s3.upload_in_memory(
                 upload_session=upload_session, files=files, show_progress=show_progress
             )
 

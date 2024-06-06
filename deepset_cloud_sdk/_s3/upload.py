@@ -1,12 +1,11 @@
 """Module for upload-related S3 operations."""
 import asyncio
-import json
 import os
 import re
 from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Coroutine, List, Optional, Union
+from typing import Any, Coroutine, List, Optional, Sequence, Union
 
 import aiofiles
 import aiohttp
@@ -19,7 +18,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     AWSPrefixedRequestConfig,
     UploadSession,
 )
-from deepset_cloud_sdk.models import DeepsetCloudFile
+from deepset_cloud_sdk.models import DeepsetCloudFileBase
 
 logger = structlog.get_logger(__name__)
 
@@ -181,14 +180,14 @@ class S3:
                     )
                     return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
-    async def upload_from_string(
+    async def upload_from_memory(
         self,
         file_name: str,
         upload_session: UploadSession,
-        content: str,
+        content: Union[bytes, str],
         client_session: aiohttp.ClientSession,
     ) -> S3UploadResult:
-        """Upload text to the prefixed S3 namespace.
+        """Upload content to the prefixed S3 namespace.
 
         :param file_name: Name of the file.
         :param upload_session: UploadSession to associate the upload with.
@@ -267,13 +266,13 @@ class S3:
             result_summary = await self._process_results(tasks, show_progress=show_progress)
             return result_summary
 
-    async def upload_texts(
-        self, upload_session: UploadSession, files: List[DeepsetCloudFile], show_progress: bool = True
+    async def upload_in_memory(
+        self, upload_session: UploadSession, files: Sequence[DeepsetCloudFileBase], show_progress: bool = True
     ) -> S3UploadSummary:
-        """Upload a set of texts to the prefixed S3 namespace given a list of paths.
+        """Upload a set of files to the prefixed S3 namespace given a list of paths.
 
         :param upload_session: UploadSession to associate the upload with.
-        :param files: A list of DeepsetCloudFiles to upload.
+        :param files: A list of DeepsetCloudFileBase to upload.
         :param show_progress: Whether to show a progress bar on the upload.
         :return: S3UploadSummary object.
         """
@@ -283,13 +282,14 @@ class S3:
             for file in files:
                 # raw data
                 file_name = file.name
-                tasks.append(self.upload_from_string(file_name, upload_session, file.text, client_session))
+                tasks.append(self.upload_from_memory(file_name, upload_session, file.content(), client_session))
 
                 # meta
                 if file.meta is not None:
                     meta_name = f"{file_name}.meta.json"
-                    metadata = json.dumps(file.meta)
-                    tasks.append(self.upload_from_string(meta_name, upload_session, metadata, client_session))
+                    tasks.append(
+                        self.upload_from_memory(meta_name, upload_session, file.meta_as_string(), client_session)
+                    )
 
             result_summary = await self._process_results(tasks, show_progress=show_progress)
 
