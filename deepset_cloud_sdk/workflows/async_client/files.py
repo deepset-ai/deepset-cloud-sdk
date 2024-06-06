@@ -218,7 +218,7 @@ async def upload_texts(
 ) -> S3UploadSummary:
     """Upload raw texts to deepset Cloud.
 
-    :param files: List of DeepsetCloudFiles to upload.
+    :param files: List of DeepsetCloudFile objects to upload.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
@@ -253,17 +253,17 @@ async def upload_bytes(
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
 ) -> S3UploadSummary:
-    """Upload raw texts to deepset Cloud.
+    """Upload files in byte format.
 
-    :param files: List of DeepsetCloudFiles to upload.
+    :param files: List of DeepsetCloudFileBytes objects to upload.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
     Possible options are:
     KEEP - uploads the file with the same name and keeps both files in the workspace.
-    OVERWRITE - overwrites the file that is in the workspace.
-    FAIL - fails to upload the file with the same name.
+    OVERWRITE - overwrites the file in the workspace with the file you're uploading.
+    FAIL - fails to upload the file if a file with the same name already exists in the workspace.
     :param blocking: Whether to wait for the files to be listed and displayed in deepset Cloud.
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
