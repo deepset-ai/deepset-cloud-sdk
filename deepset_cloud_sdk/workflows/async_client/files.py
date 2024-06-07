@@ -231,6 +231,31 @@ async def upload_texts(
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
+
+    Example:
+    ```python
+    import asyncio
+    from deepset_cloud_sdk.workflows.async_client.files import upload_texts, DeepsetCloudFile
+
+    async def my_async_context() -> None:
+        await upload_texts(
+            api_key="<deepsetCloud_API_key>",
+            workspace_name="<default_workspace>",  # optional, by default the environment variable "DEFAULT_WORKSPACE_NAME" is used
+            files=[
+                DeepsetCloudFile(
+                    name="example.txt",
+                    text="this is text",
+                    meta={"key": "value"},  # optional
+                )
+            ],
+            blocking=True,  # optional, by default True
+            timeout_s=300,  # optional, by default 300
+        )
+
+    # Run the async function
+    if __name__ == "__main__":
+        asyncio.run(my_async_context())
+    ```
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         return await file_service.upload_in_memory(
