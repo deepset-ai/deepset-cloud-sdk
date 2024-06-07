@@ -18,6 +18,7 @@ from httpx import codes
 
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk._utils.datetime import from_isoformat
 
 logger = structlog.get_logger(__name__)
@@ -204,15 +205,15 @@ class FilesAPI:
         file_id: UUID = UUID(response.json()["file_id"])
         return file_id
 
-    async def direct_upload_text(
+    async def direct_upload_in_memory(
         self,
         workspace_name: str,
-        text: str,
+        content: Union[bytes, str],
         file_name: str,
         meta: Optional[Dict[str, Any]] = None,
         write_mode: WriteMode = WriteMode.KEEP,
     ) -> UUID:
-        """Directly upload text to deepset Cloud.
+        """Directly upload files to deepset Cloud.
 
         :param workspace_name: Name of the workspace to use.
         :param text: File text to upload.
@@ -225,17 +226,20 @@ class FilesAPI:
         FAIL - fails to upload the file with the same name.
         :return: ID of the uploaded file.
         """
-        if not file_name.endswith(".txt"):
+        file_name_suffix = f".{file_name.split('.')[1]}"
+        if file_name_suffix not in SUPPORTED_TYPE_SUFFIXES:
             raise NotMatchingFileTypeException(
-                f"File name {file_name} is not a textfile. Please use '.txt' for text uploads."
+                f"File name {file_name} is not a supported file type. Please use one of {'` '.join(SUPPORTED_TYPE_SUFFIXES)} for text uploads."
             )
 
         response = await self._deepset_cloud_api.post(
             workspace_name,
             "files",
-            data={"text": text, "meta": json.dumps(meta)},
-            params={"write_mode": write_mode.value, "file_name": file_name},
+            files={"file": (file_name, content)},
+            data={"meta": json.dumps(meta)},
+            params={"write_mode": write_mode.value},
         )
+
         if response.status_code != codes.CREATED or response.json().get("file_id") is None:
             raise FailedToUploadFileException(
                 f"Failed to upload file with status code {response.status_code}. response was: {response.text}"
