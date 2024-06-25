@@ -299,7 +299,7 @@ class FilesService:
         """
         logger.info("Validating file paths and metadata.")
         for file_path in file_paths:
-            if file_path.suffix not in SUPPORTED_TYPE_SUFFIXES:
+            if file_path.suffix.lower() not in SUPPORTED_TYPE_SUFFIXES:
                 raise ValueError(
                     f"Invalid file extension: {file_path.suffix}. Refer to the list of supported file types in `SUPPORTED_TYPE_SUFFIXES`. "
                     "Metadata files should have the `.meta.json` extension."
@@ -383,7 +383,7 @@ class FilesService:
         file_paths = [
             path
             for path in all_files
-            if path.is_file() and (path.suffix in allowed_file_types and not str(path).endswith(META_SUFFIX))
+            if path.is_file() and (path.suffix.lower() in allowed_file_types and not str(path).endswith(META_SUFFIX))
         ]
         combined_paths = meta_file_path + file_paths
 

@@ -1017,6 +1017,18 @@ class TestValidateFilePaths:
             [Path("/home/user/file1.pptx"), Path("/home/user/file1.pptx.meta.json")],
             [Path("/home/user/file1.xlsx"), Path("/home/user/file1.xlsx.meta.json")],
             [Path("/home/user/file1.xml"), Path("/home/user/file1.xml.meta.json")],
+            [Path("/home/user/file1.Txt"), Path("/home/user/file2.txt")],
+            [Path("/home/user/file1.tXt"), Path("/home/user/file1.json")],
+            [Path("/home/user/file1.txT"), Path("/home/user/file1.txT.meta.json")],
+            [Path("/home/user/file1.PDF"), Path("/home/user/file1.PDF.meta.json")],
+            [Path("/home/user/file1.cSv"), Path("/home/user/file1.cSv.meta.json")],
+            [Path("/home/user/file1.Docx"), Path("/home/user/file1.Docx.meta.json")],
+            [Path("/home/user/file1.htML"), Path("/home/user/file1.htML.meta.json")],
+            [Path("/home/user/file1.Json"), Path("/home/user/file1.Json.meta.json")],
+            [Path("/home/user/file1.mD"), Path("/home/user/file1.mD.meta.json")],
+            [Path("/home/user/file1.ppTx"), Path("/home/user/file1.ppTx.meta.json")],
+            [Path("/home/user/file1.xlSx"), Path("/home/user/file1.xlSx.meta.json")],
+            [Path("/home/user/file1.XMl"), Path("/home/user/file1.XMl.meta.json")],
         ],
     )
     async def test_validate_file_paths(self, file_paths: List[Path], monkeypatch: MonkeyPatch) -> None:
