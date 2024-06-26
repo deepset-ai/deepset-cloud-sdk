@@ -379,7 +379,9 @@ class FilesService:
         allowed_file_types: List[str] = FilesService._get_allowed_file_types(desired_file_types)
         allowed_meta_types: Tuple = tuple(f"{file_type}.meta.json" for file_type in allowed_file_types)
 
-        meta_file_path = [path for path in all_files if path.is_file() and str(path).endswith(allowed_meta_types)]
+        meta_file_path = [
+            path for path in all_files if path.is_file() and str(path.name.lower()).endswith(allowed_meta_types)
+        ]
         file_paths = [
             path
             for path in all_files

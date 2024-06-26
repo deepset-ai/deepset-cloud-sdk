@@ -149,10 +149,6 @@ class S3:
         for key in aws_config.fields:
             file_data.add_field(key, aws_config.fields[key])
 
-        # lower case the suffix on upload
-        suffix = aws_safe_name.split(".")[-1]
-        aws_safe_name.replace(f".{suffix}", f".{suffix.lower()}")
-
         file_data.add_field("file", content, filename=aws_safe_name, content_type="text/plain")
         return file_data
 

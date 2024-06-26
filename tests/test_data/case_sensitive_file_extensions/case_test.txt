@@ -1,0 +1,1 @@
+Some text as a Textfile of file File00.txt with capital letters and some small letters.

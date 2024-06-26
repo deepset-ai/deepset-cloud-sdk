@@ -257,6 +257,43 @@ class TestUploadsFileService:
             assert result.failed_upload_count == 0
             assert len(result.failed) == 0
 
+    async def test_async_upload_for_files_with_same_name_but_case_different_extensions(
+        self, integration_config: CommonConfig, workspace_name: str, monkeypatch: MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", 1)
+        async with FilesService.factory(integration_config) as file_service:
+            timeout = 120 if "dev.cloud.dpst.dev" in integration_config.api_url else 300
+
+            result = await file_service.upload(
+                workspace_name=workspace_name,
+                paths=[
+                    Path("./tests/test_data/case_sensitive_file_extensions"),
+                ],
+                blocking=True,
+                write_mode=WriteMode.KEEP,
+                timeout_s=timeout,
+                desired_file_types=SUPPORTED_TYPE_SUFFIXES,
+            )
+            assert result.total_files == 2
+            assert result.successful_upload_count == 2
+            assert result.failed_upload_count == 0
+            assert len(result.failed) == 0
+
+            uploaded_files: List[File] = []
+            async for file_batch in file_service.list_all(
+                workspace_name=workspace_name,
+                batch_size=39,
+                timeout_s=200,
+            ):
+                uploaded_files += file_batch
+
+            # Make sure that the metadata for case_test.txt and file00.txt are mapped correctly
+            case_test_txt = next((file.meta for file in uploaded_files if file.name == "case_test.txt"), None)
+            assert case_test_txt == {}
+
+            case_test_TXT = next((file.meta for file in uploaded_files if file.name == "case_test.TXT"), None)
+            assert case_test_TXT == {"file_extension_test": "case_test.TXT", "source": "case_sensitive_file_extensions"}
+
 
 @pytest.mark.asyncio
 class TestListFilesService:
