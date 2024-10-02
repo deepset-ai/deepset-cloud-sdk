@@ -92,7 +92,6 @@ class FilesAPI:
         workspace_name: str,
         limit: int = 100,
         name: Optional[str] = None,
-        content: Optional[str] = None,
         odata_filter: Optional[str] = None,
         after_value: Optional[Any] = None,
         after_file_id: Optional[UUID] = None,
@@ -118,10 +117,6 @@ class FilesAPI:
         # substring match file name
         if name:
             params["name"] = name
-
-        # content search file
-        if content:
-            params["content"] = content
 
         # odata odata_filter for file meta
         if odata_filter:
