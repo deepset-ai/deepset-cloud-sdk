@@ -666,7 +666,6 @@ class TestDownloadFilesService:
             show_progress=False,
             odata_filter="category eq 'news'",
             name="asdf",
-            content="bsdf",
             batch_size=54,
         )
 
@@ -710,7 +709,6 @@ class TestDownloadFilesService:
             show_progress=True,  # This requires a previous cal that checks the total number of files
             odata_filter="category eq 'news'",
             name="asdf",
-            content="bsdf",
             batch_size=54,
         )
 
@@ -718,7 +716,6 @@ class TestDownloadFilesService:
             call(
                 workspace_name="test_workspace",
                 name="asdf",
-                content="bsdf",
                 odata_filter="category eq 'news'",
                 limit=54,
             ),

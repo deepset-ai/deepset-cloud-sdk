@@ -102,7 +102,6 @@ class FilesAPI:
         :param workspace_name: Name of the workspace to use.
         :param limit: Number of files to return per page.
         :param name: Name of the file to odata_filter by.
-        :param content: Content of the file to odata_filter by.
         :param odata_filter: Odata odata_filter to apply.
         :param after_value: Value to start after.
         :param after_file_id: File ID to start after.

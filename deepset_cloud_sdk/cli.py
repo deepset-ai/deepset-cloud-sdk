@@ -77,7 +77,6 @@ def download(  # pylint: disable=too-many-arguments
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[str] = None,
     name: Optional[str] = None,
-    content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     include_meta: bool = True,
     batch_size: int = 50,
@@ -90,7 +89,6 @@ def download(  # pylint: disable=too-many-arguments
     :param workspace_name: Name of the workspace to download the files from. Uses the workspace from the .ENV file by default.
     :param file_dir: Path to the folder where you want to download the files.
     :param name: Name of the file to odata_filter for.
-    :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
     :param include_meta: Downloads metadata of the files.
     :param batch_size: Batch size for file listing.
@@ -102,7 +100,6 @@ def download(  # pylint: disable=too-many-arguments
         workspace_name=workspace_name,
         file_dir=file_dir,
         name=name,
-        content=content,
         odata_filter=odata_filter,
         include_meta=include_meta,
         batch_size=batch_size,
@@ -159,7 +156,6 @@ def logout() -> None:
 def list_files(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
-    content: Optional[str] = None,
     name: Optional[str] = None,
     odata_filter: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
@@ -172,7 +168,6 @@ def list_files(
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
-    :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     :param timeout_s: The timeout for this request, in seconds.
@@ -192,9 +187,7 @@ def list_files(
             "created_at",
             "meta",
         ]  # Assuming the first row contains the headers
-        for files in sync_list_files(
-            api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s
-        ):
+        for files in sync_list_files(api_key, api_url, workspace_name, name, odata_filter, batch_size, timeout_s):
             table = tabulate(files, headers, tablefmt="grid")  # type: ignore
             typer.echo(table)
             if len(files) > 0:
