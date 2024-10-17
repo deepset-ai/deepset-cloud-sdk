@@ -509,7 +509,6 @@ class FilesService:
                 await self._files.list_paginated(
                     workspace_name,
                     name=name,
-                    content=content,
                     odata_filter=odata_filter,
                     limit=1,
                 )
@@ -527,7 +526,6 @@ class FilesService:
                 response = await self._files.list_paginated(
                     workspace_name=workspace_name,
                     name=name,
-                    content=content,
                     odata_filter=odata_filter,
                     limit=batch_size,
                     after_file_id=after_file_id,
@@ -670,7 +668,6 @@ class FilesService:
             response = await self._files.list_paginated(
                 workspace_name,
                 name=name,
-                content=content,
                 odata_filter=odata_filter,
                 limit=batch_size,
                 after_file_id=after_file_id,
