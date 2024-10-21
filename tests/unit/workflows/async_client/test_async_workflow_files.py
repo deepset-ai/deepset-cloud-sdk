@@ -126,7 +126,6 @@ class TestDownloadFiles:
             workspace_name="my_workspace",
             file_dir=None,
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             include_meta=True,
             batch_size=100,
