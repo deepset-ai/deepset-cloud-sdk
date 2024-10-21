@@ -672,7 +672,6 @@ class TestDownloadFilesService:
         mocked_list_paginated.assert_called_once_with(
             workspace_name="test_workspace",
             name="asdf",
-            content="bsdf",
             odata_filter="category eq 'news'",
             limit=54,
             after_file_id=None,
@@ -722,7 +721,6 @@ class TestDownloadFilesService:
             call(
                 workspace_name="test_workspace",
                 name="asdf",
-                content="bsdf",
                 odata_filter="category eq 'news'",
                 limit=54,
                 after_file_id=None,
