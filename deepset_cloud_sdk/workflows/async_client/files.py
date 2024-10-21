@@ -19,7 +19,8 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
-from deepset_cloud_sdk._service.files_service import DeepsetCloudFile, FilesService
+from deepset_cloud_sdk._service.files_service import FilesService
+from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 
 
 def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:
@@ -217,7 +218,7 @@ async def upload_texts(
 ) -> S3UploadSummary:
     """Upload raw texts to deepset Cloud.
 
-    :param files: List of DeepsetCloudFiles to upload.
+    :param files: List of DeepsetCloudFile objects to upload.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
@@ -230,9 +231,71 @@ async def upload_texts(
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
+
+    Example:
+    ```python
+    import asyncio
+    from deepset_cloud_sdk.workflows.async_client.files import upload_texts, DeepsetCloudFile
+
+    async def my_async_context() -> None:
+        await upload_texts(
+            api_key="<deepsetCloud_API_key>",
+            workspace_name="<default_workspace>",  # optional, by default the environment variable "DEFAULT_WORKSPACE_NAME" is used
+            files=[
+                DeepsetCloudFile(
+                    name="example.txt",
+                    text="this is text",
+                    meta={"key": "value"},  # optional
+                )
+            ],
+            blocking=True,  # optional, by default True
+            timeout_s=300,  # optional, by default 300
+        )
+
+    # Run the async function
+    if __name__ == "__main__":
+        asyncio.run(my_async_context())
+    ```
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
-        return await file_service.upload_texts(
+        return await file_service.upload_in_memory(
+            workspace_name=workspace_name,
+            files=files,
+            write_mode=write_mode,
+            blocking=blocking,
+            timeout_s=timeout_s,
+            show_progress=show_progress,
+        )
+
+
+async def upload_bytes(
+    files: List[DeepsetCloudFileBytes],
+    api_key: Optional[str] = None,
+    api_url: Optional[str] = None,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    write_mode: WriteMode = WriteMode.KEEP,
+    blocking: bool = True,
+    timeout_s: Optional[int] = None,
+    show_progress: bool = True,
+) -> S3UploadSummary:
+    """Upload files in byte format.
+
+    :param files: List of DeepsetCloudFileBytes objects to upload.
+    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_url: API URL to use for authentication.
+    :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
+    :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+    Possible options are:
+    KEEP - uploads the file with the same name and keeps both files in the workspace.
+    OVERWRITE - overwrites the file in the workspace with the file you're uploading.
+    FAIL - fails to upload the file if a file with the same name already exists in the workspace.
+    :param blocking: Whether to wait for the files to be listed and displayed in deepset Cloud.
+    This may take a couple of minutes.
+    :param timeout_s: Timeout in seconds for the `blocking` parameter.
+    :param show_progress: Shows the upload progress.
+    """
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+        return await file_service.upload_in_memory(
             workspace_name=workspace_name,
             files=files,
             write_mode=write_mode,
