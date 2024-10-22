@@ -481,7 +481,6 @@ class FilesService:
         workspace_name: str,
         file_dir: Optional[Union[Path, str]] = None,
         name: Optional[str] = None,
-        content: Optional[str] = None,
         odata_filter: Optional[str] = None,
         include_meta: bool = True,
         batch_size: int = 50,
@@ -493,7 +492,6 @@ class FilesService:
         :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
         :param file_dir: Path to the folder to download. If None, the current working directory is used.
         :param name: odata_filter by file name.
-        :param content: odata_filter by file content.
         :param odata_filter: odata_filter by file meta data.
         :param include_meta: If True, downloads the metadata files as well.
         :param batch_size: Batch size for the listing.
@@ -509,7 +507,6 @@ class FilesService:
                 await self._files.list_paginated(
                     workspace_name,
                     name=name,
-                    content=content,
                     odata_filter=odata_filter,
                     limit=1,
                 )
@@ -527,7 +524,6 @@ class FilesService:
                 response = await self._files.list_paginated(
                     workspace_name=workspace_name,
                     name=name,
-                    content=content,
                     odata_filter=odata_filter,
                     limit=batch_size,
                     after_file_id=after_file_id,
@@ -641,7 +637,6 @@ class FilesService:
         self,
         workspace_name: str,
         name: Optional[str] = None,
-        content: Optional[str] = None,
         odata_filter: Optional[str] = None,
         batch_size: int = 100,
         timeout_s: Optional[int] = None,
@@ -653,7 +648,6 @@ class FilesService:
 
         :param workspace_name: Name of the workspace whose files you want to list.
         :param name: odata_filter by file name.
-        :param content: odata_filter by file content.
         :param odata_filter: odata_filter by file meta data.
         :param batch_size: Number of files to return per request.
         :param timeout_s: Timeout in seconds for the listing.
@@ -670,7 +664,6 @@ class FilesService:
             response = await self._files.list_paginated(
                 workspace_name,
                 name=name,
-                content=content,
                 odata_filter=odata_filter,
                 limit=batch_size,
                 after_file_id=after_file_id,
