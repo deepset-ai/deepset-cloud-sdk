@@ -10,7 +10,8 @@ import httpx
 import pytest
 import structlog
 from dotenv import load_dotenv
-from faker import Faker
+
+# from faker import Faker
 from tenacity import retry, stop_after_delay, wait_fixed
 
 from deepset_cloud_sdk._api.config import CommonConfig
@@ -111,8 +112,7 @@ def _wait_for_file_to_be_available(
 @pytest.fixture(scope="session")
 def workspace_name(integration_config: CommonConfig) -> Generator[str, None, None]:
     """Create a workspace for the tests and delete it afterwards."""
-    fake = Faker()
-    workspace_name = f"sdktest_{'_'.join(fake.words(3))}"
+    workspace_name = f"sdktest_{uuid4()}"
 
     logger.info("Creating workspace", workspace_name=workspace_name)
 

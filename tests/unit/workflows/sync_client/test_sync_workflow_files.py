@@ -106,7 +106,6 @@ def test_list_files() -> None:
             list_files(
                 workspace_name="my_workspace",
                 name="test_file.txt",
-                content="test content",
                 odata_filter="test",
                 batch_size=100,
                 timeout_s=100,
@@ -131,7 +130,6 @@ def test_download_files() -> None:
         download(
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             batch_size=100,
             timeout_s=100,
@@ -141,7 +139,6 @@ def test_download_files() -> None:
             api_url=None,
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             file_dir=None,
             include_meta=True,

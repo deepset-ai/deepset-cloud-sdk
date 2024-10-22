@@ -109,7 +109,6 @@ class TestCLIMethods:
                 workspace_name="default",
                 file_dir=None,
                 name=None,
-                content=None,
                 odata_filter=None,
                 include_meta=True,
                 batch_size=50,
