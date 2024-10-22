@@ -118,7 +118,6 @@ class TestDownloadFiles:
         await download(
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             batch_size=100,
             timeout_s=100,
@@ -127,7 +126,6 @@ class TestDownloadFiles:
             workspace_name="my_workspace",
             file_dir=None,
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             include_meta=True,
             batch_size=100,
@@ -159,7 +157,6 @@ class TestListFiles:
         async for file_batch in list_files(
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             batch_size=100,
             timeout_s=100,
@@ -188,7 +185,6 @@ class TestListFiles:
         async for file_batch in list_files(
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             batch_size=100,
             timeout_s=100,

@@ -32,7 +32,6 @@ async def list_files(
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     name: Optional[str] = None,
-    content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     batch_size: int = 100,
     timeout_s: Optional[int] = None,
@@ -43,7 +42,6 @@ async def list_files(
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
-    :param content: Content of the file to odata_filter for.
     :param odata_filter: The odata_filter to apply to the file list.
     For example, `odata_filter="category eq 'news'"` lists files with metadata `{"meta": {"category": "news"}}`.
     :param timeout_s: The timeout in seconds for this API call.
@@ -55,7 +53,6 @@ async def list_files(
             async for file_batch in file_service.list_all(
                 workspace_name=workspace_name,
                 name=name,
-                content=content,
                 odata_filter=odata_filter,
                 batch_size=batch_size,
                 timeout_s=timeout_s,
@@ -167,7 +164,6 @@ async def download(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[Union[Path, str]] = None,
     name: Optional[str] = None,
-    content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     include_meta: bool = True,
     batch_size: int = 50,
@@ -183,7 +179,6 @@ async def download(
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param file_dir: Path to the folder to download.
     :param name: Name of the file to odata_filter by.
-    :param content: Content of a file to odata_filter by.
     :param odata_filter: odata_filter by file meta data.
     :param include_meta: Whether to include the file meta in the folder.
     :param batch_size: Batch size for the listing.
@@ -197,7 +192,6 @@ async def download(
             workspace_name=workspace_name,
             file_dir=file_dir,
             name=name,
-            content=content,
             odata_filter=odata_filter,
             include_meta=include_meta,
             batch_size=batch_size,
