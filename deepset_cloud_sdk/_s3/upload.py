@@ -14,6 +14,7 @@ from pyrate_limiter import Duration, Limiter, Rate
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from tqdm.asyncio import tqdm
 
+from deepset_cloud_sdk._api.config import ASYNC_CLIENT_TIMEOUT
 from deepset_cloud_sdk._api.upload_sessions import (
     AWSPrefixedRequestConfig,
     UploadSession,
@@ -26,7 +27,9 @@ logger = structlog.get_logger(__name__)
 class RetryableHttpError(Exception):
     """An error that indicates a function should be retried."""
 
-    def __init__(self, error: Union[aiohttp.ClientResponseError, aiohttp.ServerDisconnectedError]) -> None:
+    def __init__(
+        self, error: Union[aiohttp.ClientResponseError, aiohttp.ServerDisconnectedError, aiohttp.ClientConnectionError]
+    ) -> None:
         """Store the original exception."""
         self.error = error
 
@@ -79,7 +82,7 @@ class S3:
 
     @retry(
         retry=retry_if_exception_type(RetryableHttpError),
-        stop=stop_after_attempt(3),
+        stop=stop_after_attempt(5),
         wait=wait_fixed(0.5),
         reraise=True,
     )
@@ -141,6 +144,8 @@ class S3:
             ]:
                 raise RetryableHttpError(cre) from cre
             raise
+        except aiohttp.ClientConnectionError as cre:
+            raise RetryableHttpError(cre) from cre
 
     def _build_file_data(
         self, content: Any, aws_safe_name: str, aws_config: AWSPrefixedRequestConfig
@@ -276,7 +281,9 @@ class S3:
         :param show_progress: Whether to show a progress bar on the upload.
         :return: S3UploadSummary object.
         """
-        async with aiohttp.ClientSession(connector=self.connector) as client_session:
+        async with aiohttp.ClientSession(
+            connector=self.connector, timeout=aiohttp.ClientTimeout(total=ASYNC_CLIENT_TIMEOUT)
+        ) as client_session:
             tasks = []
 
             for file in files:

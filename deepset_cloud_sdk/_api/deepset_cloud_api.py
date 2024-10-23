@@ -169,6 +169,12 @@ class DeepsetCloudAPI:
         )
         return response
 
+    @retry(
+        retry=retry_if_exception_type(httpx.ConnectError),
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        reraise=True,
+    )
     async def put(
         self,
         workspace_name: str,
