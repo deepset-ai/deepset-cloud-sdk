@@ -228,3 +228,16 @@ class TestUploadsS3:
 
                 with pytest.raises(aiohttp.ClientResponseError):
                     await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
+
+        @patch("aiohttp.ClientSession")
+        async def test_upload_file_retries_for_client_connection_exception(
+            self,
+            mock_session: Mock,
+            upload_session_response: UploadSession,
+        ) -> None:
+            exception = aiohttp.ClientConnectionError()
+            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
+                s3 = S3()
+
+                with pytest.raises(RetryableHttpError):
+                    await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
