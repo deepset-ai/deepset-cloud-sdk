@@ -311,11 +311,11 @@ def publish_component(
         # Verify hatch is installed
         try:
             subprocess.run(["hatch", "--version"], check=True, capture_output=True)
-        except subprocess.CalledProcessError:
-            typer.echo("Error: Hatch is not installed. Please install it using 'pip install hatch'", err=True)
-            raise typer.Exit(1)
-        except FileNotFoundError:
-            typer.echo("Error: Hatch is not installed. Please install it using 'pip install hatch'", err=True)
+        except Exception:
+            typer.echo(
+                "Error: Hatch is not installed. Please install it using 'pip install hatch'",
+                err=True,
+            )
             raise typer.Exit(1)
 
         original_dir = os.getcwd()
@@ -334,8 +334,10 @@ def publish_component(
             text=True,
             env=env,
         )
-
-        version = typer.prompt("Add component version:", default=current_version.stdout.strip())
+        version = typer.prompt(
+            "Add component version:",
+            default=current_version.stdout.strip(),
+        )
         subprocess.run(
             ["hatch", "version", version],
             check=True,
