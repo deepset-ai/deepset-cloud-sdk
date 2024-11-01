@@ -2,6 +2,7 @@
 
 import json
 import os
+import subprocess
 from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
@@ -288,6 +289,81 @@ def get_upload_session(
             indent=4,
         )
     )
+
+
+@cli_app.command()
+def publish_component(
+    path: Path,
+    api_key: str | None = None,
+    api_url: str | None = None,
+) -> None:
+    """Publish a component package to deepset Cloud.
+
+    :param path: Path to the component package directory
+    :param api_key: deepset Cloud API key to use for authentication
+    :param api_url: API URL to use for authentication
+    :param workspace_name: Name of the workspace to publish to. Uses the workspace from the .ENV file by default
+
+    Example:
+    `deepset-cloud publish-component ./my-component`
+    """
+    try:
+        # Verify hatch is installed
+        try:
+            subprocess.run(["hatch", "--version"], check=True, capture_output=True)
+        except subprocess.CalledProcessError:
+            typer.echo("Error: Hatch is not installed. Please install it using 'pip install hatch'", err=True)
+            raise typer.Exit(1)
+        except FileNotFoundError:
+            typer.echo("Error: Hatch is not installed. Please install it using 'pip install hatch'", err=True)
+            raise typer.Exit(1)
+
+        original_dir = os.getcwd()
+        os.chdir(path)
+
+        env = os.environ.copy()
+        if api_key:
+            env["API_KEY"] = api_key
+        if api_url:
+            env["API_URL"] = api_url
+
+        current_version = subprocess.run(
+            ["hatch", "version"],
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
+        version = typer.prompt("Add component version:", default=current_version.stdout.strip())
+        subprocess.run(
+            ["hatch", "version", version],
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
+        result = subprocess.run(
+            ["hatch", "run", "dc:build-and-push"],
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
+        typer.echo("Component published successfully!")
+        typer.echo(result.stdout)
+
+    except subprocess.CalledProcessError as e:
+        typer.echo(f"Error publishing component: {e.stderr}", err=True)
+        raise typer.Exit(1)
+    except Exception as e:
+        typer.echo(f"Error: {str(e)}", err=True)
+        raise typer.Exit(1)
+    finally:
+        # Restore original directory
+        os.chdir(original_dir)
 
 
 def version_callback(value: bool) -> None:
