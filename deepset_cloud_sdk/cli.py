@@ -38,6 +38,7 @@ def upload(  # pylint: disable=too-many-arguments
     show_progress: bool = True,
     recursive: bool = False,
     use_type: Optional[List[str]] = None,
+    enable_parallel_processing: bool = False,
 ) -> None:
     """Upload a folder to deepset Cloud.
 
@@ -56,6 +57,8 @@ def upload(  # pylint: disable=too-many-arguments
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
     :param use_type: A comma-separated string of allowed file types to upload, defaults to ".txt, .pdf".
+    :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
     """
     use_type = use_type or [".txt", ".pdf"]
     sync_upload(
@@ -69,6 +72,7 @@ def upload(  # pylint: disable=too-many-arguments
         show_progress=show_progress,
         recursive=recursive,
         desired_file_types=use_type,
+        enable_parallel_processing=enable_parallel_processing,
     )
 
 

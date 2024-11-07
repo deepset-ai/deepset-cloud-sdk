@@ -27,9 +27,7 @@ from deepset_cloud_sdk.workflows.sync_client.files import (
 
 @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
 def test_upload_folder(async_upload_mock: AsyncMock) -> None:
-    upload(
-        paths=[Path("./tests/data/upload_folder")],
-    )
+    upload(paths=[Path("./tests/data/upload_folder")], enable_parallel_processing=True)
     async_upload_mock.assert_called_once_with(
         paths=[Path("./tests/data/upload_folder")],
         api_key=None,
@@ -41,6 +39,7 @@ def test_upload_folder(async_upload_mock: AsyncMock) -> None:
         show_progress=True,
         recursive=False,
         desired_file_types=[".txt", ".pdf"],
+        enable_parallel_processing=True,
     )
 
 
@@ -53,7 +52,7 @@ def test_upload_texts(async_upload_texts_mock: AsyncMock) -> None:
             meta={"test": "test"},
         )
     ]
-    upload_texts(files=files)
+    upload_texts(files=files, enable_parallel_processing=True)
     async_upload_texts_mock.assert_called_once_with(
         files=files,
         api_key=None,
@@ -63,6 +62,7 @@ def test_upload_texts(async_upload_texts_mock: AsyncMock) -> None:
         blocking=True,
         timeout_s=None,
         show_progress=True,
+        enable_parallel_processing=True,
     )
 
 
@@ -85,6 +85,7 @@ def test_upload_texts_with_timeout(async_upload_texts_mock: AsyncMock) -> None:
         blocking=True,
         timeout_s=123,
         show_progress=True,
+        enable_parallel_processing=False,
     )
 
 

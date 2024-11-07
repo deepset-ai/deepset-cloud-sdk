@@ -50,7 +50,14 @@ class TestCLIMethods:
     @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
     def test_upload_only_desired_file_types_defaults_to_text(self, async_upload_mock: AsyncMock) -> None:
         result = runner.invoke(
-            cli_app, ["upload", "./test/data/upload_folder/example.txt", "--workspace-name", "default"]
+            cli_app,
+            [
+                "upload",
+                "./test/data/upload_folder/example.txt",
+                "--workspace-name",
+                "default",
+                "--enable-parallel-processing",
+            ],
         )
         async_upload_mock.assert_called_once_with(
             paths=[Path("test/data/upload_folder/example.txt")],
@@ -63,6 +70,7 @@ class TestCLIMethods:
             show_progress=True,
             recursive=False,
             desired_file_types=[".txt", ".pdf"],
+            enable_parallel_processing=True,
         )
         assert result.exit_code == 0
 
@@ -96,6 +104,7 @@ class TestCLIMethods:
             show_progress=True,
             recursive=False,
             desired_file_types=[".csv", ".pdf", ".json", ".xml"],
+            enable_parallel_processing=False,
         )
         assert result.exit_code == 0
 
