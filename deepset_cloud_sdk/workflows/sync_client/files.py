@@ -49,6 +49,7 @@ def upload(  # pylint: disable=too-many-arguments
     show_progress: bool = True,
     recursive: bool = False,
     desired_file_types: Optional[List[str]] = None,
+    enable_parallel_processing: bool = False,
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
@@ -67,6 +68,8 @@ def upload(  # pylint: disable=too-many-arguments
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
     :param desired_file_types: A list of allowed file types to upload, defaults to ".txt, .pdf".
+    :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
     """
     desired_file_types = desired_file_types or [".txt", ".pdf"]
     return asyncio.run(
@@ -81,6 +84,7 @@ def upload(  # pylint: disable=too-many-arguments
             show_progress=show_progress,
             recursive=recursive,
             desired_file_types=desired_file_types,
+            enable_parallel_processing=enable_parallel_processing,
         )
     )
 
@@ -137,6 +141,7 @@ def upload_texts(
     blocking: bool = True,
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
+    enable_parallel_processing: bool = False,
 ) -> S3UploadSummary:
     """Upload texts to deepset Cloud.
 
@@ -152,6 +157,8 @@ def upload_texts(
     :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
+    :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
 
     Example:
     ```python
@@ -182,6 +189,7 @@ def upload_texts(
             blocking=blocking,
             timeout_s=timeout_s,
             show_progress=show_progress,
+            enable_parallel_processing=enable_parallel_processing,
         )
     )
 
@@ -195,6 +203,7 @@ def upload_bytes(
     blocking: bool = True,
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
+    enable_parallel_processing: bool = False,
 ) -> S3UploadSummary:
     """Upload any supported file types to deepset Cloud. These include .csv, .docx, .html, .json, .md, .txt, .pdf, .pptx, .xlsx and .xml.
 
@@ -210,6 +219,8 @@ def upload_bytes(
     :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
+    :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
     """
     return asyncio.run(
         async_upload_bytes(
@@ -221,6 +232,7 @@ def upload_bytes(
             blocking=blocking,
             timeout_s=timeout_s,
             show_progress=show_progress,
+            enable_parallel_processing=enable_parallel_processing,
         )
     )
 

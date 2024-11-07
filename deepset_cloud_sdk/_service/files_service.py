@@ -129,13 +129,18 @@ class FilesService:
         self,
         workspace_name: str,
         write_mode: WriteMode = WriteMode.KEEP,
+        enable_parallel_processing: bool = False,
     ) -> AsyncGenerator[UploadSession, None]:
         """Create a new upload session.
 
         :param workspace_name: Name of the workspace to create the upload session for.
+        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+            Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
         :return: Upload session ID.
         """
-        upload_session = await self._upload_sessions.create(workspace_name=workspace_name, write_mode=write_mode)
+        upload_session = await self._upload_sessions.create(
+            workspace_name=workspace_name, write_mode=write_mode, enable_parallel_processing=enable_parallel_processing
+        )
         try:
             yield upload_session
         finally:
@@ -188,6 +193,7 @@ class FilesService:
         blocking: bool = True,
         show_progress: bool = True,
         timeout_s: Optional[int] = None,
+        enable_parallel_processing: bool = False,
     ) -> S3UploadSummary:
         """Upload a list of files to a workspace.
 
@@ -206,6 +212,9 @@ class FilesService:
         :param blocking: If True, waits until the ingestion is finished and the files are visible in deepset Cloud.
         :param timeout_s: Timeout in seconds for the `blocking` parameter.
         :param show_progress If True, shows a progress bar for S3 uploads.
+        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+            Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
+
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         if len(file_paths) <= DIRECT_UPLOAD_THRESHOLD:
@@ -242,7 +251,9 @@ class FilesService:
             )
 
         # create session to upload files to
-        async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
+        async with self._create_upload_session(
+            workspace_name=workspace_name, write_mode=write_mode, enable_parallel_processing=enable_parallel_processing
+        ) as upload_session:
             # upload file paths to session
 
             upload_summary = await self._s3.upload_files_from_paths(
@@ -413,6 +424,7 @@ class FilesService:
         show_progress: bool = True,
         recursive: bool = False,
         desired_file_types: List[str] = [".txt", ".pdf"],
+        enable_parallel_processing: bool = False,
     ) -> S3UploadSummary:
         """Upload a list of file or folder paths to a workspace.
 
@@ -433,6 +445,8 @@ class FilesService:
         :param show_progress If True, shows a progress bar for S3 uploads.
         :param recursive: If True, recursively uploads all files in the folder.
         :param desired_file_types: A list of allowed file types to upload, defaults to ['.txt', '.pdf']
+        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+            Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         logger.info("Getting valid files from file path. This may take a few minutes.", recursive=recursive)
@@ -453,6 +467,7 @@ class FilesService:
             blocking=blocking,
             timeout_s=timeout_s,
             show_progress=show_progress,
+            enable_parallel_processing=enable_parallel_processing,
         )
 
     async def _download_and_log_errors(
@@ -562,6 +577,7 @@ class FilesService:
         blocking: bool = True,
         timeout_s: Optional[int] = None,
         show_progress: bool = True,
+        enable_parallel_processing: bool = False,
     ) -> S3UploadSummary:  # noqa
         """
         Upload a list of raw texts to a workspace using upload sessions. This method accepts a list of DeepsetCloudFiles
@@ -579,6 +595,8 @@ class FilesService:
         KEEP - uploads the file with the same name and keeps both files in the workspace.
         OVERWRITE - overwrites the file that is in the workspace.
         FAIL - fails to upload the file with the same name.
+        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+            Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
         :param blocking: If True, waits until the ingestion to S3 is finished and the files are displayed in deepset Cloud.
         :param timeout_s: Timeout in seconds for the `blocking` parameter.
         :param show_progress If True, shows a progress bar for S3 uploads.
@@ -611,7 +629,9 @@ class FilesService:
             )
 
         # create session to upload files to
-        async with self._create_upload_session(workspace_name=workspace_name, write_mode=write_mode) as upload_session:
+        async with self._create_upload_session(
+            workspace_name=workspace_name, write_mode=write_mode, enable_parallel_processing=enable_parallel_processing
+        ) as upload_session:
             upload_summary = await self._s3.upload_in_memory(
                 upload_session=upload_session, files=files, show_progress=show_progress
             )

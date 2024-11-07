@@ -69,6 +69,7 @@ class TestUploadFiles:
             show_progress=True,
             recursive=False,
             desired_file_types=[".txt", ".pdf"],
+            enable_parallel_processing=False,
         )
 
     async def test_upload_with_timeout(self, monkeypatch: MonkeyPatch) -> None:
@@ -86,6 +87,7 @@ class TestUploadFiles:
             show_progress=True,
             recursive=False,
             desired_file_types=[".txt", ".pdf"],
+            enable_parallel_processing=False,
         )
 
     async def test_upload_texts(self, monkeypatch: MonkeyPatch) -> None:
@@ -107,6 +109,7 @@ class TestUploadFiles:
             blocking=True,
             timeout_s=None,
             show_progress=True,
+            enable_parallel_processing=False,
         )
 
 

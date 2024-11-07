@@ -74,7 +74,7 @@ class TestFilePathsUpload:
         assert result == upload_summary
 
         mocked_upload_sessions_api.create.assert_called_once_with(
-            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
+            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE, enable_parallel_processing=False
         )
 
         mocked_s3.upload_files_from_paths.assert_called_once_with(
@@ -374,7 +374,7 @@ class TestUploadTexts:
         assert result == upload_summary
 
         mocked_upload_sessions_api.create.assert_called_once_with(
-            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
+            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE, enable_parallel_processing=False
         )
 
         mocked_s3.upload_in_memory.assert_called_once_with(
