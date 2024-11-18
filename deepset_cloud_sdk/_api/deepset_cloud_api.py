@@ -116,6 +116,7 @@ class DeepsetCloudAPI:
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
         :param params: Query parameters to pass.
+        :param json: JSON data to pass.
         :param data: Data to pass.
         :param files: Files to pass.
         :param timeout_s: Timeout in seconds.

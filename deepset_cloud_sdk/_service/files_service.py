@@ -423,7 +423,7 @@ class FilesService:
         timeout_s: Optional[int] = None,
         show_progress: bool = True,
         recursive: bool = False,
-        desired_file_types: List[str] = [".txt", ".pdf"],
+        desired_file_types: Optional[List[str]] = None,
         enable_parallel_processing: bool = False,
     ) -> S3UploadSummary:
         """Upload a list of file or folder paths to a workspace.
@@ -444,11 +444,13 @@ class FilesService:
         :param timeout_s: Timeout in seconds for the `blocking` parameter.
         :param show_progress If True, shows a progress bar for S3 uploads.
         :param recursive: If True, recursively uploads all files in the folder.
-        :param desired_file_types: A list of allowed file types to upload, defaults to ['.txt', '.pdf']
+        :param desired_file_types: A list of allowed file types to upload, defaults to
+        `[".txt", ".pdf", ".docx", ".pptx", ".xlsx", ".xml", ".csv", ".html", ".md", ".json"]`
         :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
             Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
+        desired_file_types = desired_file_types or SUPPORTED_TYPE_SUFFIXES
         logger.info("Getting valid files from file path. This may take a few minutes.", recursive=recursive)
 
         if show_progress:

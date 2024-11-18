@@ -34,6 +34,7 @@ from deepset_cloud_sdk.workflows.async_client.files import (
     upload_texts as async_upload_texts,
 )
 from deepset_cloud_sdk.workflows.sync_client.utils import iter_over_async
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 
 logger = structlog.get_logger(__name__)
 
@@ -67,11 +68,12 @@ def upload(  # pylint: disable=too-many-arguments
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
-    :param desired_file_types: A list of allowed file types to upload, defaults to ".txt, .pdf".
+    :param desired_file_types: A list of allowed file types to upload, defaults to
+    `[".txt", ".pdf", ".docx", ".pptx", ".xlsx", ".xml", ".csv", ".html", ".md", ".json"]`
     :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
         Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
     """
-    desired_file_types = desired_file_types or [".txt", ".pdf"]
+    desired_file_types = desired_file_types or SUPPORTED_TYPE_SUFFIXES
     return asyncio.run(
         async_upload(
             paths=paths,
