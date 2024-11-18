@@ -15,6 +15,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 from deepset_cloud_sdk.workflows.async_client.files import download as async_download
 from deepset_cloud_sdk.workflows.async_client.files import (
@@ -67,11 +68,12 @@ def upload(  # pylint: disable=too-many-arguments
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
-    :param desired_file_types: A list of allowed file types to upload, defaults to ".txt, .pdf".
+    :param desired_file_types: A list of allowed file types to upload, defaults to
+    `[".txt", ".pdf", ".docx", ".pptx", ".xlsx", ".xml", ".csv", ".html", ".md", ".json"]`
     :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
         Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
     """
-    desired_file_types = desired_file_types or [".txt", ".pdf"]
+    desired_file_types = desired_file_types or SUPPORTED_TYPE_SUFFIXES
     return asyncio.run(
         async_upload(
             paths=paths,
