@@ -15,6 +15,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 from deepset_cloud_sdk.workflows.async_client.files import download as async_download
 from deepset_cloud_sdk.workflows.async_client.files import (
@@ -34,7 +35,6 @@ from deepset_cloud_sdk.workflows.async_client.files import (
     upload_texts as async_upload_texts,
 )
 from deepset_cloud_sdk.workflows.sync_client.utils import iter_over_async
-from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 
 logger = structlog.get_logger(__name__)
 
