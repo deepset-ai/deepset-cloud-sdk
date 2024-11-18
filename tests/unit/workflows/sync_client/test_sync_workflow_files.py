@@ -14,6 +14,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionWriteModeEnum,
     WriteMode,
 )
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, UserInfo
 from deepset_cloud_sdk.workflows.sync_client.files import (
     download,
@@ -38,7 +39,7 @@ def test_upload_folder(async_upload_mock: AsyncMock) -> None:
         timeout_s=None,
         show_progress=True,
         recursive=False,
-        desired_file_types=[".txt", ".pdf"],
+        desired_file_types=SUPPORTED_TYPE_SUFFIXES,
         enable_parallel_processing=True,
     )
 

@@ -19,6 +19,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._service.files_service import FilesService
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, UserInfo
 from deepset_cloud_sdk.workflows.async_client.files import (
     download,
@@ -86,7 +87,7 @@ class TestUploadFiles:
             timeout_s=123,
             show_progress=True,
             recursive=False,
-            desired_file_types=[".txt", ".pdf"],
+            desired_file_types=SUPPORTED_TYPE_SUFFIXES,
             enable_parallel_processing=False,
         )
 
