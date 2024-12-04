@@ -1,5 +1,5 @@
 default_language_version:
-  python: python3.12
+  python: python3.10
 fail_fast: true
 
 # We can't use local hooks since some developers use dev containers and commit outside an environment which has the
