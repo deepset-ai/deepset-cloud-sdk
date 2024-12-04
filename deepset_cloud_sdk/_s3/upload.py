@@ -147,7 +147,7 @@ class S3:
             try:
                 error_message = await response.json()
                 cre.message = cre.message + f" - {error_message}"
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 pass
             raise
         except aiohttp.ClientConnectionError as cre:
