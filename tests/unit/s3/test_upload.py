@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import aiohttp
 import pytest
@@ -217,16 +217,36 @@ class TestUploadsS3:
                 with pytest.raises(RetryableHttpError):
                     await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
 
-        @pytest.mark.parametrize("status", [422, 501])
+        @pytest.mark.parametrize("status", [400, 422, 501])
         @patch("aiohttp.ClientSession")
         async def test_upload_file_does_not_retry_for_exception(
             self, mock_session: Mock, upload_session_response: UploadSession, status: int
         ) -> None:
-            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=status)
-            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
+            exception = aiohttp.ClientResponseError(
+                request_info=Mock(), history=Mock(), status=status, message="reason"
+            )
+            with patch.object(aiohttp.ClientSession, "post") as post_mock:
+                post_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock(side_effect=exception)
+                post_mock.return_value.__aenter__.return_value.json.return_value = {"error": "error"}
                 s3 = S3()
 
-                with pytest.raises(aiohttp.ClientResponseError):
+                with pytest.raises(aiohttp.ClientResponseError, match="reason - {'error': 'error'}"):
+                    await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
+
+        @pytest.mark.parametrize("status", [400, 422, 501])
+        @patch("aiohttp.ClientSession")
+        async def test_upload_file_does_not_retry_for_exception_failing_json(
+            self, mock_session: Mock, upload_session_response: UploadSession, status: int
+        ) -> None:
+            exception = aiohttp.ClientResponseError(
+                request_info=Mock(), history=Mock(), status=status, message="reason"
+            )
+            with patch.object(aiohttp.ClientSession, "post") as post_mock:
+                post_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock(side_effect=exception)
+                post_mock.return_value.__aenter__.return_value.json.side_effect = Exception("error")
+                s3 = S3()
+
+                with pytest.raises(aiohttp.ClientResponseError, match="reason"):
                     await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
 
         @patch("aiohttp.ClientSession")
