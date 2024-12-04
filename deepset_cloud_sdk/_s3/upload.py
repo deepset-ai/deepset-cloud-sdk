@@ -143,6 +143,12 @@ class S3:
                 HTTPStatus.REQUEST_TIMEOUT,
             ]:
                 raise RetryableHttpError(cre) from cre
+
+            try:
+                error_message = await response.json()
+                cre.message = cre.message + f" - {error_message}"
+            except Exception:
+                pass
             raise
         except aiohttp.ClientConnectionError as cre:
             raise RetryableHttpError(cre) from cre
