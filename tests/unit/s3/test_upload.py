@@ -227,10 +227,10 @@ class TestUploadsS3:
             )
             with patch.object(aiohttp.ClientSession, "post") as post_mock:
                 post_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock(side_effect=exception)
-                post_mock.return_value.__aenter__.return_value.json.return_value = {"error": "error"}
+                post_mock.return_value.__aenter__.return_value.text.return_value = "<xml>error</xml>"
                 s3 = S3()
 
-                with pytest.raises(aiohttp.ClientResponseError, match="reason - {'error': 'error'}"):
+                with pytest.raises(aiohttp.ClientResponseError, match="reason - <xml>error</xml>"):
                     await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
 
         @pytest.mark.parametrize("status", [400, 422, 501])
@@ -243,7 +243,7 @@ class TestUploadsS3:
             )
             with patch.object(aiohttp.ClientSession, "post") as post_mock:
                 post_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock(side_effect=exception)
-                post_mock.return_value.__aenter__.return_value.json.side_effect = Exception("error")
+                post_mock.return_value.__aenter__.return_value.text.side_effect = Exception("error")
                 s3 = S3()
 
                 with pytest.raises(aiohttp.ClientResponseError, match="reason"):
