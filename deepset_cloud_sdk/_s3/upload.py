@@ -1,4 +1,5 @@
 """Module for upload-related S3 operations."""
+
 import asyncio
 import os
 import re
@@ -210,7 +211,7 @@ class S3:
             await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
         except Exception as exception:  # pylint: disable=bare-except, disable=broad-exception-caught
-            logger.warn(
+            logger.warning(
                 "Could not upload a file to deepset Cloud",
                 file_name=file_name,
                 session_id=upload_session.session_id,
