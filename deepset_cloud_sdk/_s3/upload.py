@@ -146,7 +146,7 @@ class S3:
                 raise RetryableHttpError(cre) from cre
 
             try:
-                error_message = await response.json()
+                error_message = await response.text()
                 cre.message = cre.message + f" - {error_message}"
             except Exception:  # pylint: disable=broad-except
                 pass
