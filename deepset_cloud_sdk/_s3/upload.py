@@ -188,7 +188,7 @@ class S3:
                         "Could not upload a file to deepset Cloud",
                         file_name=file_name,
                         session_id=upload_session.session_id,
-                        exception=str(exception),
+                        reason=str(exception),
                     )
                     return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
@@ -215,7 +215,7 @@ class S3:
                 "Could not upload a file to deepset Cloud",
                 file_name=file_name,
                 session_id=upload_session.session_id,
-                exception=str(exception),
+                reason=str(exception),
             )
             return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
