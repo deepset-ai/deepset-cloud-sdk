@@ -65,10 +65,13 @@ class DeepsetCloudAPI:
 
         :param config: CommonConfig object.
         """
-        safe_mode_limits = httpx.Limits(max_keepalive_connections=1, max_connections=1)
-
-        async with httpx.AsyncClient(limits=safe_mode_limits if config.safe_mode else ...) as client:
-            yield cls(config, client)
+        if config.safe_mode:
+            safe_mode_limits = httpx.Limits(max_keepalive_connections=1, max_connections=1)
+            async with httpx.AsyncClient(limits=safe_mode_limits) as client:
+                yield cls(config, client)
+        else:
+            async with httpx.AsyncClient() as client:
+                yield cls(config, client)
 
     @retry(
         retry=retry_if_exception_type(httpx.RequestError),
