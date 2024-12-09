@@ -71,7 +71,7 @@ def make_safe_file_name(file_name: str) -> str:
 class S3:
     """Client for S3 operations related to deepset Cloud uploads."""
 
-    def __init__(self, concurrency: int = 120, rate_limit: Rate = Rate(3000, Duration.SECOND)):
+    def __init__(self, concurrency: int = 120, rate_limit: Rate = Rate(3000, Duration.SECOND), max_attempts: int = 5):
         """
         Initialize the client.
 
@@ -80,13 +80,8 @@ class S3:
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
         self.limiter = Limiter(rate_limit, raise_when_fail=False, max_delay=Duration.SECOND * 1)
+        self.max_attempts = max_attempts
 
-    @retry(
-        retry=retry_if_exception_type(RetryableHttpError),
-        stop=stop_after_attempt(5),
-        wait=wait_fixed(0.5),
-        reraise=True,
-    )
     async def _upload_file_with_retries(
         self,
         file_name: str,
@@ -102,10 +97,29 @@ class S3:
         :param client_session: The aiohttp ClientSession to use for this request.
         :return: ClientResponse object.
         """
+
+        @retry(
+            retry=retry_if_exception_type(RetryableHttpError),
+            stop=stop_after_attempt(self.max_attempts),
+            wait=wait_fixed(0.5),
+            reraise=True,
+        )
+        async def retry_wrapper() -> aiohttp.ClientResponse:
+            return await self._upload_file(file_name, upload_session, content, client_session)
+
+        return await retry_wrapper()
+
+    async def _upload_file(
+        self,
+        file_name: str,
+        upload_session: UploadSession,
+        content: Any,
+        client_session: aiohttp.ClientSession,
+    ) -> aiohttp.ClientResponse:
         aws_safe_name = make_safe_file_name(file_name)
         aws_config = upload_session.aws_prefixed_request_config
-
         file_data = self._build_file_data(content, aws_safe_name, aws_config)
+
         try:
             self.limiter.try_acquire("")  # rate limit requests
             async with client_session.post(
