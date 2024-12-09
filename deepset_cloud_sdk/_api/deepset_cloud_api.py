@@ -67,7 +67,8 @@ class DeepsetCloudAPI:
         """
         if config.safe_mode:
             safe_mode_limits = httpx.Limits(max_keepalive_connections=1, max_connections=1)
-            async with httpx.AsyncClient(limits=safe_mode_limits) as client:
+            safe_mode_timeout = httpx.Timeout(None)
+            async with httpx.AsyncClient(limits=safe_mode_limits, timeout=safe_mode_timeout) as client:
                 yield cls(config, client)
         else:
             async with httpx.AsyncClient() as client:
