@@ -14,6 +14,10 @@ from deepset_cloud_sdk._api.config import CommonConfig
 logger = structlog.get_logger(__name__)
 
 
+DEFAULT_MAX_ATTEMPTS = 3
+SAFE_MODE_MAX_ATTEMPTS = 10
+
+
 class WorkspaceNotDefinedError(Exception):
     """The workspace_name is not defined. Set an environment variable or pass the `workspace_name` argument."""
 
@@ -40,6 +44,7 @@ class DeepsetCloudAPI:
         }
         self.base_url = lambda workspace_name: self._get_base_url(config.api_url)(workspace_name)
         self.client = client
+        self.max_attempts = SAFE_MODE_MAX_ATTEMPTS if config.safe_mode else DEFAULT_MAX_ATTEMPTS
 
     @staticmethod
     def _get_base_url(api_url: str) -> Callable:
@@ -74,12 +79,6 @@ class DeepsetCloudAPI:
             async with httpx.AsyncClient() as client:
                 yield cls(config, client)
 
-    @retry(
-        retry=retry_if_exception_type(httpx.RequestError),
-        stop=stop_after_attempt(3),
-        wait=wait_fixed(1),
-        reraise=True,
-    )
     async def get(
         self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
     ) -> Response:
@@ -91,6 +90,21 @@ class DeepsetCloudAPI:
         :param timeout_s: Timeout in seconds.
         :return: Response object.
         """
+
+        @retry(
+            retry=retry_if_exception_type(httpx.RequestError),
+            stop=stop_after_attempt(self.max_attempts),
+            wait=wait_fixed(1),
+            reraise=True,
+        )
+        async def retry_wrapper() -> Response:
+            return await self._get(workspace_name, endpoint, params, timeout_s)
+
+        return await retry_wrapper()
+
+    async def _get(
+        self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
+    ) -> Response:
         response = await self.client.get(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
@@ -176,12 +190,6 @@ class DeepsetCloudAPI:
         )
         return response
 
-    @retry(
-        retry=retry_if_exception_type(httpx.ConnectError),
-        stop=stop_after_attempt(3),
-        wait=wait_fixed(1),
-        reraise=True,
-    )
     async def put(
         self,
         workspace_name: str,
@@ -199,6 +207,26 @@ class DeepsetCloudAPI:
         :param timeout_s: Timeout in seconds.
         :return: Response object.
         """
+
+        @retry(
+            retry=retry_if_exception_type(httpx.ConnectError),
+            stop=stop_after_attempt(self.max_attempts),
+            wait=wait_fixed(1),
+            reraise=True,
+        )
+        async def retry_wrapper() -> Response:
+            return await self._put(workspace_name, endpoint, params, data, timeout_s)
+
+        return await retry_wrapper()
+
+    async def _put(
+        self,
+        workspace_name: str,
+        endpoint: str,
+        params: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+        timeout_s: int = 20,
+    ) -> Response:
         response = await self.client.put(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
