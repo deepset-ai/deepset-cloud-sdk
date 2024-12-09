@@ -52,6 +52,18 @@ def integration_config() -> CommonConfig:
     return config
 
 
+@pytest.fixture(scope="session")
+def integration_config_safe_mode() -> CommonConfig:
+    config = CommonConfig(
+        api_key=os.getenv("API_KEY", ""),
+        api_url=os.getenv("API_URL", ""),
+        safe_mode=True,
+    )
+    assert config.api_key != "", "API_KEY environment variable must be set"
+    assert config.api_url != "", "API_URL environment variable must be set"
+    return config
+
+
 @pytest.fixture
 def unit_config() -> CommonConfig:
     return CommonConfig(api_key="test_api_key", api_url="https://fake.dc.api/api/v1")
