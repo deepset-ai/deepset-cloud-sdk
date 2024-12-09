@@ -48,6 +48,7 @@ logger = structlog.get_logger(__name__)
 
 META_SUFFIX = ".meta.json"
 DIRECT_UPLOAD_THRESHOLD = 20
+DEFAULT_S3_CONCURRENCY = 30
 
 
 class FilesService:
@@ -75,8 +76,9 @@ class FilesService:
         async with DeepsetCloudAPI.factory(config) as deepset_cloud_api:
             files_api = FilesAPI(deepset_cloud_api)
             upload_sessions_api = UploadSessionsAPI(deepset_cloud_api)
+            concurrency = 1 if config.safe_mode else DEFAULT_S3_CONCURRENCY
 
-            yield cls(upload_sessions_api, files_api, S3(concurrency=30))
+            yield cls(upload_sessions_api, files_api, S3(concurrency=concurrency))
 
     async def _wait_for_finished(
         self,
