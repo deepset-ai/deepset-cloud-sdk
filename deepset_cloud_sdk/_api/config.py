@@ -57,6 +57,7 @@ class CommonConfig:
 
     api_key: str = API_KEY
     api_url: str = API_URL
+    safe_mode: bool = False
 
     def __post_init__(self) -> None:
         """Validate config."""

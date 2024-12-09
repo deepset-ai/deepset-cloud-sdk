@@ -24,8 +24,8 @@ from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 
 
-def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:
-    return CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL)
+def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None, safe_mode: bool = False) -> CommonConfig:
+    return CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL, safe_mode=safe_mode)
 
 
 async def list_files(
@@ -129,6 +129,7 @@ async def upload(
     recursive: bool = False,
     desired_file_types: Optional[List[str]] = None,
     enable_parallel_processing: bool = False,
+    safe_mode: bool = False,
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
@@ -150,9 +151,10 @@ async def upload(
     `[".txt", ".pdf", ".docx", ".pptx", ".xlsx", ".xml", ".csv", ".html", ".md", ".json"]`
     :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
         Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
+    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
     """
     desired_file_types = desired_file_types or SUPPORTED_TYPE_SUFFIXES
-    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url, safe_mode=safe_mode)) as file_service:
         return await file_service.upload(
             workspace_name=workspace_name,
             paths=paths,
@@ -177,6 +179,7 @@ async def download(
     api_url: Optional[str] = None,
     show_progress: bool = True,
     timeout_s: Optional[int] = None,
+    safe_mode: bool = False,
 ) -> None:
     """Download a folder to deepset Cloud.
 
@@ -192,8 +195,9 @@ async def download(
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
     :param timeout_s: Timeout in seconds for the download.
+    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
     """
-    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url, safe_mode=safe_mode)) as file_service:
         await file_service.download(
             workspace_name=workspace_name,
             file_dir=file_dir,

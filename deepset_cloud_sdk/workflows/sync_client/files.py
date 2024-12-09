@@ -51,6 +51,7 @@ def upload(  # pylint: disable=too-many-arguments
     recursive: bool = False,
     desired_file_types: Optional[List[str]] = None,
     enable_parallel_processing: bool = False,
+    safe_mode: bool = False,
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
@@ -72,6 +73,7 @@ def upload(  # pylint: disable=too-many-arguments
     `[".txt", ".pdf", ".docx", ".pptx", ".xlsx", ".xml", ".csv", ".html", ".md", ".json"]`
     :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
         Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
+    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
     """
     desired_file_types = desired_file_types or SUPPORTED_TYPE_SUFFIXES
     return asyncio.run(
@@ -87,6 +89,7 @@ def upload(  # pylint: disable=too-many-arguments
             recursive=recursive,
             desired_file_types=desired_file_types,
             enable_parallel_processing=enable_parallel_processing,
+            safe_mode=safe_mode,
         )
     )
 
@@ -102,6 +105,7 @@ def download(  # pylint: disable=too-many-arguments
     api_url: Optional[str] = None,
     show_progress: bool = True,
     timeout_s: Optional[int] = None,
+    safe_mode: bool = False,
 ) -> None:
     """Download a folder to deepset Cloud.
 
@@ -117,6 +121,7 @@ def download(  # pylint: disable=too-many-arguments
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
     :param timeout_s: Timeout in seconds for the API requests.
+    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
     """
     asyncio.run(
         async_download(
@@ -130,6 +135,7 @@ def download(  # pylint: disable=too-many-arguments
             batch_size=batch_size,
             show_progress=show_progress,
             timeout_s=timeout_s,
+            safe_mode=safe_mode,
         )
     )
 

@@ -18,6 +18,7 @@ from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("integration_config", ["integration_config", "integration_config_safe_mode"], indirect=True)
 class TestUploadsFileService:
     async def test_direct_upload_path(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
@@ -276,6 +277,7 @@ class TestListFilesService:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("integration_config", ["integration_config", "integration_config_safe_mode"], indirect=True)
 class TestDownloadFilesService:
     async def test_download_files(self, integration_config: CommonConfig, workspace_name: str) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:

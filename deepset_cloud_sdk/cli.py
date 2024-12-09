@@ -39,6 +39,7 @@ def upload(  # pylint: disable=too-many-arguments
     recursive: bool = False,
     use_type: Optional[List[str]] = None,
     enable_parallel_processing: bool = False,
+    safe_mode: bool = False,
 ) -> None:
     """Upload a folder to deepset Cloud.
 
@@ -59,6 +60,7 @@ def upload(  # pylint: disable=too-many-arguments
     :param use_type: A comma-separated string of allowed file types to upload, defaults to ".txt, .pdf".
     :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
         Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
+    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
     """
     use_type = use_type or [".txt", ".pdf"]
     sync_upload(
@@ -73,6 +75,7 @@ def upload(  # pylint: disable=too-many-arguments
         recursive=recursive,
         desired_file_types=use_type,
         enable_parallel_processing=enable_parallel_processing,
+        safe_mode=safe_mode,
     )
 
 
@@ -87,6 +90,7 @@ def download(  # pylint: disable=too-many-arguments
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     show_progress: bool = True,
+    safe_mode: bool = False,
 ) -> None:
     """Download files from deepset Cloud to your local machine.
 
@@ -99,6 +103,7 @@ def download(  # pylint: disable=too-many-arguments
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
+    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
     """
     sync_download(
         workspace_name=workspace_name,
@@ -110,6 +115,7 @@ def download(  # pylint: disable=too-many-arguments
         api_key=api_key,
         api_url=api_url,
         show_progress=show_progress,
+        safe_mode=safe_mode,
     )
 
 
