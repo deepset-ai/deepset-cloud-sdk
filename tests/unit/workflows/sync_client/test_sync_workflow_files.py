@@ -41,6 +41,26 @@ def test_upload_folder(async_upload_mock: AsyncMock) -> None:
         recursive=False,
         desired_file_types=SUPPORTED_TYPE_SUFFIXES,
         enable_parallel_processing=True,
+        safe_mode=False,
+    )
+
+
+@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
+def test_upload_folder_safe_mode(async_upload_mock: AsyncMock) -> None:
+    upload(paths=[Path("./tests/data/upload_folder")], enable_parallel_processing=True, safe_mode=True)
+    async_upload_mock.assert_called_once_with(
+        paths=[Path("./tests/data/upload_folder")],
+        api_key=None,
+        api_url=None,
+        workspace_name=DEFAULT_WORKSPACE_NAME,
+        write_mode=WriteMode.KEEP,
+        blocking=True,
+        timeout_s=None,
+        show_progress=True,
+        recursive=False,
+        desired_file_types=SUPPORTED_TYPE_SUFFIXES,
+        enable_parallel_processing=True,
+        safe_mode=True,
     )
 
 
@@ -147,6 +167,7 @@ def test_download_files() -> None:
             batch_size=100,
             show_progress=True,
             timeout_s=100,
+            safe_mode=False,
         )
 
 
