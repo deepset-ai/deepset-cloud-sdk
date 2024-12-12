@@ -154,21 +154,23 @@ class S3:
             # See this known error: https://github.com/aio-libs/aiohttp/issues/631
             raise RetryableHttpError(cre) from cre
         except aiohttp.ClientResponseError as cre:
+            try:
+                error_message = await response.text()
+                cre.message = cre.message + f" - {error_message}"
+            except Exception:  # pylint: disable=broad-except
+                pass
+
             if cre.status in [
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 HTTPStatus.BAD_GATEWAY,
                 HTTPStatus.SERVICE_UNAVAILABLE,
                 HTTPStatus.GATEWAY_TIMEOUT,
                 HTTPStatus.REQUEST_TIMEOUT,
+                HTTPStatus.BAD_REQUEST,  # can be IncompleteBody or RequestTimeout due to bad connection
             ]:
                 raise RetryableHttpError(cre) from cre
 
-            try:
-                error_message = await response.text()
-                cre.message = cre.message + f" - {error_message}"
-            except Exception:  # pylint: disable=broad-except
-                pass
-            raise
+            raise RetryableHttpError(cre) from cre
         except aiohttp.ClientConnectionError as cre:
             raise RetryableHttpError(cre) from cre
 
