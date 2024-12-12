@@ -170,7 +170,7 @@ class S3:
             ]:
                 raise RetryableHttpError(cre) from cre
 
-            raise RetryableHttpError(cre) from cre
+            raise
         except aiohttp.ClientConnectionError as cre:
             raise RetryableHttpError(cre) from cre
 

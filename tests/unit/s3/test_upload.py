@@ -205,19 +205,23 @@ class TestUploadsS3:
                 ]
                 assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
-        @pytest.mark.parametrize("status", [503, 502, 500, 504, 408])
+        @pytest.mark.parametrize("status", [503, 502, 500, 504, 408, 400])
         @patch("aiohttp.ClientSession")
         async def test_upload_file_retries_for_exception(
             self, mock_session: Mock, upload_session_response: UploadSession, status: int
         ) -> None:
-            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=status)
-            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
+            exception = aiohttp.ClientResponseError(
+                request_info=Mock(), history=Mock(), status=status, message="reason"
+            )
+            with patch.object(aiohttp.ClientSession, "post") as post_mock:
+                post_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock(side_effect=exception)
+                post_mock.return_value.__aenter__.return_value.text.return_value = "<xml>error</xml>"
                 s3 = S3()
 
-                with pytest.raises(RetryableHttpError):
+                with pytest.raises(RetryableHttpError, match="reason - <xml>error</xml>"):
                     await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
 
-        @pytest.mark.parametrize("status", [400, 422, 501])
+        @pytest.mark.parametrize("status", [422, 501])
         @patch("aiohttp.ClientSession")
         async def test_upload_file_does_not_retry_for_exception(
             self, mock_session: Mock, upload_session_response: UploadSession, status: int
@@ -233,7 +237,7 @@ class TestUploadsS3:
                 with pytest.raises(aiohttp.ClientResponseError, match="reason - <xml>error</xml>"):
                     await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
 
-        @pytest.mark.parametrize("status", [400, 422, 501])
+        @pytest.mark.parametrize("status", [422, 501])
         @patch("aiohttp.ClientSession")
         async def test_upload_file_does_not_retry_for_exception_failing_json(
             self, mock_session: Mock, upload_session_response: UploadSession, status: int
