@@ -34,6 +34,10 @@ class RetryableHttpError(Exception):
         """Store the original exception."""
         self.error = error
 
+    def __str__(self) -> str:
+        """Return the error message."""
+        return str(self.error)
+
 
 @dataclass
 class S3UploadResult:
@@ -198,11 +202,12 @@ class S3:
                     await self._upload_file_with_retries(file_name, upload_session, content, client_session)
                     return S3UploadResult(file_name=file_name, success=True)
                 except Exception as exception:  # pylint: disable=broad-exception-caught
+                    reason = str(exception) or str(exception.__class__)
                     logger.error(
                         "Could not upload a file to deepset Cloud",
                         file_name=file_name,
                         session_id=upload_session.session_id,
-                        reason=str(exception),
+                        reason=reason,
                     )
                     return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
