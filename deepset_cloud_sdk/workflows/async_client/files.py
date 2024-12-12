@@ -195,7 +195,7 @@ async def download(
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
     :param timeout_s: Timeout in seconds for the download.
-    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
+    :param safe_mode: If `True`, disabled ingesting files in parallel. 
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url, safe_mode=safe_mode)) as file_service:
         await file_service.download(
@@ -236,8 +236,8 @@ async def upload_texts(
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
-    :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
-        Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
+    :param enable_parallel_processing: If `True`, deepset Cloud ingests files in parallel.
+        Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
 
     Example:
     ```python
@@ -302,8 +302,8 @@ async def upload_bytes(
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
-    :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
-        Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
+    :param enable_parallel_processing: If `True`, deepset Cloud ingests files in parallel.
+        Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         return await file_service.upload_in_memory(

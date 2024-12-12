@@ -44,7 +44,7 @@ def upload(  # pylint: disable=too-many-arguments
     """Upload a folder to deepset Cloud.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped.
-    deepset Cloud supports csv, docx, html, json, md, txt, pdf, pptx, xlsx, xml.
+    deepset Cloud supports CSV, DOCX, HTML, JSON, MD, TXT, PDF, PPTX, XLSX, XML.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
@@ -57,10 +57,10 @@ def upload(  # pylint: disable=too-many-arguments
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
-    :param use_type: A comma-separated string of allowed file types to upload, defaults to ".txt, .pdf".
-    :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
-        Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
-    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
+    :param use_type: A comma-separated string of allowed file types to upload.
+    :param enable_parallel_processing: If `True`, deepset Cloud ingests the files in parallel.
+        Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
+    :param safe_mode: If `True`, disables ingesting files in parallel.
     """
     use_type = use_type or [".txt", ".pdf"]
     sync_upload(
@@ -103,7 +103,7 @@ def download(  # pylint: disable=too-many-arguments
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
-    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
+    :param safe_mode: If `True`, disables ingesting files in parallel.
     """
     sync_download(
         workspace_name=workspace_name,
