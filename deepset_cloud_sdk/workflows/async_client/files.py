@@ -195,7 +195,7 @@ async def download(
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
     :param timeout_s: Timeout in seconds for the download.
-    :param safe_mode: If `True`, disabled ingesting files in parallel. 
+    :param safe_mode: If `True`, disabled ingesting files in parallel.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url, safe_mode=safe_mode)) as file_service:
         await file_service.download(
