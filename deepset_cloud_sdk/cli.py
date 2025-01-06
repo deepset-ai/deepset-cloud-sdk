@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
 
+import click
 import typer
 from tabulate import tabulate
 
@@ -128,15 +129,25 @@ def login() -> None:
     Example:
     `deepset-cloud login`
 
-    This prompts you to provide your deepset Cloud API key and workspace name.
+    This prompts you to provide your deepset Cloud API key, workspace name, and environment (eu/us).
     """
     typer.echo("Log in to deepset Cloud")
+
+    environment = typer.prompt(
+        "Choose environment (eu/us/custom)",
+        type=click.Choice(["eu", "us", "custom"], case_sensitive=False),
+        default="eu",
+    )
+
+    if environment.lower() == "eu":
+        api_url = "https://api.cloud.deepset.ai/api/v1"
+    elif environment.lower() == "us":
+        api_url = "http://api.us.deepset.ai/api/v1"
+    else:
+        api_url = typer.prompt("Enter custom API URL")
     passed_api_key = typer.prompt("Your deepset Cloud API_KEY", hide_input=True)
     passed_default_workspace_name = typer.prompt("Your DEFAULT_WORKSPACE_NAME", default="default")
 
-    # connect to prod by default. You can change this behaviour by modifying the API_URL
-    # in the stored env file or by passing the API_URL as an argument to the CLI
-    api_url = "https://api.cloud.deepset.ai/api/v1"
     env_content = f"API_KEY={passed_api_key}\nAPI_URL={api_url}\nDEFAULT_WORKSPACE_NAME={passed_default_workspace_name}"
 
     os.makedirs(os.path.dirname(ENV_FILE_PATH), exist_ok=True)
