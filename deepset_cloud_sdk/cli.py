@@ -129,7 +129,7 @@ def login() -> None:
     Example:
     `deepset-cloud login`
 
-    This prompts you to provide your deepset Cloud API key, workspace name, and environment (eu/us).
+    This prompts you to provide your deepset Cloud API key, workspace name, and environment.
     """
     typer.echo("Log in to deepset Cloud")
 
