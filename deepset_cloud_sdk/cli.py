@@ -134,7 +134,7 @@ def login() -> None:
     typer.echo("Log in to deepset Cloud")
 
     environment = typer.prompt(
-        "Choose environment (eu/us/custom)",
+        "Choose environment",
         type=click.Choice(["eu", "us", "custom"], case_sensitive=False),
         default="eu",
     )
