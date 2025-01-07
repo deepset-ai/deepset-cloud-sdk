@@ -403,7 +403,7 @@ class TestCLIUtils:
     def test_login_with_minimal(self) -> None:
         fake_env_path = Path("./tests/tmp/.env")
         with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
-            result = runner.invoke(cli_app, ["login"], input="test_api_key\n\n\n")
+            result = runner.invoke(cli_app, ["login"], input="eu\ntest_api_key\n\n")
             assert result.exit_code == 0
             assert "created successfully" in result.stdout
             with open(fake_env_path) as f:
@@ -412,15 +412,29 @@ class TestCLIUtils:
                     == f.read()
                 )
 
-    def test_login_with_all_filled(self) -> None:
+    def test_login_with_us_environment(self) -> None:
         fake_env_path = Path("./tests/tmp/.env")
         with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
-            result = runner.invoke(cli_app, ["login"], input="test_api_key_2\n")
+            result = runner.invoke(cli_app, ["login"], input="us\ntest_api_key\nmy_workspace\n")
             assert result.exit_code == 0
             assert "created successfully" in result.stdout
             with open(fake_env_path) as f:
                 assert (
-                    "API_KEY=test_api_key_2\nAPI_URL=https://api.cloud.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=default"
+                    "API_KEY=test_api_key\nAPI_URL=http://api.us.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=my_workspace"
+                    == f.read()
+                )
+
+    def test_login_with_custom_environment(self) -> None:
+        fake_env_path = Path("./tests/tmp/.env")
+        with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
+            result = runner.invoke(
+                cli_app, ["login"], input="custom\nhttps://custom-api.example.com\ntest_api_key\nmy_workspace\n"
+            )
+            assert result.exit_code == 0
+            assert "created successfully" in result.stdout
+            with open(fake_env_path) as f:
+                assert (
+                    "API_KEY=test_api_key\nAPI_URL=https://custom-api.example.com\nDEFAULT_WORKSPACE_NAME=my_workspace"
                     == f.read()
                 )
 
