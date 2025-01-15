@@ -47,7 +47,7 @@ from deepset_cloud_sdk.models import DeepsetCloudFileBase
 logger = structlog.get_logger(__name__)
 
 META_SUFFIX = ".meta.json"
-DIRECT_UPLOAD_THRESHOLD = 20
+DIRECT_UPLOAD_THRESHOLD = 1_000_000
 DEFAULT_S3_CONCURRENCY = 30
 DEFAULT_MAX_ATTEMPTS = 5
 SAFE_MODE_CONCURRENCY = 1
