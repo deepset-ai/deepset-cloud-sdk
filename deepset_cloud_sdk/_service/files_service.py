@@ -346,10 +346,10 @@ class FilesService:
     def _get_allowed_file_types(desired_file_types: List[Any]) -> List[str]:
         """Filter `SUPPORTED_TYPE_SUFFIXES` by `desired_file_types`.
         If desired_file_types is empty, all supported file types are returned.
+
         :param desired_file_types: A list of desired file types.
         :return: A list of desired file types that can be processed by deepset Cloud.
         """
-
         desired_types_processed: Set[str] = {
             str(file_type) if str(file_type).startswith(".") else f".{str(file_type)}"
             for file_type in desired_file_types
