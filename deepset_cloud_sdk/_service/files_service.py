@@ -9,7 +9,7 @@ import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, List, Optional, Sequence, Set, Union
+from typing import Any, AsyncGenerator, Dict, List, Optional, Sequence, Union
 from uuid import UUID
 
 import structlog
@@ -341,22 +341,6 @@ class FilesService:
             most_recent_files.append(most_recent_file)
 
         return most_recent_files
-
-    @staticmethod
-    def _get_allowed_file_types(desired_file_types: List[str]) -> List[str]:
-        """Filter `SUPPORTED_TYPE_SUFFIXES` by `desired_file_types`.
-
-        If desired_file_types is empty, all supported file types are returned.
-
-        :param desired_file_types: A list of desired file types.
-        :return: A list of desired file types that can be processed by deepset Cloud.
-        """
-        desired_types_processed: Set[str] = {
-            str(file_type) if str(file_type).startswith(".") else f".{str(file_type)}"
-            for file_type in desired_file_types
-        }
-
-        return list(desired_types_processed)
 
     @staticmethod
     def _preprocess_paths(
