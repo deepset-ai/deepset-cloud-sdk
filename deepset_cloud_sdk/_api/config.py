@@ -48,6 +48,8 @@ API_KEY: str = os.getenv("API_KEY", "")
 # configuration to use a selectd workspace
 DEFAULT_WORKSPACE_NAME: str = os.getenv("DEFAULT_WORKSPACE_NAME", "")
 
+ASYNC_CLIENT_TIMEOUT: int = int(os.getenv("ASYNC_CLIENT_TIMEOUT", "300"))
+
 
 @dataclass
 class CommonConfig:
@@ -55,6 +57,7 @@ class CommonConfig:
 
     api_key: str = API_KEY
     api_url: str = API_URL
+    safe_mode: bool = False
 
     def __post_init__(self) -> None:
         """Validate config."""

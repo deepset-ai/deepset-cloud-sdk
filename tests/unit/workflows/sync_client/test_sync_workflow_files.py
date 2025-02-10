@@ -14,6 +14,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionWriteModeEnum,
     WriteMode,
 )
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, UserInfo
 from deepset_cloud_sdk.workflows.sync_client.files import (
     download,
@@ -27,9 +28,7 @@ from deepset_cloud_sdk.workflows.sync_client.files import (
 
 @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
 def test_upload_folder(async_upload_mock: AsyncMock) -> None:
-    upload(
-        paths=[Path("./tests/data/upload_folder")],
-    )
+    upload(paths=[Path("./tests/data/upload_folder")], enable_parallel_processing=True)
     async_upload_mock.assert_called_once_with(
         paths=[Path("./tests/data/upload_folder")],
         api_key=None,
@@ -40,7 +39,28 @@ def test_upload_folder(async_upload_mock: AsyncMock) -> None:
         timeout_s=None,
         show_progress=True,
         recursive=False,
-        desired_file_types=[".txt", ".pdf"],
+        desired_file_types=SUPPORTED_TYPE_SUFFIXES,
+        enable_parallel_processing=True,
+        safe_mode=False,
+    )
+
+
+@patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
+def test_upload_folder_safe_mode(async_upload_mock: AsyncMock) -> None:
+    upload(paths=[Path("./tests/data/upload_folder")], enable_parallel_processing=True, safe_mode=True)
+    async_upload_mock.assert_called_once_with(
+        paths=[Path("./tests/data/upload_folder")],
+        api_key=None,
+        api_url=None,
+        workspace_name=DEFAULT_WORKSPACE_NAME,
+        write_mode=WriteMode.KEEP,
+        blocking=True,
+        timeout_s=None,
+        show_progress=True,
+        recursive=False,
+        desired_file_types=SUPPORTED_TYPE_SUFFIXES,
+        enable_parallel_processing=True,
+        safe_mode=True,
     )
 
 
@@ -53,7 +73,7 @@ def test_upload_texts(async_upload_texts_mock: AsyncMock) -> None:
             meta={"test": "test"},
         )
     ]
-    upload_texts(files=files)
+    upload_texts(files=files, enable_parallel_processing=True)
     async_upload_texts_mock.assert_called_once_with(
         files=files,
         api_key=None,
@@ -63,6 +83,7 @@ def test_upload_texts(async_upload_texts_mock: AsyncMock) -> None:
         blocking=True,
         timeout_s=None,
         show_progress=True,
+        enable_parallel_processing=True,
     )
 
 
@@ -85,6 +106,7 @@ def test_upload_texts_with_timeout(async_upload_texts_mock: AsyncMock) -> None:
         blocking=True,
         timeout_s=123,
         show_progress=True,
+        enable_parallel_processing=False,
     )
 
 
@@ -106,7 +128,6 @@ def test_list_files() -> None:
             list_files(
                 workspace_name="my_workspace",
                 name="test_file.txt",
-                content="test content",
                 odata_filter="test",
                 batch_size=100,
                 timeout_s=100,
@@ -131,7 +152,6 @@ def test_download_files() -> None:
         download(
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             batch_size=100,
             timeout_s=100,
@@ -141,13 +161,13 @@ def test_download_files() -> None:
             api_url=None,
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             file_dir=None,
             include_meta=True,
             batch_size=100,
             show_progress=True,
             timeout_s=100,
+            safe_mode=False,
         )
 
 

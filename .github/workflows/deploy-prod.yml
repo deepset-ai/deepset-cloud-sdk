@@ -9,11 +9,28 @@ on:
 env:
   HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
 
+permissions:
+  id-token: write
+
 jobs:
   deploy-prod:
-    uses: ./.github/workflows/deploy.yml
-    with:
-      deployment_env: release
-      api_url: "https://api.cloud.deepset.ai/api/v1"
-      version: ${{github.ref_name}}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    environment: release
+    env:
+      pypi: ${{ vars.PYPI_URL }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+       python-version: "3.10"
+    - name: Install Hatch
+      run: pip install hatch==${{ env.HATCH_VERSION }}
+    - name: Bump version
+      # Bump version to Github action tag
+      run: hatch version ${{github.ref_name}}
+    - name: Build
+      run: hatch build
+    - name: publish
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: ${{env.pypi}}

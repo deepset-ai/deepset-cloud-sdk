@@ -92,7 +92,6 @@ class FilesAPI:
         workspace_name: str,
         limit: int = 100,
         name: Optional[str] = None,
-        content: Optional[str] = None,
         odata_filter: Optional[str] = None,
         after_value: Optional[Any] = None,
         after_file_id: Optional[UUID] = None,
@@ -103,7 +102,6 @@ class FilesAPI:
         :param workspace_name: Name of the workspace to use.
         :param limit: Number of files to return per page.
         :param name: Name of the file to odata_filter by.
-        :param content: Content of the file to odata_filter by.
         :param odata_filter: Odata odata_filter to apply.
         :param after_value: Value to start after.
         :param after_file_id: File ID to start after.
@@ -118,10 +116,6 @@ class FilesAPI:
         # substring match file name
         if name:
             params["name"] = name
-
-        # content search file
-        if content:
-            params["content"] = content
 
         # odata odata_filter for file meta
         if odata_filter:
@@ -183,6 +177,11 @@ class FilesAPI:
         :param file_path: Path to the file to upload.
         :param file_name: Name of the file to upload.
         :param meta: Meta information to attach to the file.
+        :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
+        Possible options are:
+        KEEP - uploads the file with the same name and keeps both files in the workspace.
+        OVERWRITE - overwrites the file that is in the workspace.
+        FAIL - fails to upload the file with the same name.
         :return: ID of the uploaded file.
         """
         if isinstance(file_path, str):
@@ -216,7 +215,7 @@ class FilesAPI:
         """Directly upload files to deepset Cloud.
 
         :param workspace_name: Name of the workspace to use.
-        :param text: File text to upload.
+        :param content: File text to upload.
         :param file_name: Name of the file to upload.
         :param meta: Meta information to attach to the file.
         :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
@@ -226,7 +225,7 @@ class FilesAPI:
         FAIL - fails to upload the file with the same name.
         :return: ID of the uploaded file.
         """
-        file_name_suffix = f".{file_name.split('.')[1]}"
+        file_name_suffix = Path(file_name).suffix
         if file_name_suffix not in SUPPORTED_TYPE_SUFFIXES:
             raise NotMatchingFileTypeException(
                 f"File name {file_name} is not a supported file type. Please use one of {'` '.join(SUPPORTED_TYPE_SUFFIXES)} for text uploads."
