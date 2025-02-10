@@ -50,7 +50,14 @@ class TestCLIMethods:
     @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
     def test_upload_only_desired_file_types_defaults_to_text(self, async_upload_mock: AsyncMock) -> None:
         result = runner.invoke(
-            cli_app, ["upload", "./test/data/upload_folder/example.txt", "--workspace-name", "default"]
+            cli_app,
+            [
+                "upload",
+                "./test/data/upload_folder/example.txt",
+                "--workspace-name",
+                "default",
+                "--enable-parallel-processing",
+            ],
         )
         async_upload_mock.assert_called_once_with(
             paths=[Path("test/data/upload_folder/example.txt")],
@@ -63,6 +70,8 @@ class TestCLIMethods:
             show_progress=True,
             recursive=False,
             desired_file_types=[".txt", ".pdf"],
+            enable_parallel_processing=True,
+            safe_mode=False,
         )
         assert result.exit_code == 0
 
@@ -96,6 +105,36 @@ class TestCLIMethods:
             show_progress=True,
             recursive=False,
             desired_file_types=[".csv", ".pdf", ".json", ".xml"],
+            enable_parallel_processing=False,
+            safe_mode=False,
+        )
+        assert result.exit_code == 0
+
+    @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
+    def test_upload_safe_mode(self, async_upload_mock: AsyncMock) -> None:
+        result = runner.invoke(
+            cli_app,
+            [
+                "upload",
+                "./test/data/upload_folder/example.txt",
+                "--workspace-name",
+                "default",
+                "--safe-mode",
+            ],
+        )
+        async_upload_mock.assert_called_once_with(
+            paths=[Path("test/data/upload_folder/example.txt")],
+            api_key=None,
+            api_url=None,
+            workspace_name="default",
+            write_mode=WriteMode.KEEP,
+            blocking=True,
+            timeout_s=None,
+            show_progress=True,
+            recursive=False,
+            desired_file_types=[".txt", ".pdf"],
+            enable_parallel_processing=False,
+            safe_mode=True,
         )
         assert result.exit_code == 0
 
@@ -109,13 +148,31 @@ class TestCLIMethods:
                 workspace_name="default",
                 file_dir=None,
                 name=None,
-                content=None,
                 odata_filter=None,
                 include_meta=True,
                 batch_size=50,
                 api_key=None,
                 api_url=None,
                 show_progress=True,
+                safe_mode=False,
+            )
+
+        @patch("deepset_cloud_sdk.cli.sync_download")
+        def test_download_files_safe_mode(self, sync_download_mock: AsyncMock) -> None:
+            sync_download_mock.side_effect = Mock(spec=sync_download)
+            result = runner.invoke(cli_app, ["download", "--workspace-name", "default", "--safe-mode"])
+            assert result.exit_code == 0
+            sync_download_mock.assert_called_once_with(
+                workspace_name="default",
+                file_dir=None,
+                name=None,
+                odata_filter=None,
+                include_meta=True,
+                batch_size=50,
+                api_key=None,
+                api_url=None,
+                show_progress=True,
+                safe_mode=True,
             )
 
     class TestListFiles:
@@ -346,7 +403,7 @@ class TestCLIUtils:
     def test_login_with_minimal(self) -> None:
         fake_env_path = Path("./tests/tmp/.env")
         with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
-            result = runner.invoke(cli_app, ["login"], input="test_api_key\n\n\n")
+            result = runner.invoke(cli_app, ["login"], input="eu\ntest_api_key\n\n")
             assert result.exit_code == 0
             assert "created successfully" in result.stdout
             with open(fake_env_path) as f:
@@ -355,15 +412,29 @@ class TestCLIUtils:
                     == f.read()
                 )
 
-    def test_login_with_all_filled(self) -> None:
+    def test_login_with_us_environment(self) -> None:
         fake_env_path = Path("./tests/tmp/.env")
         with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
-            result = runner.invoke(cli_app, ["login"], input="test_api_key_2\n")
+            result = runner.invoke(cli_app, ["login"], input="us\ntest_api_key\nmy_workspace\n")
             assert result.exit_code == 0
             assert "created successfully" in result.stdout
             with open(fake_env_path) as f:
                 assert (
-                    "API_KEY=test_api_key_2\nAPI_URL=https://api.cloud.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=default"
+                    "API_KEY=test_api_key\nAPI_URL=http://api.us.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=my_workspace"
+                    == f.read()
+                )
+
+    def test_login_with_custom_environment(self) -> None:
+        fake_env_path = Path("./tests/tmp/.env")
+        with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
+            result = runner.invoke(
+                cli_app, ["login"], input="custom\nhttps://custom-api.example.com\ntest_api_key\nmy_workspace\n"
+            )
+            assert result.exit_code == 0
+            assert "created successfully" in result.stdout
+            with open(fake_env_path) as f:
+                assert (
+                    "API_KEY=test_api_key\nAPI_URL=https://custom-api.example.com\nDEFAULT_WORKSPACE_NAME=my_workspace"
                     == f.read()
                 )
 

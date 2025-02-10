@@ -119,7 +119,12 @@ class UploadSessionsAPI:
         """
         self._deepset_cloud_api = deepset_cloud_api
 
-    async def create(self, workspace_name: str, write_mode: WriteMode = WriteMode.KEEP) -> UploadSession:
+    async def create(
+        self,
+        workspace_name: str,
+        write_mode: WriteMode = WriteMode.KEEP,
+        enable_parallel_processing: bool = False,
+    ) -> UploadSession:
         """Create an upload session.
 
         This method creates an upload session for a given workspace. Use this session to upload files to deepset Cloud.
@@ -133,11 +138,15 @@ class UploadSessionsAPI:
         KEEP - uploads the file with the same name and keeps both files in the workspace.
         OVERWRITE - overwrites the file that is in the workspace.
         FAIL - fails to upload the file with the same name.
+        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+            Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
         :raises FailedToSendUploadSessionRequest: If the session could not be created.
         :return: UploadSession object.
         """
         response = await self._deepset_cloud_api.post(
-            workspace_name=workspace_name, endpoint="upload_sessions", json={"write_mode": write_mode.value}
+            workspace_name=workspace_name,
+            endpoint="upload_sessions",
+            json={"write_mode": write_mode.value, "parallel_processing_enabled": enable_parallel_processing},
         )
         if response.status_code != codes.CREATED:
             logger.error(

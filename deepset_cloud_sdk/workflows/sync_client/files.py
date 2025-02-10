@@ -15,6 +15,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 from deepset_cloud_sdk.workflows.async_client.files import download as async_download
 from deepset_cloud_sdk.workflows.async_client.files import (
@@ -49,6 +50,8 @@ def upload(  # pylint: disable=too-many-arguments
     show_progress: bool = True,
     recursive: bool = False,
     desired_file_types: Optional[List[str]] = None,
+    enable_parallel_processing: bool = False,
+    safe_mode: bool = False,
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
@@ -66,9 +69,13 @@ def upload(  # pylint: disable=too-many-arguments
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
-    :param desired_file_types: A list of allowed file types to upload, defaults to ".txt, .pdf".
+    :param desired_file_types: A list of allowed file types to upload, defaults to
+    `[".txt", ".pdf", ".docx", ".pptx", ".xlsx", ".xml", ".csv", ".html", ".md", ".json"]`
+    :param enable_parallel_processing: If `True`, deepset Cloud ingests files in parallel.
+        Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
+    :param safe_mode: If `True`, disables ingesting files in parallel.
     """
-    desired_file_types = desired_file_types or [".txt", ".pdf"]
+    desired_file_types = desired_file_types or SUPPORTED_TYPE_SUFFIXES
     return asyncio.run(
         async_upload(
             paths=paths,
@@ -81,6 +88,8 @@ def upload(  # pylint: disable=too-many-arguments
             show_progress=show_progress,
             recursive=recursive,
             desired_file_types=desired_file_types,
+            enable_parallel_processing=enable_parallel_processing,
+            safe_mode=safe_mode,
         )
     )
 
@@ -89,7 +98,6 @@ def download(  # pylint: disable=too-many-arguments
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[Union[Path, str]] = None,
     name: Optional[str] = None,
-    content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     include_meta: bool = True,
     batch_size: int = 50,
@@ -97,6 +105,7 @@ def download(  # pylint: disable=too-many-arguments
     api_url: Optional[str] = None,
     show_progress: bool = True,
     timeout_s: Optional[int] = None,
+    safe_mode: bool = False,
 ) -> None:
     """Download a folder to deepset Cloud.
 
@@ -105,7 +114,6 @@ def download(  # pylint: disable=too-many-arguments
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param file_dir: Path to the folder to download.
     :param name: Name of the file to odata_filter by.
-    :param content: Content of a file to odata_filter by.
     :param odata_filter: odata_filter by file meta data.
     :param include_meta: Whether to include the file meta in the folder.
     :param batch_size: Batch size for the listing.
@@ -113,6 +121,7 @@ def download(  # pylint: disable=too-many-arguments
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
     :param timeout_s: Timeout in seconds for the API requests.
+    :param safe_mode: If `True`, disables ingesting files in parallel.
     """
     asyncio.run(
         async_download(
@@ -120,13 +129,13 @@ def download(  # pylint: disable=too-many-arguments
             api_url=api_url,
             workspace_name=workspace_name,
             name=name,
-            content=content,
             odata_filter=odata_filter,
             file_dir=file_dir,
             include_meta=include_meta,
             batch_size=batch_size,
             show_progress=show_progress,
             timeout_s=timeout_s,
+            safe_mode=safe_mode,
         )
     )
 
@@ -140,6 +149,7 @@ def upload_texts(
     blocking: bool = True,
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
+    enable_parallel_processing: bool = False,
 ) -> S3UploadSummary:
     """Upload texts to deepset Cloud.
 
@@ -155,6 +165,8 @@ def upload_texts(
     :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
+    :param enable_parallel_processing: If `True`, deepset Cloud ingests files in parallel.
+        Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
 
     Example:
     ```python
@@ -185,6 +197,7 @@ def upload_texts(
             blocking=blocking,
             timeout_s=timeout_s,
             show_progress=show_progress,
+            enable_parallel_processing=enable_parallel_processing,
         )
     )
 
@@ -198,6 +211,7 @@ def upload_bytes(
     blocking: bool = True,
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
+    enable_parallel_processing: bool = False,
 ) -> S3UploadSummary:
     """Upload any supported file types to deepset Cloud. These include .csv, .docx, .html, .json, .md, .txt, .pdf, .pptx, .xlsx and .xml.
 
@@ -213,6 +227,8 @@ def upload_bytes(
     :param blocking: Whether to wait for the files to be uploaded and listed in deepset Cloud.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
+    :param enable_parallel_processing: If `True`, deepset Cloud ingests files in parallel.
+        Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
     """
     return asyncio.run(
         async_upload_bytes(
@@ -224,6 +240,7 @@ def upload_bytes(
             blocking=blocking,
             timeout_s=timeout_s,
             show_progress=show_progress,
+            enable_parallel_processing=enable_parallel_processing,
         )
     )
 
@@ -251,7 +268,6 @@ def list_files(
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     name: Optional[str] = None,
-    content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     batch_size: int = 100,
     timeout_s: Optional[int] = None,
@@ -262,7 +278,6 @@ def list_files(
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
-    :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
     For example, `odata_filter="category eq 'news'" lists files with metadata `{"meta": {"category": "news"}}.
     :param batch_size: Batch size to use for the file list.
@@ -275,7 +290,6 @@ def list_files(
         api_url=api_url,
         workspace_name=workspace_name,
         name=name,
-        content=content,
         odata_filter=odata_filter,
         batch_size=batch_size,
         timeout_s=timeout_s,
