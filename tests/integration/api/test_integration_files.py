@@ -31,7 +31,6 @@ class TestListFiles:
                         workspace_name=workspace_name,
                         limit=10,
                         name="example0.txt",
-                        content="text",
                         odata_filter="find eq 'me'",
                     )
                     assert result.total == 1

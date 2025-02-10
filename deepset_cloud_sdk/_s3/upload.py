@@ -1,4 +1,5 @@
 """Module for upload-related S3 operations."""
+
 import asyncio
 import os
 import re
@@ -14,6 +15,7 @@ from pyrate_limiter import Duration, Limiter, Rate
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from tqdm.asyncio import tqdm
 
+from deepset_cloud_sdk._api.config import ASYNC_CLIENT_TIMEOUT
 from deepset_cloud_sdk._api.upload_sessions import (
     AWSPrefixedRequestConfig,
     UploadSession,
@@ -26,9 +28,15 @@ logger = structlog.get_logger(__name__)
 class RetryableHttpError(Exception):
     """An error that indicates a function should be retried."""
 
-    def __init__(self, error: Union[aiohttp.ClientResponseError, aiohttp.ServerDisconnectedError]) -> None:
+    def __init__(
+        self, error: Union[aiohttp.ClientResponseError, aiohttp.ServerDisconnectedError, aiohttp.ClientConnectionError]
+    ) -> None:
         """Store the original exception."""
         self.error = error
+
+    def __str__(self) -> str:
+        """Return the error message."""
+        return str(self.error)
 
 
 @dataclass
@@ -67,7 +75,7 @@ def make_safe_file_name(file_name: str) -> str:
 class S3:
     """Client for S3 operations related to deepset Cloud uploads."""
 
-    def __init__(self, concurrency: int = 120, rate_limit: Rate = Rate(3000, Duration.SECOND)):
+    def __init__(self, concurrency: int = 120, rate_limit: Rate = Rate(3000, Duration.SECOND), max_attempts: int = 5):
         """
         Initialize the client.
 
@@ -76,13 +84,8 @@ class S3:
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
         self.limiter = Limiter(rate_limit, raise_when_fail=False, max_delay=Duration.SECOND * 1)
+        self.max_attempts = max_attempts
 
-    @retry(
-        retry=retry_if_exception_type(RetryableHttpError),
-        stop=stop_after_attempt(3),
-        wait=wait_fixed(0.5),
-        reraise=True,
-    )
     async def _upload_file_with_retries(
         self,
         file_name: str,
@@ -98,10 +101,29 @@ class S3:
         :param client_session: The aiohttp ClientSession to use for this request.
         :return: ClientResponse object.
         """
+
+        @retry(
+            retry=retry_if_exception_type(RetryableHttpError),
+            stop=stop_after_attempt(self.max_attempts),
+            wait=wait_fixed(0.5),
+            reraise=True,
+        )
+        async def retry_wrapper() -> aiohttp.ClientResponse:
+            return await self._upload_file(file_name, upload_session, content, client_session)
+
+        return await retry_wrapper()
+
+    async def _upload_file(
+        self,
+        file_name: str,
+        upload_session: UploadSession,
+        content: Any,
+        client_session: aiohttp.ClientSession,
+    ) -> aiohttp.ClientResponse:
         aws_safe_name = make_safe_file_name(file_name)
         aws_config = upload_session.aws_prefixed_request_config
-
         file_data = self._build_file_data(content, aws_safe_name, aws_config)
+
         try:
             self.limiter.try_acquire("")  # rate limit requests
             async with client_session.post(
@@ -132,15 +154,25 @@ class S3:
             # See this known error: https://github.com/aio-libs/aiohttp/issues/631
             raise RetryableHttpError(cre) from cre
         except aiohttp.ClientResponseError as cre:
+            try:
+                error_message = await response.text()
+                cre.message = cre.message + f" - {error_message}"
+            except Exception:  # pylint: disable=broad-except
+                pass
+
             if cre.status in [
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 HTTPStatus.BAD_GATEWAY,
                 HTTPStatus.SERVICE_UNAVAILABLE,
                 HTTPStatus.GATEWAY_TIMEOUT,
                 HTTPStatus.REQUEST_TIMEOUT,
+                HTTPStatus.BAD_REQUEST,  # can be IncompleteBody or RequestTimeout due to bad connection
             ]:
                 raise RetryableHttpError(cre) from cre
+
             raise
+        except aiohttp.ClientConnectionError as cre:
+            raise RetryableHttpError(cre) from cre
 
     def _build_file_data(
         self, content: Any, aws_safe_name: str, aws_config: AWSPrefixedRequestConfig
@@ -172,11 +204,12 @@ class S3:
                     await self._upload_file_with_retries(file_name, upload_session, content, client_session)
                     return S3UploadResult(file_name=file_name, success=True)
                 except Exception as exception:  # pylint: disable=broad-exception-caught
+                    reason = str(exception) or str(exception.__class__)
                     logger.error(
                         "Could not upload a file to deepset Cloud",
                         file_name=file_name,
                         session_id=upload_session.session_id,
-                        exception=str(exception),
+                        reason=reason,
                     )
                     return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
@@ -199,11 +232,11 @@ class S3:
             await self._upload_file_with_retries(file_name, upload_session, content, client_session)
             return S3UploadResult(file_name=file_name, success=True)
         except Exception as exception:  # pylint: disable=bare-except, disable=broad-exception-caught
-            logger.warn(
+            logger.warning(
                 "Could not upload a file to deepset Cloud",
                 file_name=file_name,
                 session_id=upload_session.session_id,
-                exception=str(exception),
+                reason=str(exception),
             )
             return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
@@ -276,7 +309,9 @@ class S3:
         :param show_progress: Whether to show a progress bar on the upload.
         :return: S3UploadSummary object.
         """
-        async with aiohttp.ClientSession(connector=self.connector) as client_session:
+        async with aiohttp.ClientSession(
+            connector=self.connector, timeout=aiohttp.ClientTimeout(total=ASYNC_CLIENT_TIMEOUT)
+        ) as client_session:
             tasks = []
 
             for file in files:

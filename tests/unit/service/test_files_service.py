@@ -74,7 +74,7 @@ class TestFilePathsUpload:
         assert result == upload_summary
 
         mocked_upload_sessions_api.create.assert_called_once_with(
-            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
+            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE, enable_parallel_processing=False
         )
 
         mocked_s3.upload_files_from_paths.assert_called_once_with(
@@ -374,7 +374,7 @@ class TestUploadTexts:
         assert result == upload_summary
 
         mocked_upload_sessions_api.create.assert_called_once_with(
-            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE
+            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE, enable_parallel_processing=False
         )
 
         mocked_s3.upload_in_memory.assert_called_once_with(
@@ -666,14 +666,12 @@ class TestDownloadFilesService:
             show_progress=False,
             odata_filter="category eq 'news'",
             name="asdf",
-            content="bsdf",
             batch_size=54,
         )
 
         mocked_list_paginated.assert_called_once_with(
             workspace_name="test_workspace",
             name="asdf",
-            content="bsdf",
             odata_filter="category eq 'news'",
             limit=54,
             after_file_id=None,
@@ -710,7 +708,6 @@ class TestDownloadFilesService:
             show_progress=True,  # This requires a previous cal that checks the total number of files
             odata_filter="category eq 'news'",
             name="asdf",
-            content="bsdf",
             batch_size=54,
         )
 
@@ -718,14 +715,12 @@ class TestDownloadFilesService:
             call(
                 workspace_name="test_workspace",
                 name="asdf",
-                content="bsdf",
                 odata_filter="category eq 'news'",
                 limit=54,
             ),
             call(
                 workspace_name="test_workspace",
                 name="asdf",
-                content="bsdf",
                 odata_filter="category eq 'news'",
                 limit=54,
                 after_file_id=None,

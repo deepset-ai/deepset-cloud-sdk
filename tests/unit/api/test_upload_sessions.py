@@ -40,7 +40,9 @@ class TestCreateUploadSessions:
             },
         )
 
-        result: UploadSession = await upload_session_client.create(workspace_name="sdk_read")
+        result: UploadSession = await upload_session_client.create(
+            workspace_name="sdk_read", enable_parallel_processing=True
+        )
 
         assert result.session_id == session_id
 
@@ -51,6 +53,12 @@ class TestCreateUploadSessions:
             == "https://dc-dev-euc1-034167606153-user-files-upload.s3.amazonaws.com/"
         )
         assert result.aws_prefixed_request_config.fields["key"] == "key"
+
+        mocked_deepset_cloud_api.post.assert_called_once_with(
+            workspace_name="sdk_read",
+            endpoint="upload_sessions",
+            json={"write_mode": "KEEP", "parallel_processing_enabled": True},
+        )
 
     async def test_create_session_fails(
         self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock

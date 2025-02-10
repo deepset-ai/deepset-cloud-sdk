@@ -20,11 +20,12 @@ from deepset_cloud_sdk._api.upload_sessions import (
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
 from deepset_cloud_sdk._service.files_service import FilesService
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 
 
-def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None) -> CommonConfig:
-    return CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL)
+def _get_config(api_key: Optional[str] = None, api_url: Optional[str] = None, safe_mode: bool = False) -> CommonConfig:
+    return CommonConfig(api_key=api_key or API_KEY, api_url=api_url or API_URL, safe_mode=safe_mode)
 
 
 async def list_files(
@@ -32,7 +33,6 @@ async def list_files(
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     name: Optional[str] = None,
-    content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     batch_size: int = 100,
     timeout_s: Optional[int] = None,
@@ -43,7 +43,6 @@ async def list_files(
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
-    :param content: Content of the file to odata_filter for.
     :param odata_filter: The odata_filter to apply to the file list.
     For example, `odata_filter="category eq 'news'"` lists files with metadata `{"meta": {"category": "news"}}`.
     :param timeout_s: The timeout in seconds for this API call.
@@ -55,7 +54,6 @@ async def list_files(
             async for file_batch in file_service.list_all(
                 workspace_name=workspace_name,
                 name=name,
-                content=content,
                 odata_filter=odata_filter,
                 batch_size=batch_size,
                 timeout_s=timeout_s,
@@ -130,6 +128,8 @@ async def upload(
     show_progress: bool = True,
     recursive: bool = False,
     desired_file_types: Optional[List[str]] = None,
+    enable_parallel_processing: bool = False,
+    safe_mode: bool = False,
 ) -> S3UploadSummary:
     """Upload a folder to deepset Cloud.
 
@@ -147,10 +147,14 @@ async def upload(
     :param timeout_s: Timeout in seconds for the upload.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subdirectories as well.
-    :param desired_file_types: A list of allowed file types to upload, defaults to ['.txt', '.pdf'].
+    :param desired_file_types: A list of allowed file types to upload, defaults to
+    `[".txt", ".pdf", ".docx", ".pptx", ".xlsx", ".xml", ".csv", ".html", ".md", ".json"]`
+    :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
+    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
     """
-    desired_file_types = desired_file_types or [".txt", ".pdf"]
-    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+    desired_file_types = desired_file_types or SUPPORTED_TYPE_SUFFIXES
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url, safe_mode=safe_mode)) as file_service:
         return await file_service.upload(
             workspace_name=workspace_name,
             paths=paths,
@@ -160,6 +164,7 @@ async def upload(
             show_progress=show_progress,
             recursive=recursive,
             desired_file_types=desired_file_types,
+            enable_parallel_processing=enable_parallel_processing,
         )
 
 
@@ -167,7 +172,6 @@ async def download(
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[Union[Path, str]] = None,
     name: Optional[str] = None,
-    content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     include_meta: bool = True,
     batch_size: int = 50,
@@ -175,6 +179,7 @@ async def download(
     api_url: Optional[str] = None,
     show_progress: bool = True,
     timeout_s: Optional[int] = None,
+    safe_mode: bool = False,
 ) -> None:
     """Download a folder to deepset Cloud.
 
@@ -183,7 +188,6 @@ async def download(
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param file_dir: Path to the folder to download.
     :param name: Name of the file to odata_filter by.
-    :param content: Content of a file to odata_filter by.
     :param odata_filter: odata_filter by file meta data.
     :param include_meta: Whether to include the file meta in the folder.
     :param batch_size: Batch size for the listing.
@@ -191,13 +195,13 @@ async def download(
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
     :param timeout_s: Timeout in seconds for the download.
+    :param safe_mode: If `True`, disabled ingesting files in parallel.
     """
-    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
+    async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url, safe_mode=safe_mode)) as file_service:
         await file_service.download(
             workspace_name=workspace_name,
             file_dir=file_dir,
             name=name,
-            content=content,
             odata_filter=odata_filter,
             include_meta=include_meta,
             batch_size=batch_size,
@@ -215,6 +219,7 @@ async def upload_texts(
     blocking: bool = True,
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
+    enable_parallel_processing: bool = False,
 ) -> S3UploadSummary:
     """Upload raw texts to deepset Cloud.
 
@@ -231,6 +236,8 @@ async def upload_texts(
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
+    :param enable_parallel_processing: If `True`, deepset Cloud ingests files in parallel.
+        Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
 
     Example:
     ```python
@@ -265,6 +272,7 @@ async def upload_texts(
             blocking=blocking,
             timeout_s=timeout_s,
             show_progress=show_progress,
+            enable_parallel_processing=enable_parallel_processing,
         )
 
 
@@ -277,6 +285,7 @@ async def upload_bytes(
     blocking: bool = True,
     timeout_s: Optional[int] = None,
     show_progress: bool = True,
+    enable_parallel_processing: bool = False,
 ) -> S3UploadSummary:
     """Upload files in byte format.
 
@@ -293,6 +302,8 @@ async def upload_bytes(
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
+    :param enable_parallel_processing: If `True`, deepset Cloud ingests files in parallel.
+        Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:
         return await file_service.upload_in_memory(
@@ -302,4 +313,5 @@ async def upload_bytes(
             blocking=blocking,
             timeout_s=timeout_s,
             show_progress=show_progress,
+            enable_parallel_processing=enable_parallel_processing,
         )

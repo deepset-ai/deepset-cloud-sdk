@@ -19,6 +19,7 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._service.files_service import FilesService
+from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, UserInfo
 from deepset_cloud_sdk.workflows.async_client.files import (
     download,
@@ -68,7 +69,8 @@ class TestUploadFiles:
             timeout_s=None,
             show_progress=True,
             recursive=False,
-            desired_file_types=[".txt", ".pdf"],
+            desired_file_types=SUPPORTED_TYPE_SUFFIXES,
+            enable_parallel_processing=False,
         )
 
     async def test_upload_with_timeout(self, monkeypatch: MonkeyPatch) -> None:
@@ -85,7 +87,8 @@ class TestUploadFiles:
             timeout_s=123,
             show_progress=True,
             recursive=False,
-            desired_file_types=[".txt", ".pdf"],
+            desired_file_types=SUPPORTED_TYPE_SUFFIXES,
+            enable_parallel_processing=False,
         )
 
     async def test_upload_texts(self, monkeypatch: MonkeyPatch) -> None:
@@ -107,6 +110,7 @@ class TestUploadFiles:
             blocking=True,
             timeout_s=None,
             show_progress=True,
+            enable_parallel_processing=False,
         )
 
 
@@ -118,7 +122,6 @@ class TestDownloadFiles:
         await download(
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             batch_size=100,
             timeout_s=100,
@@ -127,7 +130,6 @@ class TestDownloadFiles:
             workspace_name="my_workspace",
             file_dir=None,
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             include_meta=True,
             batch_size=100,
@@ -159,7 +161,6 @@ class TestListFiles:
         async for file_batch in list_files(
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             batch_size=100,
             timeout_s=100,
@@ -188,7 +189,6 @@ class TestListFiles:
         async for file_batch in list_files(
             workspace_name="my_workspace",
             name="test_file.txt",
-            content="test content",
             odata_filter="test",
             batch_size=100,
             timeout_s=100,

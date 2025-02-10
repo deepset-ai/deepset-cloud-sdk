@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
 
+import click
 import typer
 from tabulate import tabulate
 
@@ -38,11 +39,13 @@ def upload(  # pylint: disable=too-many-arguments
     show_progress: bool = True,
     recursive: bool = False,
     use_type: Optional[List[str]] = None,
+    enable_parallel_processing: bool = False,
+    safe_mode: bool = False,
 ) -> None:
     """Upload a folder to deepset Cloud.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped.
-    deepset Cloud supports csv, docx, html, json, md, txt, pdf, pptx, xlsx, xml.
+    deepset Cloud supports CSV, DOCX, HTML, JSON, MD, TXT, PDF, PPTX, XLSX, XML.
     :param api_key: deepset Cloud API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
@@ -55,7 +58,10 @@ def upload(  # pylint: disable=too-many-arguments
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
-    :param use_type: A comma-separated string of allowed file types to upload, defaults to ".txt, .pdf".
+    :param use_type: A comma-separated string of allowed file types to upload.
+    :param enable_parallel_processing: If `True`, deepset Cloud ingests the files in parallel.
+        Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
+    :param safe_mode: If `True`, disables ingesting files in parallel.
     """
     use_type = use_type or [".txt", ".pdf"]
     sync_upload(
@@ -69,6 +75,8 @@ def upload(  # pylint: disable=too-many-arguments
         show_progress=show_progress,
         recursive=recursive,
         desired_file_types=use_type,
+        enable_parallel_processing=enable_parallel_processing,
+        safe_mode=safe_mode,
     )
 
 
@@ -77,38 +85,38 @@ def download(  # pylint: disable=too-many-arguments
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     file_dir: Optional[str] = None,
     name: Optional[str] = None,
-    content: Optional[str] = None,
     odata_filter: Optional[str] = None,
     include_meta: bool = True,
     batch_size: int = 50,
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
     show_progress: bool = True,
+    safe_mode: bool = False,
 ) -> None:
     """Download files from deepset Cloud to your local machine.
 
     :param workspace_name: Name of the workspace to download the files from. Uses the workspace from the .ENV file by default.
     :param file_dir: Path to the folder where you want to download the files.
     :param name: Name of the file to odata_filter for.
-    :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
     :param include_meta: Downloads metadata of the files.
     :param batch_size: Batch size for file listing.
     :param api_key: API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param show_progress: Shows the upload progress.
+    :param safe_mode: If `True`, disables ingesting files in parallel.
     """
     sync_download(
         workspace_name=workspace_name,
         file_dir=file_dir,
         name=name,
-        content=content,
         odata_filter=odata_filter,
         include_meta=include_meta,
         batch_size=batch_size,
         api_key=api_key,
         api_url=api_url,
         show_progress=show_progress,
+        safe_mode=safe_mode,
     )
 
 
@@ -121,15 +129,25 @@ def login() -> None:
     Example:
     `deepset-cloud login`
 
-    This prompts you to provide your deepset Cloud API key and workspace name.
+    This prompts you to provide your deepset Cloud API key, workspace name, and environment.
     """
     typer.echo("Log in to deepset Cloud")
+
+    environment = typer.prompt(
+        "Choose environment",
+        type=click.Choice(["eu", "us", "custom"], case_sensitive=False),
+        default="eu",
+    )
+
+    if environment.lower() == "eu":
+        api_url = "https://api.cloud.deepset.ai/api/v1"
+    elif environment.lower() == "us":
+        api_url = "http://api.us.deepset.ai/api/v1"
+    else:
+        api_url = typer.prompt("Enter custom API URL")
     passed_api_key = typer.prompt("Your deepset Cloud API_KEY", hide_input=True)
     passed_default_workspace_name = typer.prompt("Your DEFAULT_WORKSPACE_NAME", default="default")
 
-    # connect to prod by default. You can change this behaviour by modifying the API_URL
-    # in the stored env file or by passing the API_URL as an argument to the CLI
-    api_url = "https://api.cloud.deepset.ai/api/v1"
     env_content = f"API_KEY={passed_api_key}\nAPI_URL={api_url}\nDEFAULT_WORKSPACE_NAME={passed_default_workspace_name}"
 
     os.makedirs(os.path.dirname(ENV_FILE_PATH), exist_ok=True)
@@ -159,7 +177,6 @@ def logout() -> None:
 def list_files(
     api_key: Optional[str] = None,
     api_url: Optional[str] = None,
-    content: Optional[str] = None,
     name: Optional[str] = None,
     odata_filter: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
@@ -172,7 +189,6 @@ def list_files(
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
-    :param content: Content of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
     :param batch_size: Batch size to use for the file list.
     :param timeout_s: The timeout for this request, in seconds.
@@ -192,9 +208,7 @@ def list_files(
             "created_at",
             "meta",
         ]  # Assuming the first row contains the headers
-        for files in sync_list_files(
-            api_key, api_url, workspace_name, name, content, odata_filter, batch_size, timeout_s
-        ):
+        for files in sync_list_files(api_key, api_url, workspace_name, name, odata_filter, batch_size, timeout_s):
             table = tabulate(files, headers, tablefmt="grid")  # type: ignore
             typer.echo(table)
             if len(files) > 0:
