@@ -69,7 +69,7 @@ class TestCLIMethods:
             timeout_s=None,
             show_progress=True,
             recursive=False,
-            desired_file_types=[".txt", ".pdf"],
+            desired_file_types=None,
             enable_parallel_processing=True,
             safe_mode=False,
         )
@@ -132,7 +132,7 @@ class TestCLIMethods:
             timeout_s=None,
             show_progress=True,
             recursive=False,
-            desired_file_types=[".txt", ".pdf"],
+            desired_file_types=None,
             enable_parallel_processing=False,
             safe_mode=True,
         )

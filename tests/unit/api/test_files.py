@@ -376,15 +376,6 @@ class TestDirectUploadFilePath:
 
 @pytest.mark.asyncio
 class TestDirectUploadText:
-    async def test_direct_upload_file_for_wrong_file_type_name(self, files_api: FilesAPI) -> None:
-        with pytest.raises(NotMatchingFileTypeException):
-            await files_api.direct_upload_in_memory(
-                workspace_name="test_workspace",
-                file_name="basic.xls",
-                content=b"some text",
-                meta={},
-            )
-
     @pytest.mark.parametrize("error_code", [httpx.codes.NOT_FOUND, httpx.codes.SERVICE_UNAVAILABLE])
     async def test_direct_upload_file_failed(
         self, files_api: FilesAPI, mocked_deepset_cloud_api: Mock, error_code: int

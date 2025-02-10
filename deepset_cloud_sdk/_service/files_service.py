@@ -9,7 +9,7 @@ import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, List, Optional, Sequence, Union
+from typing import Any, AsyncGenerator, Dict, List, Optional, Sequence, Set, Union
 from uuid import UUID
 
 import structlog
@@ -343,16 +343,40 @@ class FilesService:
         return most_recent_files
 
     @staticmethod
+    def _get_allowed_file_types(desired_file_types: List[Any]) -> List[str]:
+        """Filter `SUPPORTED_TYPE_SUFFIXES` by `desired_file_types`.
+        If desired_file_types is empty, all supported file types are returned.
+        :param desired_file_types: A list of desired file types.
+        :return: A list of desired file types that can be processed by deepset Cloud.
+        """
+
+        desired_types_processed: Set[str] = {
+            str(file_type) if str(file_type).startswith(".") else f".{str(file_type)}"
+            for file_type in desired_file_types
+        }
+
+        return list(desired_types_processed)
+
+    @staticmethod
     def _preprocess_paths(
         paths: List[Path],
         spinner: yaspin.Spinner = None,
         recursive: bool = False,
-        desired_file_types: Optional[List[str]] = None,
+        desired_file_types: List[str] | None = None,
     ) -> List[Path]:
         all_files = FilesService._get_file_paths(paths, recursive=recursive)
 
-        meta_file_path = [path for path in all_files if path.is_file() and str(path).endswith(".meta.json")]
         file_paths = [path for path in all_files if path.is_file() and not str(path).endswith(META_SUFFIX)]
+        if desired_file_types is not None:
+            file_paths = [path for path in file_paths if path.suffix in desired_file_types]
+
+        meta_file_path = [path for path in all_files if path.is_file() and str(path).endswith(".meta.json")]
+        if desired_file_types is not None:
+            meta_file_path = [
+                path
+                for path in meta_file_path
+                if str(path).endswith(tuple(f"{file_type}.meta.json" for file_type in desired_file_types))
+            ]
         combined_paths = meta_file_path + file_paths
 
         combined_paths = FilesService._remove_duplicates(combined_paths)

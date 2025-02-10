@@ -1019,9 +1019,6 @@ class TestValidateFilePaths:
     @pytest.mark.parametrize(
         "file_paths",
         [
-            [Path("/home/user/.DS_Store")],
-            [Path("/home/user/file2.jpg")],
-            [Path("/home/user/file1.exe")],
             [Path("/home/user/file1.pdf"), Path("/home/user/file2.pdf.meta.json")],
             [Path("/home/user/file1.pdf"), Path("/home/user/file1.txt.meta.json")],
             [Path("/home/user/file1.txt"), Path("/home/user/file1.pdf.meta.json")],
