@@ -343,8 +343,9 @@ class FilesService:
         return most_recent_files
 
     @staticmethod
-    def _get_allowed_file_types(desired_file_types: List[Any]) -> List[str]:
+    def _get_allowed_file_types(desired_file_types: List[str]) -> List[str]:
         """Filter `SUPPORTED_TYPE_SUFFIXES` by `desired_file_types`.
+
         If desired_file_types is empty, all supported file types are returned.
 
         :param desired_file_types: A list of desired file types.
