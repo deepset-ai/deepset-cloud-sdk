@@ -63,7 +63,6 @@ def upload(  # pylint: disable=too-many-arguments
         Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
     :param safe_mode: If `True`, disables ingesting files in parallel.
     """
-    use_type = use_type or [".txt", ".pdf"]
     sync_upload(
         paths=paths,
         api_key=api_key,

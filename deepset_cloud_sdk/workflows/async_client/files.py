@@ -20,7 +20,6 @@ from deepset_cloud_sdk._api.upload_sessions import (
 )
 from deepset_cloud_sdk._s3.upload import S3UploadSummary
 from deepset_cloud_sdk._service.files_service import FilesService
-from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 
 
@@ -147,13 +146,12 @@ async def upload(
     :param timeout_s: Timeout in seconds for the upload.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subdirectories as well.
-    :param desired_file_types: A list of allowed file types to upload, defaults to
-    `[".txt", ".pdf", ".docx", ".pptx", ".xlsx", ".xml", ".csv", ".html", ".md", ".json"]`
+    :param desired_file_types: A list of allowed file types to upload. If not provided, all
+        files are uploaded.
     :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
         Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
     :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
     """
-    desired_file_types = desired_file_types or SUPPORTED_TYPE_SUFFIXES
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url, safe_mode=safe_mode)) as file_service:
         return await file_service.upload(
             workspace_name=workspace_name,
