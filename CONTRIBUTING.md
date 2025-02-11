@@ -6,7 +6,7 @@
 
 Install hatch
 ```
-pip install hatch=="v1.7.0"
+pip install hatch=="v1.14.0"
 ```
 
 ### Install pre-commit hooks
