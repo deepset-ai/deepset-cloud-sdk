@@ -18,7 +18,7 @@ permissions:
   id-token: write
 
 env:
-  HATCH_VERSION: "v1.7.0" # keep in sync with continuous-integration.yml
+  HATCH_VERSION: "v1.14.0" # keep in sync with continuous-integration.yml
 
 jobs:
   build-and-deploy:
