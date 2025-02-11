@@ -9,11 +9,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
-from deepset_cloud_sdk._service.files_service import (
-    META_SUFFIX,
-    SUPPORTED_TYPE_SUFFIXES,
-    FilesService,
-)
+from deepset_cloud_sdk._service.files_service import META_SUFFIX, FilesService
 from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 
 
@@ -68,7 +64,7 @@ class TestUploadsFileService:
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
-                desired_file_types=SUPPORTED_TYPE_SUFFIXES,
+                desired_file_types=[".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"],
             )
             assert result.total_files == 10
             assert result.successful_upload_count == 10
@@ -159,7 +155,7 @@ class TestUploadsFileService:
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
-                desired_file_types=SUPPORTED_TYPE_SUFFIXES,
+                desired_file_types=[".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"],
             )
             assert result.total_files == 22
             assert result.successful_upload_count == 22

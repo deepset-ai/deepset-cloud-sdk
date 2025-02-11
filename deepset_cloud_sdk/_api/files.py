@@ -18,7 +18,6 @@ from httpx import codes
 
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
-from deepset_cloud_sdk._utils.constants import SUPPORTED_TYPE_SUFFIXES
 from deepset_cloud_sdk._utils.datetime import from_isoformat
 
 logger = structlog.get_logger(__name__)
@@ -225,12 +224,6 @@ class FilesAPI:
         FAIL - fails to upload the file with the same name.
         :return: ID of the uploaded file.
         """
-        file_name_suffix = Path(file_name).suffix
-        if file_name_suffix not in SUPPORTED_TYPE_SUFFIXES:
-            raise NotMatchingFileTypeException(
-                f"File name {file_name} is not a supported file type. Please use one of {'` '.join(SUPPORTED_TYPE_SUFFIXES)} for text uploads."
-            )
-
         response = await self._deepset_cloud_api.post(
             workspace_name,
             "files",
