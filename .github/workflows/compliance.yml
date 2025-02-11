@@ -24,7 +24,7 @@ jobs:
 
       - name: Install prod dependencies
         run: |
-          pip install hatch==v1.7.0
+          pip install hatch==v1.14.0
           hatch run tools:requirements
           pip install -r requirements.txt
 
