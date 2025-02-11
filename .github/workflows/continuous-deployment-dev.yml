@@ -10,7 +10,7 @@ on:
         description: "The API URL for the test run"
 
 env:
-  HATCH_VERSION: "v1.7.0" # keep in sync with deploy.yml
+  HATCH_VERSION: "v1.14.0" # keep in sync with deploy.yml
 
 jobs:
   tests:
