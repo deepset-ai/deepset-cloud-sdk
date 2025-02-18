@@ -163,7 +163,7 @@ class TestDownloadFile:
                 assert file.read() == "some content"
 
             with Path.open(Path(tmp_dir + "/silly_things_1.txt.meta.json"), encoding="UTF-8") as file:
-                assert file.read() == '{"key": "value"}'
+                assert json.loads(file.read()) == {"key": "value"}
             assert mocked_deepset_cloud_api.get.call_count == 2
 
     async def test_download_with_metadata_file_not_found(
@@ -293,7 +293,7 @@ class TestDownloadFile:
                 assert _file.read() == "third content"
 
             with Path.open(Path(tmp_dir + "/silly_things_1_2.txt.meta.json")) as _file:
-                assert _file.read() == '{"key": "value"}'
+                assert json.loads(_file.read()) == {"key": "value"}
 
 
 @pytest.mark.asyncio
