@@ -15,7 +15,7 @@ from uuid import UUID
 import structlog
 from tqdm import tqdm
 from yaspin import yaspin
-from yaspin.spinners import Spinner
+from yaspin.spinners import Spinners
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
@@ -346,7 +346,7 @@ class FilesService:
     @staticmethod
     def _preprocess_paths(
         paths: List[Path],
-        spinner: Spinner = None,
+        spinner: Spinners = None,
         recursive: bool = False,
         desired_file_types: List[str] | None = None,
     ) -> List[Path]:
