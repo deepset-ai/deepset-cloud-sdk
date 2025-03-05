@@ -14,11 +14,7 @@ from deepset_cloud_sdk.models import DeepsetCloudFile, DeepsetCloudFileBytes
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "integration_config",
-    ["integration_config", "integration_config_safe_mode"],
-    indirect=True,
-)
+@pytest.mark.parametrize("integration_config", ["integration_config", "integration_config_safe_mode"], indirect=True)
 class TestUploadsFileService:
     async def test_direct_upload_path(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with FilesService.factory(integration_config) as file_service:
@@ -68,18 +64,7 @@ class TestUploadsFileService:
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
-                desired_file_types=[
-                    ".csv",
-                    ".docx",
-                    ".html",
-                    ".json",
-                    ".md",
-                    ".txt",
-                    ".pdf",
-                    ".pptx",
-                    ".xlsx",
-                    ".xml",
-                ],
+                desired_file_types=[".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"],
             )
             assert result.total_files == 10
             assert result.successful_upload_count == 10
@@ -111,10 +96,7 @@ class TestUploadsFileService:
                     ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
 
     async def test_async_upload(
-        self,
-        integration_config: CommonConfig,
-        workspace_name: str,
-        monkeypatch: MonkeyPatch,
+        self, integration_config: CommonConfig, workspace_name: str, monkeypatch: MonkeyPatch
     ) -> None:
         monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", 1)
         async with FilesService.factory(integration_config) as file_service:
@@ -158,10 +140,7 @@ class TestUploadsFileService:
                 ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
 
     async def test_async_upload_multiple_file_types(
-        self,
-        integration_config: CommonConfig,
-        workspace_name: str,
-        monkeypatch: MonkeyPatch,
+        self, integration_config: CommonConfig, workspace_name: str, monkeypatch: MonkeyPatch
     ) -> None:
         monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", 1)
         async with FilesService.factory(integration_config) as file_service:
@@ -176,18 +155,7 @@ class TestUploadsFileService:
                 blocking=True,
                 write_mode=WriteMode.KEEP,
                 timeout_s=timeout,
-                desired_file_types=[
-                    ".csv",
-                    ".docx",
-                    ".html",
-                    ".json",
-                    ".md",
-                    ".txt",
-                    ".pdf",
-                    ".pptx",
-                    ".xlsx",
-                    ".xml",
-                ],
+                desired_file_types=[".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"],
             )
             assert result.total_files == 22
             assert result.successful_upload_count == 22
@@ -227,16 +195,10 @@ class TestUploadsFileService:
 
         # Make sure that the metadata for File00.txt and file00.txt are mapped correctly
         File00_metadata = next((file.meta for file in uploaded_files if file.name == "File00.txt"), None)
-        assert File00_metadata == {
-            "file_name_duplicate_check": "File00.txt",
-            "source": "multiple file types",
-        }
+        assert File00_metadata == {"file_name_duplicate_check": "File00.txt", "source": "multiple file types"}
 
         file00_metadata = next((file.meta for file in uploaded_files if file.name == "file00.txt"), None)
-        assert file00_metadata == {
-            "file_name_duplicate_check": "file00.txt",
-            "source": "multiple file types",
-        }
+        assert file00_metadata == {"file_name_duplicate_check": "file00.txt", "source": "multiple file types"}
 
     async def test_upload_in_memory(self, integration_config: CommonConfig, workspace_name: str) -> None:
         with open(Path("./tests/test_data/multiple_file_types/file08.pdf"), "rb") as f:
@@ -264,10 +226,7 @@ class TestUploadsFileService:
             assert len(result.failed) == 0
 
     async def test_upload_in_memory_less_than_session_threshold(
-        self,
-        integration_config: CommonConfig,
-        workspace_name: str,
-        monkeypatch: MonkeyPatch,
+        self, integration_config: CommonConfig, workspace_name: str, monkeypatch: MonkeyPatch
     ) -> None:
         monkeypatch.setattr("deepset_cloud_sdk._service.files_service.DIRECT_UPLOAD_THRESHOLD", -1)
 
@@ -314,11 +273,7 @@ class TestListFilesService:
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "integration_config",
-    ["integration_config", "integration_config_safe_mode"],
-    indirect=True,
-)
+@pytest.mark.parametrize("integration_config", ["integration_config", "integration_config_safe_mode"], indirect=True)
 class TestDownloadFilesService:
     async def test_download_files(self, integration_config: CommonConfig, workspace_name: str) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:

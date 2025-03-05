@@ -79,9 +79,7 @@ class TestCloseUploadSessions:
 
         await upload_session_client.close(workspace_name="sdk_read", session_id=session_id)
         mocked_deepset_cloud_api.put.assert_called_once_with(
-            workspace_name="sdk_read",
-            endpoint=f"upload_sessions/{session_id}",
-            data={"status": "CLOSED"},
+            workspace_name="sdk_read", endpoint=f"upload_sessions/{session_id}", data={"status": "CLOSED"}
         )
 
     async def test_close_session_failed(
@@ -125,10 +123,7 @@ class TestStatusUploadSessions:
 
     @pytest.mark.parametrize("first_status_code", [codes.BAD_GATEWAY, codes.INTERNAL_SERVER_ERROR])
     async def test_get_session_status_with_retry(
-        self,
-        upload_session_client: UploadSessionsAPI,
-        mocked_deepset_cloud_api: Mock,
-        first_status_code: int,
+        self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock, first_status_code: int
     ) -> None:
         session_id = uuid4()
         expires_at = datetime.datetime.now()
@@ -253,10 +248,7 @@ class TestListUploadSessions:
 
     @pytest.mark.parametrize("first_status_code", [codes.BAD_GATEWAY, codes.INTERNAL_SERVER_ERROR])
     async def test_list_sessions_with_retry(
-        self,
-        upload_session_client: UploadSessionsAPI,
-        mocked_deepset_cloud_api: Mock,
-        first_status_code: int,
+        self, upload_session_client: UploadSessionsAPI, mocked_deepset_cloud_api: Mock, first_status_code: int
     ) -> None:
         session_id = uuid4()
         timestamp = datetime.datetime.now()
