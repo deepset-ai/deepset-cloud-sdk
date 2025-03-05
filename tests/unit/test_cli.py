@@ -428,7 +428,9 @@ class TestCLIUtils:
         fake_env_path = Path("./tests/tmp/.env")
         with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
             result = runner.invoke(
-                cli_app, ["login"], input="custom\nhttps://custom-api.example.com\ntest_api_key\nmy_workspace\n"
+                cli_app,
+                ["login"],
+                input="custom\nhttps://custom-api.example.com\ntest_api_key\nmy_workspace\n",
             )
             assert result.exit_code == 0
             assert "created successfully" in result.stdout

@@ -52,6 +52,17 @@ tests-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml -
 tests-unit = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
 tests-integration = "pytest tests/integration"
 
+
+format = "ruff format --check src tests"
+format-fix = "ruff format src tests"
+freeze = "pip freeze"
+lint = "ruff check ."
+lint-ci = "ruff check --format=github ."
+lint-fix = "ruff check --fix ."
+hooks = "pre-commit install"
+docstrings = "pydocstyle src"
+all = "mypy src && ruff format src && ruff check --fix ."
+
 [[tool.hatch.envs.all.matrix]]
 python = ["3.10"]
 

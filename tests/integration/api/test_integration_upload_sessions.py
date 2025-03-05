@@ -11,7 +11,11 @@ from deepset_cloud_sdk._api.upload_sessions import (
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("integration_config", ["integration_config", "integration_config_safe_mode"], indirect=True)
+@pytest.mark.parametrize(
+    "integration_config",
+    ["integration_config", "integration_config_safe_mode"],
+    indirect=True,
+)
 class TestCreateUploadSessions:
     async def test_create_and_close_upload_session(self, integration_config: CommonConfig, workspace_name: str) -> None:
         async with DeepsetCloudAPI.factory(integration_config) as deepset_cloud_api:

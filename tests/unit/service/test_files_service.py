@@ -71,7 +71,9 @@ class TestFilePathsUpload:
         assert result == upload_summary
 
         mocked_upload_sessions_api.create.assert_called_once_with(
-            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE, enable_parallel_processing=False
+            workspace_name="test_workspace",
+            write_mode=WriteMode.OVERWRITE,
+            enable_parallel_processing=False,
         )
 
         mocked_s3.upload_files_from_paths.assert_called_once_with(
@@ -79,10 +81,12 @@ class TestFilePathsUpload:
         )
 
         mocked_upload_sessions_api.close.assert_called_once_with(
-            workspace_name="test_workspace", session_id=upload_session_response.session_id
+            workspace_name="test_workspace",
+            session_id=upload_session_response.session_id,
         )
         mocked_upload_sessions_api.status.assert_called_once_with(
-            workspace_name="test_workspace", session_id=upload_session_response.session_id
+            workspace_name="test_workspace",
+            session_id=upload_session_response.session_id,
         )
 
     async def test_upload_file_paths_with_timeout(
@@ -106,7 +110,10 @@ class TestFilePathsUpload:
         )
         with pytest.raises(TimeoutError):
             await file_service.upload_file_paths(
-                workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=0
+                workspace_name="test_workspace",
+                file_paths=[Path("./tmp/my-file")],
+                blocking=True,
+                timeout_s=0,
             )
 
     async def test_upload_file_with_direct_upload_path(
@@ -209,7 +216,18 @@ class TestUpload:
             paths=[Path("./tests/data/upload_folder")],
             blocking=True,
             timeout_s=300,
-            desired_file_types=[".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"],
+            desired_file_types=[
+                ".csv",
+                ".docx",
+                ".html",
+                ".json",
+                ".md",
+                ".txt",
+                ".pdf",
+                ".pptx",
+                ".xlsx",
+                ".xml",
+            ],
         )
         assert mocked_upload_file_paths.called
         assert "test_workspace" == mocked_upload_file_paths.call_args[1]["workspace_name"]
@@ -248,9 +266,23 @@ class TestUpload:
                 paths=[Path("./tests/data/upload_folder")],
                 blocking=True,
                 timeout_s=300,
-                desired_file_types=[".csv", ".docx", ".html", ".json", ".md", ".txt", ".pdf", ".pptx", ".xlsx", ".xml"],
+                desired_file_types=[
+                    ".csv",
+                    ".docx",
+                    ".html",
+                    ".json",
+                    ".md",
+                    ".txt",
+                    ".pdf",
+                    ".pptx",
+                    ".xlsx",
+                    ".xml",
+                ],
             )
-            skip_log_line = next((log for log in cap_logs if log.get("event", None) == "Skipping file"), None)
+            skip_log_line = next(
+                (log for log in cap_logs if log.get("event", None) == "Skipping file"),
+                None,
+            )
             assert skip_log_line is not None
             assert str(skip_log_line["file_path"]).endswith(".jpg")
 
@@ -279,7 +311,12 @@ class TestUpload:
                 ],  # exclude txt/pdf/jpg
             )
             skipped = sorted([log["file_path"].name for log in cap_logs if log["event"] == "Skipping file"])
-            assert skipped == ["example.jpg", "example.pdf", "example.txt", "example.txt.meta.json"]
+            assert skipped == [
+                "example.jpg",
+                "example.pdf",
+                "example.txt",
+                "example.txt.meta.json",
+            ]
 
     async def test_upload_paths_nested(
         self,
@@ -371,7 +408,9 @@ class TestUploadTexts:
         assert result == upload_summary
 
         mocked_upload_sessions_api.create.assert_called_once_with(
-            workspace_name="test_workspace", write_mode=WriteMode.OVERWRITE, enable_parallel_processing=False
+            workspace_name="test_workspace",
+            write_mode=WriteMode.OVERWRITE,
+            enable_parallel_processing=False,
         )
 
         mocked_s3.upload_in_memory.assert_called_once_with(
@@ -379,10 +418,12 @@ class TestUploadTexts:
         )
 
         mocked_upload_sessions_api.close.assert_called_once_with(
-            workspace_name="test_workspace", session_id=upload_session_response.session_id
+            workspace_name="test_workspace",
+            session_id=upload_session_response.session_id,
         )
         mocked_upload_sessions_api.status.assert_called_once_with(
-            workspace_name="test_workspace", session_id=upload_session_response.session_id
+            workspace_name="test_workspace",
+            session_id=upload_session_response.session_id,
         )
 
     async def test_upload_in_memory_via_sync_upload(
@@ -453,7 +494,10 @@ async def test_upload_file_paths_with_timeout(
     )
     with pytest.raises(TimeoutError):
         await file_service.upload_file_paths(
-            workspace_name="test_workspace", file_paths=[Path("./tmp/my-file")], blocking=True, timeout_s=0
+            workspace_name="test_workspace",
+            file_paths=[Path("./tmp/my-file")],
+            blocking=True,
+            timeout_s=0,
         )
 
 
@@ -987,7 +1031,8 @@ class TestGetUploadSessionStatusService:
         monkeypatch.setattr(file_service._upload_sessions, "status", mocked_list_paginated)
 
         upload_session_status = await file_service.get_upload_session(
-            workspace_name="test_workspace", session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10")
+            workspace_name="test_workspace",
+            session_id=UUID("cd16435f-f6eb-423f-bf6f-994dc8a36a10"),
         )
         assert upload_session_status == returned_upload_session_status
 
@@ -1013,7 +1058,11 @@ class TestValidateFilePaths:
     )
     async def test_validate_file_paths(self, file_paths: List[Path], monkeypatch: MonkeyPatch) -> None:
         # skip _remove_duplicates since we want to acoid accessing file system
-        monkeypatch.setattr(FilesService, FilesService._remove_duplicates.__name__, Mock(return_value=file_paths))
+        monkeypatch.setattr(
+            FilesService,
+            FilesService._remove_duplicates.__name__,
+            Mock(return_value=file_paths),
+        )
         FilesService._validate_file_paths(file_paths)
 
     @pytest.mark.parametrize(
@@ -1028,7 +1077,11 @@ class TestValidateFilePaths:
         self, file_paths: List[Path], monkeypatch: MonkeyPatch
     ) -> None:
         # skip _remove_duplicates since we want to acoid accessing file system
-        monkeypatch.setattr(FilesService, FilesService._remove_duplicates.__name__, Mock(return_value=file_paths))
+        monkeypatch.setattr(
+            FilesService,
+            FilesService._remove_duplicates.__name__,
+            Mock(return_value=file_paths),
+        )
         with pytest.raises(ValueError):
             FilesService._validate_file_paths(file_paths)
 
@@ -1083,7 +1136,8 @@ class TestRemoveDuplicates:
         with capture_logs() as cap_logs:
             assert FilesService._remove_duplicates(file_paths) == expected
             next(
-                (log for log in cap_logs if "Multiple files with the same name found." in log.get("event", None)), None
+                (log for log in cap_logs if "Multiple files with the same name found." in log.get("event", None)),
+                None,
             )
 
 

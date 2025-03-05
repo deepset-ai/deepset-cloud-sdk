@@ -46,7 +46,11 @@ def test_upload_folder(async_upload_mock: AsyncMock) -> None:
 
 @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
 def test_upload_folder_safe_mode(async_upload_mock: AsyncMock) -> None:
-    upload(paths=[Path("./tests/data/upload_folder")], enable_parallel_processing=True, safe_mode=True)
+    upload(
+        paths=[Path("./tests/data/upload_folder")],
+        enable_parallel_processing=True,
+        safe_mode=True,
+    )
     async_upload_mock.assert_called_once_with(
         paths=[Path("./tests/data/upload_folder")],
         api_key=None,
@@ -122,7 +126,10 @@ def test_list_files() -> None:
             )
         ]
 
-    with patch("deepset_cloud_sdk.workflows.sync_client.files.async_list_files", new=mocked_async_list_files):
+    with patch(
+        "deepset_cloud_sdk.workflows.sync_client.files.async_list_files",
+        new=mocked_async_list_files,
+    ):
         returned_files = list(
             list_files(
                 workspace_name="my_workspace",
@@ -147,7 +154,10 @@ def test_list_files() -> None:
 
 def test_download_files() -> None:
     mocked_async_download = AsyncMock()
-    with patch("deepset_cloud_sdk.workflows.sync_client.files.async_download", new=mocked_async_download):
+    with patch(
+        "deepset_cloud_sdk.workflows.sync_client.files.async_download",
+        new=mocked_async_download,
+    ):
         download(
             workspace_name="my_workspace",
             name="test_file.txt",
@@ -190,7 +200,8 @@ def test_list_upload_sessions() -> None:
         ]
 
     with patch(
-        "deepset_cloud_sdk.workflows.sync_client.files.async_list_upload_sessions", new=mocked_async_upload_sessions
+        "deepset_cloud_sdk.workflows.sync_client.files.async_list_upload_sessions",
+        new=mocked_async_upload_sessions,
     ):
         returned_files = list(
             list_upload_sessions(
@@ -232,7 +243,8 @@ def test_get_upload_session() -> None:
         return existing_upload_session
 
     with patch(
-        "deepset_cloud_sdk.workflows.sync_client.files.async_get_upload_session", new=mocked_async_get_upload_session
+        "deepset_cloud_sdk.workflows.sync_client.files.async_get_upload_session",
+        new=mocked_async_get_upload_session,
     ):
         returned_upload_session = get_upload_session(
             workspace_name="my_workspace",

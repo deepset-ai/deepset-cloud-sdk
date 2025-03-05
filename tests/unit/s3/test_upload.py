@@ -20,7 +20,7 @@ class TestUploadsS3:
                 ("hello.txt", "hello.txt"),
                 # unprintable characters
                 (
-                    "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F",
+                    "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f",
                     "_" * 32,
                 ),
                 # additional special characters
@@ -152,7 +152,10 @@ class TestUploadsS3:
                 assert results.successful_upload_count == 0
                 assert results.failed_upload_count == 2
                 assert len(results.failed) == 2
-                assert [f.file_name for f in results.failed] == ["16675.txt", "16675.txt.meta.json"]
+                assert [f.file_name for f in results.failed] == [
+                    "16675.txt",
+                    "16675.txt.meta.json",
+                ]
                 assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
         async def test_upload_in_memory_http_error(self, upload_session_response: UploadSession) -> None:
@@ -208,7 +211,10 @@ class TestUploadsS3:
         @pytest.mark.parametrize("status", [503, 502, 500, 504, 408, 400])
         @patch("aiohttp.ClientSession")
         async def test_upload_file_retries_for_exception(
-            self, mock_session: Mock, upload_session_response: UploadSession, status: int
+            self,
+            mock_session: Mock,
+            upload_session_response: UploadSession,
+            status: int,
         ) -> None:
             exception = aiohttp.ClientResponseError(
                 request_info=Mock(), history=Mock(), status=status, message="reason"
@@ -224,7 +230,10 @@ class TestUploadsS3:
         @pytest.mark.parametrize("status", [422, 501])
         @patch("aiohttp.ClientSession")
         async def test_upload_file_does_not_retry_for_exception(
-            self, mock_session: Mock, upload_session_response: UploadSession, status: int
+            self,
+            mock_session: Mock,
+            upload_session_response: UploadSession,
+            status: int,
         ) -> None:
             exception = aiohttp.ClientResponseError(
                 request_info=Mock(), history=Mock(), status=status, message="reason"
@@ -240,7 +249,10 @@ class TestUploadsS3:
         @pytest.mark.parametrize("status", [422, 501])
         @patch("aiohttp.ClientSession")
         async def test_upload_file_does_not_retry_for_exception_failing_json(
-            self, mock_session: Mock, upload_session_response: UploadSession, status: int
+            self,
+            mock_session: Mock,
+            upload_session_response: UploadSession,
+            status: int,
         ) -> None:
             exception = aiohttp.ClientResponseError(
                 request_info=Mock(), history=Mock(), status=status, message="reason"

@@ -33,11 +33,15 @@ class TestUtilitiesForDeepsetCloudAPI:
 
 @pytest.mark.asyncio
 class TestCommonConfig:
-    async def test_common_config_raises_exception_if_no_api_key_is_defined(self) -> None:
+    async def test_common_config_raises_exception_if_no_api_key_is_defined(
+        self,
+    ) -> None:
         with pytest.raises(AssertionError):
             CommonConfig(api_key="", api_url="https://fake.dc.api")
 
-    async def test_common_config_raises_exception_if_no_api_url_is_defined(self) -> None:
+    async def test_common_config_raises_exception_if_no_api_url_is_defined(
+        self,
+    ) -> None:
         with pytest.raises(AssertionError):
             CommonConfig(api_key="your-key", api_url="")
 
@@ -48,7 +52,10 @@ class TestCommonConfig:
 @pytest.mark.asyncio
 class TestCRUDForDeepsetCloudAPI:
     async def test_get(
-        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+        self,
+        deepset_cloud_api: DeepsetCloudAPI,
+        unit_config: CommonConfig,
+        mocked_client: Mock,
     ) -> None:
         mocked_client.get.return_value = httpx.Response(status_code=codes.OK, json={"test": "test"})
 
@@ -67,7 +74,10 @@ class TestCRUDForDeepsetCloudAPI:
         )
 
     async def test_get_retry(
-        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+        self,
+        deepset_cloud_api: DeepsetCloudAPI,
+        unit_config: CommonConfig,
+        mocked_client: Mock,
     ) -> None:
         mocked_client.get.side_effect = [
             httpx.ReadTimeout(message="read timeout"),
@@ -92,7 +102,10 @@ class TestCRUDForDeepsetCloudAPI:
         )
 
     async def test_get_with_not_covered_retry_exception(
-        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+        self,
+        deepset_cloud_api: DeepsetCloudAPI,
+        unit_config: CommonConfig,
+        mocked_client: Mock,
     ) -> None:
         class CustomException(Exception):
             pass
@@ -101,10 +114,18 @@ class TestCRUDForDeepsetCloudAPI:
             CustomException(),
         ]
         with pytest.raises(CustomException):
-            await deepset_cloud_api.get("default", "endpoint", params={"param_key": "param_value"}, timeout_s=123)
+            await deepset_cloud_api.get(
+                "default",
+                "endpoint",
+                params={"param_key": "param_value"},
+                timeout_s=123,
+            )
 
     async def test_get_retry_with_exception(
-        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+        self,
+        deepset_cloud_api: DeepsetCloudAPI,
+        unit_config: CommonConfig,
+        mocked_client: Mock,
     ) -> None:
         mocked_client.get.side_effect = [
             httpx.ReadTimeout(message="read timeout"),
@@ -112,10 +133,18 @@ class TestCRUDForDeepsetCloudAPI:
             httpx.RequestError(message="read error"),
         ]
         with pytest.raises(httpx.RequestError):
-            await deepset_cloud_api.get("default", "endpoint", params={"param_key": "param_value"}, timeout_s=123)
+            await deepset_cloud_api.get(
+                "default",
+                "endpoint",
+                params={"param_key": "param_value"},
+                timeout_s=123,
+            )
 
     async def test_post(
-        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+        self,
+        deepset_cloud_api: DeepsetCloudAPI,
+        unit_config: CommonConfig,
+        mocked_client: Mock,
     ) -> None:
         mocked_client.post.return_value = httpx.Response(status_code=codes.OK, json={"test": "test"})
 
@@ -145,7 +174,10 @@ class TestCRUDForDeepsetCloudAPI:
         )
 
     async def test_delete(
-        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+        self,
+        deepset_cloud_api: DeepsetCloudAPI,
+        unit_config: CommonConfig,
+        mocked_client: Mock,
     ) -> None:
         mocked_client.delete.return_value = httpx.Response(status_code=codes.OK, json={"test": "test"})
 
@@ -166,7 +198,10 @@ class TestCRUDForDeepsetCloudAPI:
         )
 
     async def test_put(
-        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+        self,
+        deepset_cloud_api: DeepsetCloudAPI,
+        unit_config: CommonConfig,
+        mocked_client: Mock,
     ) -> None:
         mocked_client.put.return_value = httpx.Response(status_code=codes.OK, json={"test": "test"})
 
