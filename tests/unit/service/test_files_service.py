@@ -75,7 +75,7 @@ class TestFilePathsUpload:
         )
 
         mocked_s3.upload_files_from_paths.assert_called_once_with(
-            upload_session=upload_session_response, file_paths=[Path("./tmp/my-file")]
+            upload_session=upload_session_response, file_paths=[Path("./tmp/my-file")], show_progress=True
         )
 
         mocked_upload_sessions_api.close.assert_called_once_with(
