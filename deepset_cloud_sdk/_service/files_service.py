@@ -249,7 +249,7 @@ class FilesService:
             # upload file paths to session
 
             upload_summary = await self._s3.upload_files_from_paths(
-                upload_session=upload_session, file_paths=file_paths, show_progress=show_progress
+                upload_session=upload_session, file_paths=file_paths
             )
             logger.info(
                 "Summary of S3 Uploads",
