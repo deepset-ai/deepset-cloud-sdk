@@ -51,6 +51,7 @@ class UploadSessionStatusEnum(str, enum.Enum):
 
     OPEN = "OPEN"
     CLOSED = "CLOSED"
+    EXPIRED = "EXPIRED"
 
 
 @dataclass
