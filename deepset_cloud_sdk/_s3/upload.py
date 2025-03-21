@@ -6,7 +6,8 @@ import re
 from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Coroutine, List, Optional, Sequence, Union
+from types import TracebackType
+from typing import Any, Coroutine, List, Optional, Sequence, Type, Union
 
 import aiofiles
 import aiohttp
@@ -85,6 +86,19 @@ class S3:
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
         self.limiter = Limiter(rate_limit, raise_when_fail=False, max_delay=Duration.SECOND * 1)
         self.max_attempts = max_attempts
+
+    async def __aenter__(self) -> "S3":
+        """Enter the context manager."""
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_value: Optional[BaseException] = None,
+        exc_traceback: Optional[TracebackType] = None,
+    ) -> None:
+        """Exit the context manager."""
+        await self.connector.close()
 
     async def _upload_file_with_retries(
         self,

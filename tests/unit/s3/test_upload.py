@@ -38,79 +38,47 @@ class TestUploadsS3:
         async def test_upload_in_memory_with_progress(
             self, tqdm_gather: Mock, post: Mock, upload_session_response: UploadSession
         ) -> None:
-            s3 = S3()
-            files = [
-                DeepsetCloudFile("one.txt", "one"),
-                DeepsetCloudFile("two.txt", "two"),
-                DeepsetCloudFile("three.txt", "three"),
-            ]
-            await s3.upload_in_memory(upload_session=upload_session_response, files=files, show_progress=True)
+            async with S3() as s3:
+                files = [
+                    DeepsetCloudFile("one.txt", "one"),
+                    DeepsetCloudFile("two.txt", "two"),
+                    DeepsetCloudFile("three.txt", "three"),
+                ]
+                await s3.upload_in_memory(upload_session=upload_session_response, files=files, show_progress=True)
 
-            assert tqdm_gather.call_count == 1
+                assert tqdm_gather.call_count == 1
 
         async def test_upload_in_memory_with_progress_check_http_calls(
             self, post: Mock, upload_session_response: UploadSession
         ) -> None:
-            s3 = S3()
-            files = [
-                DeepsetCloudFile("one.txt", "one"),
-                DeepsetCloudFile("two.txt", "two"),
-                DeepsetCloudFile("three.txt", "three"),
-            ]
-            await s3.upload_in_memory(upload_session=upload_session_response, files=files, show_progress=True)
+            async with S3() as s3:
+                files = [
+                    DeepsetCloudFile("one.txt", "one"),
+                    DeepsetCloudFile("two.txt", "two"),
+                    DeepsetCloudFile("three.txt", "three"),
+                ]
+                await s3.upload_in_memory(upload_session=upload_session_response, files=files, show_progress=True)
 
-            assert post.call_count == 3
+                assert post.call_count == 3
 
         @patch.object(tqdm, "gather")
         async def test_upload_in_memory_without_progress(
             self, tqdm_gather: Mock, post: Mock, upload_session_response: UploadSession
         ) -> None:
-            s3 = S3()
-            files = [
-                DeepsetCloudFile("one.txt", "one"),
-                DeepsetCloudFile("two.txt", "two"),
-                DeepsetCloudFile("three.txt", "three"),
-            ]
-            await s3.upload_in_memory(upload_session=upload_session_response, files=files, show_progress=False)
+            async with S3() as s3:
+                files = [
+                    DeepsetCloudFile("one.txt", "one"),
+                    DeepsetCloudFile("two.txt", "two"),
+                    DeepsetCloudFile("three.txt", "three"),
+                ]
+                await s3.upload_in_memory(upload_session=upload_session_response, files=files, show_progress=False)
 
-            assert tqdm_gather.call_count == 0
+                assert tqdm_gather.call_count == 0
 
-            assert post.call_count == 3
+                assert post.call_count == 3
 
         async def test_upload_files_without_progress(self, post: Mock, upload_session_response: UploadSession) -> None:
-            s3 = S3()
-
-            files = [
-                Path("./tests/test_data/msmarco.10/16675.txt"),
-                Path("./tests/test_data/msmarco.10/16675.txt.meta.json"),
-                Path("./tests/test_data/msmarco.10/22297.txt"),
-                Path("./tests/test_data/msmarco.10/22297.txt.meta.json"),
-                Path("./tests/test_data/msmarco.10/35887.txt"),
-                Path("./tests/test_data/msmarco.10/35887.txt.meta.json"),
-            ]
-
-            results = await s3.upload_files_from_paths(upload_session_response, files)
-            assert results.total_files == 6
-            assert results.successful_upload_count == 6
-            assert results.failed_upload_count == 0
-            assert len(results.failed) == 0
-
-        async def test_upload_rate(self, post: Mock, upload_session_response: UploadSession) -> None:
-            rate = Rate(3000, Duration.SECOND)
-            s3 = S3(rate_limit=rate)
-            number_of_files_to_upload = 9000
-            files = [DeepsetCloudFile(name=f"{i}.txt", text=f"{i}") for i in range(number_of_files_to_upload)]
-            start = time.monotonic()
-            await s3.upload_in_memory(upload_session_response, files)
-            time_taken = time.monotonic() - start
-            expected_time_taken = number_of_files_to_upload / rate.limit
-            assert time_taken == pytest.approx(expected_time_taken, 1)
-
-        async def test_upload_files_from_path_http_error(self, upload_session_response: UploadSession) -> None:
-            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=503)
-            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
-                s3 = S3()
-
+            async with S3() as s3:
                 files = [
                     Path("./tests/test_data/msmarco.10/16675.txt"),
                     Path("./tests/test_data/msmarco.10/16675.txt.meta.json"),
@@ -122,88 +90,115 @@ class TestUploadsS3:
 
                 results = await s3.upload_files_from_paths(upload_session_response, files)
                 assert results.total_files == 6
-                assert results.successful_upload_count == 0
-                assert results.failed_upload_count == 6
-                assert len(results.failed) == 6
-                assert [f.file_name for f in results.failed] == [
-                    "16675.txt",
-                    "16675.txt.meta.json",
-                    "22297.txt",
-                    "22297.txt.meta.json",
-                    "35887.txt",
-                    "35887.txt.meta.json",
-                ]
-                assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
+                assert results.successful_upload_count == 6
+                assert results.failed_upload_count == 0
+                assert len(results.failed) == 0
+
+        async def test_upload_rate(self, post: Mock, upload_session_response: UploadSession) -> None:
+            rate = Rate(3000, Duration.SECOND)
+            async with S3(rate_limit=rate) as s3:
+                number_of_files_to_upload = 9000
+                files = [DeepsetCloudFile(name=f"{i}.txt", text=f"{i}") for i in range(number_of_files_to_upload)]
+                start = time.monotonic()
+                await s3.upload_in_memory(upload_session_response, files)
+                time_taken = time.monotonic() - start
+                expected_time_taken = number_of_files_to_upload / rate.limit
+                assert time_taken == pytest.approx(expected_time_taken, 1)
+
+        async def test_upload_files_from_path_http_error(self, upload_session_response: UploadSession) -> None:
+            exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=503)
+            with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
+                async with S3() as s3:
+                    files = [
+                        Path("./tests/test_data/msmarco.10/16675.txt"),
+                        Path("./tests/test_data/msmarco.10/16675.txt.meta.json"),
+                        Path("./tests/test_data/msmarco.10/22297.txt"),
+                        Path("./tests/test_data/msmarco.10/22297.txt.meta.json"),
+                        Path("./tests/test_data/msmarco.10/35887.txt"),
+                        Path("./tests/test_data/msmarco.10/35887.txt.meta.json"),
+                    ]
+
+                    results = await s3.upload_files_from_paths(upload_session_response, files)
+                    assert results.total_files == 6
+                    assert results.successful_upload_count == 0
+                    assert results.failed_upload_count == 6
+                    assert len(results.failed) == 6
+                    assert [f.file_name for f in results.failed] == [
+                        "16675.txt",
+                        "16675.txt.meta.json",
+                        "22297.txt",
+                        "22297.txt.meta.json",
+                        "35887.txt",
+                        "35887.txt.meta.json",
+                    ]
+                    assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
         async def test_upload_files_from_path_with_client_disconnect_error(
             self, upload_session_response: UploadSession
         ) -> None:
             exception = aiohttp.ServerDisconnectedError()
             with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
-                s3 = S3()
+                async with S3() as s3:
+                    files = [
+                        Path("./tests/test_data/msmarco.10/16675.txt"),
+                        Path("./tests/test_data/msmarco.10/16675.txt.meta.json"),
+                    ]
 
-                files = [
-                    Path("./tests/test_data/msmarco.10/16675.txt"),
-                    Path("./tests/test_data/msmarco.10/16675.txt.meta.json"),
-                ]
-
-                results = await s3.upload_files_from_paths(upload_session_response, files)
-                assert results.total_files == 2
-                assert results.successful_upload_count == 0
-                assert results.failed_upload_count == 2
-                assert len(results.failed) == 2
-                assert [f.file_name for f in results.failed] == ["16675.txt", "16675.txt.meta.json"]
-                assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
+                    results = await s3.upload_files_from_paths(upload_session_response, files)
+                    assert results.total_files == 2
+                    assert results.successful_upload_count == 0
+                    assert results.failed_upload_count == 2
+                    assert len(results.failed) == 2
+                    assert [f.file_name for f in results.failed] == ["16675.txt", "16675.txt.meta.json"]
+                    assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
         async def test_upload_in_memory_http_error(self, upload_session_response: UploadSession) -> None:
             exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=503)
             with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
-                s3 = S3()
+                async with S3() as s3:
+                    files = [
+                        DeepsetCloudFile(name="one.txt", text="1"),
+                        DeepsetCloudFile(name="two.txt", text="2"),
+                        DeepsetCloudFile(name="three.txt", text="3"),
+                    ]
 
-                files = [
-                    DeepsetCloudFile(name="one.txt", text="1"),
-                    DeepsetCloudFile(name="two.txt", text="2"),
-                    DeepsetCloudFile(name="three.txt", text="3"),
-                ]
+                    results = await s3.upload_in_memory(upload_session_response, files)
+                    assert results.total_files == 3
+                    assert results.successful_upload_count == 0
+                    assert results.failed_upload_count == 3
+                    assert len(results.failed) == 3
 
-                results = await s3.upload_in_memory(upload_session_response, files)
-                assert results.total_files == 3
-                assert results.successful_upload_count == 0
-                assert results.failed_upload_count == 3
-                assert len(results.failed) == 3
-
-                assert [f.file_name for f in results.failed] == [
-                    "one.txt",
-                    "two.txt",
-                    "three.txt",
-                ]
-                assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
+                    assert [f.file_name for f in results.failed] == [
+                        "one.txt",
+                        "two.txt",
+                        "three.txt",
+                    ]
+                    assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
         async def test_upload_in_memory_with_metadata_http_error(self, upload_session_response: UploadSession) -> None:
             exception = aiohttp.ClientResponseError(request_info=Mock(), history=Mock(), status=503)
             with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
-                s3 = S3()
+                async with S3() as s3:
+                    files = [
+                        DeepsetCloudFile(name="one.txt", text="1", meta={"something": 1}),
+                        DeepsetCloudFile(name="two.txt", text="2", meta={"something": 2}),
+                        DeepsetCloudFile(name="three.txt", text="3", meta={"something": 3}),
+                    ]
 
-                files = [
-                    DeepsetCloudFile(name="one.txt", text="1", meta={"something": 1}),
-                    DeepsetCloudFile(name="two.txt", text="2", meta={"something": 2}),
-                    DeepsetCloudFile(name="three.txt", text="3", meta={"something": 3}),
-                ]
-
-                results = await s3.upload_in_memory(upload_session_response, files)
-                assert results.total_files == 6
-                assert results.successful_upload_count == 0
-                assert results.failed_upload_count == 6
-                assert len(results.failed) == 6
-                assert [f.file_name for f in results.failed] == [
-                    "one.txt",
-                    "one.txt.meta.json",
-                    "two.txt",
-                    "two.txt.meta.json",
-                    "three.txt",
-                    "three.txt.meta.json",
-                ]
-                assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
+                    results = await s3.upload_in_memory(upload_session_response, files)
+                    assert results.total_files == 6
+                    assert results.successful_upload_count == 0
+                    assert results.failed_upload_count == 6
+                    assert len(results.failed) == 6
+                    assert [f.file_name for f in results.failed] == [
+                        "one.txt",
+                        "one.txt.meta.json",
+                        "two.txt",
+                        "two.txt.meta.json",
+                        "three.txt",
+                        "three.txt.meta.json",
+                    ]
+                    assert all(isinstance(f.exception, RetryableHttpError) for f in results.failed)
 
         @pytest.mark.parametrize("status", [503, 502, 500, 504, 408, 400])
         @patch("aiohttp.ClientSession")
@@ -216,10 +211,9 @@ class TestUploadsS3:
             with patch.object(aiohttp.ClientSession, "post") as post_mock:
                 post_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock(side_effect=exception)
                 post_mock.return_value.__aenter__.return_value.text.return_value = "<xml>error</xml>"
-                s3 = S3()
-
-                with pytest.raises(RetryableHttpError, match="reason - <xml>error</xml>"):
-                    await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
+                async with S3() as s3:
+                    with pytest.raises(RetryableHttpError, match="reason - <xml>error</xml>"):
+                        await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
 
         @pytest.mark.parametrize("status", [422, 501])
         @patch("aiohttp.ClientSession")
@@ -232,10 +226,9 @@ class TestUploadsS3:
             with patch.object(aiohttp.ClientSession, "post") as post_mock:
                 post_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock(side_effect=exception)
                 post_mock.return_value.__aenter__.return_value.text.return_value = "<xml>error</xml>"
-                s3 = S3()
-
-                with pytest.raises(aiohttp.ClientResponseError, match="reason - <xml>error</xml>"):
-                    await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
+                async with S3() as s3:
+                    with pytest.raises(aiohttp.ClientResponseError, match="reason - <xml>error</xml>"):
+                        await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
 
         @pytest.mark.parametrize("status", [422, 501])
         @patch("aiohttp.ClientSession")
@@ -248,10 +241,9 @@ class TestUploadsS3:
             with patch.object(aiohttp.ClientSession, "post") as post_mock:
                 post_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock(side_effect=exception)
                 post_mock.return_value.__aenter__.return_value.text.side_effect = Exception("error")
-                s3 = S3()
-
-                with pytest.raises(aiohttp.ClientResponseError, match="reason"):
-                    await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
+                async with S3() as s3:
+                    with pytest.raises(aiohttp.ClientResponseError, match="reason"):
+                        await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
 
         @patch("aiohttp.ClientSession")
         async def test_upload_file_retries_for_client_connection_exception(
@@ -261,7 +253,6 @@ class TestUploadsS3:
         ) -> None:
             exception = aiohttp.ClientConnectionError()
             with patch.object(aiohttp.ClientSession, "post", side_effect=exception):
-                s3 = S3()
-
-                with pytest.raises(RetryableHttpError):
-                    await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
+                async with S3() as s3:
+                    with pytest.raises(RetryableHttpError):
+                        await s3._upload_file_with_retries("one.txt", upload_session_response, "123", mock_session)
