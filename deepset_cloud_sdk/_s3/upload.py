@@ -88,6 +88,7 @@ class S3:
         self.max_attempts = max_attempts
 
     async def __aenter__(self) -> "S3":
+        """Enter the context manager."""
         return self
 
     async def __aexit__(
@@ -96,6 +97,7 @@ class S3:
         exc_value: Optional[BaseException] = None,
         exc_traceback: Optional[TracebackType] = None,
     ) -> None:
+        """Exit the context manager."""
         await self.connector.close()
 
     async def _upload_file_with_retries(
