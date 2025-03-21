@@ -71,8 +71,8 @@ class FilesService:
             upload_sessions_api = UploadSessionsAPI(deepset_cloud_api)
             concurrency = SAFE_MODE_CONCURRENCY if config.safe_mode else DEFAULT_S3_CONCURRENCY
             max_attempts = SAFE_MODE_MAX_ATTEMPTS if config.safe_mode else DEFAULT_MAX_ATTEMPTS
-
-            yield cls(upload_sessions_api, files_api, S3(concurrency=concurrency, max_attempts=max_attempts))
+            async with S3(concurrency=concurrency, max_attempts=max_attempts) as s3:
+                yield cls(upload_sessions_api, files_api, s3)
 
     async def _wait_for_finished(
         self,
