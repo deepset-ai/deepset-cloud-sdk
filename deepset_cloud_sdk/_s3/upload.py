@@ -99,6 +99,8 @@ class S3:
     ) -> None:
         """Exit the context manager."""
         await self.connector.close()
+        for bucket in self.limiter.buckets():
+            self.limiter.dispose(bucket)
 
     async def _upload_file_with_retries(
         self,
