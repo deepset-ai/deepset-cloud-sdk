@@ -109,9 +109,15 @@ class S3:
     ) -> None:
         """Exit the context manager."""
         await self.connector.close()
-        if self.limiter and hasattr(self.limiter, "buckets"):
+
+        # Handle limiter cleanup based on available methods
+        # Support both older and newer versions of pyrate_limiter
+        # In version 3.7.0, the dispose method was added to the Limiter class
+        if hasattr(self.limiter, "buckets") and callable(self.limiter.buckets):
+            # Newer versions with buckets() method
             for bucket in self.limiter.buckets():
-                self.limiter.dispose(bucket)
+                if hasattr(self.limiter, "dispose") and callable(self.limiter.dispose):
+                    self.limiter.dispose(bucket)
 
     async def _upload_file_with_retries(
         self,
