@@ -114,11 +114,10 @@ class S3:
         # Support both older and newer versions of pyrate_limiter
         # In version 3.7.0, the dispose method was added to the Limiter class
         # See diff here: https://github.com/vutran1710/PyrateLimiter/compare/v3.6.2...master
-        if hasattr(self.limiter, "buckets") and callable(self.limiter.buckets):
-            # Newer versions with buckets() method
-            for bucket in self.limiter.buckets():
-                if hasattr(self.limiter, "dispose") and callable(self.limiter.dispose):
-                    self.limiter.dispose(bucket)
+        try:
+            list(map(self.limiter.dispose, self.limiter.buckets()))
+        except AttributeError:
+            pass
 
     async def _upload_file_with_retries(
         self,
