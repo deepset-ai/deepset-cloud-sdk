@@ -88,12 +88,10 @@ class PublishConfig(BaseModel):
     def validate_inputs(cls, v: PipelineInputs, values: ValidationInfo) -> PipelineInputs:
         """Validate inputs based on pipeline type."""
         pipeline_type = values.data.get("pipeline_type")
-        if pipeline_type == PipelineType.PIPELINE:
-            if not v.query:
+        if pipeline_type == PipelineType.PIPELINE and not v.query:
                 raise ValueError(PipelineServiceDocs.VALIDATION_ERROR_QUERY_INPUT_REQUIRED)
-        elif pipeline_type == PipelineType.INDEX:
-            if not v.files:
-                raise ValueError(PipelineServiceDocs.VALIDATION_ERROR_FILES_INPUT_REQUIRED)
+        elif pipeline_type == PipelineType.INDEX and not v.files:
+            raise ValueError(PipelineServiceDocs.VALIDATION_ERROR_FILES_INPUT_REQUIRED)
         return v
 
     @field_validator("outputs")
