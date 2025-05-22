@@ -60,7 +60,7 @@ python = ["3.10"]
 dependencies = []
 
 [tool.hatch.envs.test.scripts]
-unit-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit/workflows/pipeline_client/test_pipeline_service.py"
+unit-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
 integration = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/integration"
 
 [tool.hatch.envs.test]
@@ -69,7 +69,7 @@ dependencies = [
   "pytest-cov==4.0.0",
   "pytest==7.3.1",
   "pytest-asyncio==0.21.0",
-  "haystack-ai>=2.13.2",
+  "haystack-ai>=2.13.2",  # only for testing
 ]
 
 

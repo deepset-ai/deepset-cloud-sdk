@@ -192,7 +192,38 @@ class PipelineService:
 
 
 def enable_publish_to_deepset() -> None:
-    """Add the publish method to the Haystack Pipeline and AsyncPipeline classes if not already added."""
+    """Add the publish method to the Haystack Pipeline and AsyncPipeline classes if not already added.
+    
+    Usage:
+
+    Run `deepset-cloud login` and follow the instructions to authenticate.
+
+    ```python
+    from haystack import Pipeline
+    from deepset_cloud_sdk.workflows.pipeline_client import enable_publish_to_deepset
+    enable_publish_to_deepset()
+
+    # define your Haystack Pipeline
+    pipeline = Pipeline()
+
+    # add components to the pipeline and connect them...
+
+    # define your publish config
+    publish_config = PublishConfig(
+        name="my-pipeline",
+        pipeline_type=PipelineType.PIPELINE,
+        inputs=PipelineInputs(
+            query=["chat_summary_prompt_builder.question"]),
+            filters=["bm25_retriever.filters", "embedding_retriever.filters"]
+        ),
+        outputs=PipelineOutputs(
+            documents="ranker.documents",
+            answers="ranker.answers"
+        )
+    )
+    asyncio.run(pipeline.publish(pipeline=pipeline, config=publish_config))
+    ```
+    """
     try:
         from haystack import Pipeline as HaystackPipeline
         from haystack import AsyncPipeline as HaystackAsyncPipeline
