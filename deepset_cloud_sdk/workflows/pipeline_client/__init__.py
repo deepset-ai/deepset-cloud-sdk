@@ -14,4 +14,4 @@ __all__ = [
     "PipelineInputs",
     "PublishConfig",
     "enable_publish_to_deepset",
-] 
+]

@@ -5,7 +5,12 @@ from contextlib import asynccontextmanager
 import structlog
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._api.config import CommonConfig, DEFAULT_WORKSPACE_NAME
-from deepset_cloud_sdk.workflows.pipeline_client.models import PipelineOutputs, PipelineType, PipelineInputs, PublishConfig
+from deepset_cloud_sdk.workflows.pipeline_client.models import (
+    PipelineOutputs,
+    PipelineType,
+    PipelineInputs,
+    PublishConfig,
+)
 from deepset_cloud_sdk.workflows.user_facing_docs.pipeline_service_docs import PipelineServiceDocs
 
 logger = structlog.get_logger(__name__)
@@ -76,7 +81,7 @@ class PipelineService:
         """
         # Remove empty values
         fields = {k: v for k, v in fields.items() if v}
-        
+
         if not fields:
             return yaml_str
 
@@ -134,10 +139,7 @@ class PipelineService:
         response = await self.api.post(
             workspace_name=DEFAULT_WORKSPACE_NAME,
             endpoint="pipelines",
-            json={
-                "name": config.name,
-                "query_yaml": pipeline_yaml
-            }
+            json={"name": config.name, "query_yaml": pipeline_yaml},
         )
         response.raise_for_status()
         if response.status_code == 201:
@@ -153,20 +155,13 @@ class PipelineService:
         response = await self.api.post(
             workspace_name=DEFAULT_WORKSPACE_NAME,
             endpoint="indexes",
-            json={
-                "name": config.name,
-                "config_yaml": pipeline_yaml
-            }
+            json={"name": config.name, "config_yaml": pipeline_yaml},
         )
         response.raise_for_status()
         if response.status_code == 201:
             logger.info(f"Index {config.name} successfully created")
 
-    async def publish(
-        self, 
-        pipeline: PipelineProtocol,
-        config: PublishConfig
-    ) -> None:
+    async def publish(self, pipeline: PipelineProtocol, config: PublishConfig) -> None:
         """Publish a pipeline or indexto deepset AI platform.
 
         :param pipeline: The pipeline or index to publish. Must implement the PipelineProtocol
@@ -176,7 +171,7 @@ class PipelineService:
         :raises ValueError: If no workspace is configured
         """
         logger.info(f"Starting publish process for {config.pipeline_type.value}: {config.name}")
-        
+
         if not isinstance(pipeline, PipelineProtocol):
             raise TypeError(PipelineServiceDocs.INVALID_PIPELINE_TYPE_ERROR)
 
@@ -193,7 +188,7 @@ class PipelineService:
 
 def enable_publish_to_deepset() -> None:
     """Add the publish method to the Haystack Pipeline and AsyncPipeline classes if not already added.
-    
+
     Usage:
 
     Run `deepset-cloud login` and follow the instructions to authenticate to deepset AI platform.
@@ -227,11 +222,8 @@ def enable_publish_to_deepset() -> None:
     try:
         from haystack import Pipeline as HaystackPipeline
         from haystack import AsyncPipeline as HaystackAsyncPipeline
-        
-        async def publish_to_deepset(
-            self: PipelineProtocol, 
-            config: PublishConfig
-        ) -> None:
+
+        async def publish_to_deepset(self: PipelineProtocol, config: PublishConfig) -> None:
             """Publish this pipeline to deepset AI platform.
 
             :param config: Configuration for publishing
@@ -242,7 +234,7 @@ def enable_publish_to_deepset() -> None:
                 await service.publish(self, config)
 
         # Add publish method to Pipeline if it doesn't exist
-        if not hasattr(HaystackPipeline, 'publish'):
+        if not hasattr(HaystackPipeline, "publish"):
             logger.info("Adding publish method to Haystack Pipeline class")
             HaystackPipeline.publish = publish_to_deepset
             logger.info("Successfully added publish method to Haystack Pipeline class")
@@ -250,7 +242,7 @@ def enable_publish_to_deepset() -> None:
             logger.info("Publish method already exists on HaystackPipeline class")
 
         # Add publish method to AsyncPipeline if it doesn't exist
-        if not hasattr(HaystackAsyncPipeline, 'publish'):
+        if not hasattr(HaystackAsyncPipeline, "publish"):
             logger.info("Adding publish method to Haystack AsyncPipeline class")
             HaystackAsyncPipeline.publish = publish_to_deepset
             logger.info("Successfully added publish method to Haystack AsyncPipeline class")

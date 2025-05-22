@@ -39,10 +39,7 @@ class TestPublishPipelineService:
     @pytest.fixture
     def index_pipeline(self) -> Pipeline:
         """Create a sample index pipeline."""
-        file_type_router = FileTypeRouter(mime_types=[
-            "text/plain",
-            "text/csv"
-        ])
+        file_type_router = FileTypeRouter(mime_types=["text/plain", "text/csv"])
 
         text_converter = TextFileToDocument(encoding="utf-8")
         csv_converter = CSVToDocument(encoding="utf-8")
@@ -54,7 +51,7 @@ class TestPublishPipelineService:
         pipeline_index.add_component("text_converter", text_converter)
         pipeline_index.add_component("csv_converter", csv_converter)
         pipeline_index.add_component("joiner", joiner)
-    
+
         pipeline_index.connect("file_type_router.text/plain", "text_converter.sources")
         pipeline_index.connect("file_type_router.text/csv", "csv_converter.sources")
         pipeline_index.connect("text_converter.documents", "joiner.documents")
@@ -63,21 +60,30 @@ class TestPublishPipelineService:
         return pipeline_index
 
     @pytest.mark.asyncio
-    async def test_publish_index_pipeline(self, pipeline_service: PipelineService, index_pipeline: Pipeline, mock_api: AsyncMock, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_publish_index_pipeline(
+        self,
+        pipeline_service: PipelineService,
+        index_pipeline: Pipeline,
+        mock_api: AsyncMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
         """Test publishing an index pipeline."""
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default")
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
+        )
 
         # Create publish config
         config = PublishConfig(
             name="test_index",
             pipeline_type=PipelineType.INDEX,
-            inputs=PipelineInputs(files=["file_type_router.sources"])
+            inputs=PipelineInputs(files=["file_type_router.sources"]),
         )
 
         # Publish the pipeline
         await pipeline_service.publish(index_pipeline, config)
 
-        expected_pipeline_yaml = textwrap.dedent("""components:
+        expected_pipeline_yaml = textwrap.dedent(
+            """components:
   csv_converter:
     init_parameters:
       encoding: utf-8
@@ -118,24 +124,20 @@ metadata: {}
 inputs:
   files:
   - file_type_router.sources
-""")
+"""
+        )
 
         mock_api.post.assert_called_once_with(
             workspace_name="default",
             endpoint="indexes",
-            json={
-                "name": "test_index",
-                "config_yaml": expected_pipeline_yaml
-            }
+            json={"name": "test_index", "config_yaml": expected_pipeline_yaml},
         )
 
     @pytest.mark.asyncio
     async def test_publish_index_pipeline_with_invalid_pipeline(self, pipeline_service: PipelineService) -> None:
         """Test publishing unexpected pipeline object."""
         config = PublishConfig(
-            name="test_index",
-            pipeline_type=PipelineType.INDEX,
-            inputs=PipelineInputs(files=["my_component.files"])
+            name="test_index", pipeline_type=PipelineType.INDEX, inputs=PipelineInputs(files=["my_component.files"])
         )
 
         # Create an invalid pipeline (doesn't implement PipelineProtocol)
@@ -144,17 +146,23 @@ inputs:
         with pytest.raises(TypeError, match="Haystack Pipeline or AsyncPipeline object expected.*"):
             await pipeline_service.publish(invalid_pipeline, config)
 
-    @pytest.mark.parametrize(
-      "empty_value", ["", None]
-    )
+    @pytest.mark.parametrize("empty_value", ["", None])
     @pytest.mark.asyncio
-    async def test_publish_index_pipeline_without_workspace(self, empty_value: Any, pipeline_service: PipelineService, index_pipeline: Pipeline, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_publish_index_pipeline_without_workspace(
+        self,
+        empty_value: Any,
+        pipeline_service: PipelineService,
+        index_pipeline: Pipeline,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
         """Test publishing an index pipeline without workspace configuration."""
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", empty_value)
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", empty_value
+        )
         config = PublishConfig(
             name="test_index",
             pipeline_type=PipelineType.INDEX,
-            inputs=PipelineInputs(files=["file_classifier.sources"])
+            inputs=PipelineInputs(files=["file_classifier.sources"]),
         )
 
         with pytest.raises(ValueError, match="We couldn't find the workspace"):
@@ -167,17 +175,20 @@ inputs:
         service = PipelineService(mock_api)
         mock_pipeline = Mock(spec=Pipeline)
         mock_pipeline.dumps.return_value = "pipeline_yaml"
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default")
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
+        )
 
         config = PublishConfig(
             name="test_pipeline",
             pipeline_type=PipelineType.PIPELINE,
             inputs=PipelineInputs(query=["retriever.query"]),
-            outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers")
+            outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
         )
 
         await service.publish(mock_pipeline, config)
-        expected_pipeline_yaml = textwrap.dedent("""pipeline_yaml
+        expected_pipeline_yaml = textwrap.dedent(
+            """pipeline_yaml
 
 inputs:
   query:
@@ -186,42 +197,40 @@ inputs:
 outputs:
   documents: meta_ranker.documents
   answers: answer_builder.answers
-      """)
+      """
+        )
         mock_api.post.assert_called_once_with(
             workspace_name="default",
             endpoint="pipelines",
-            json={
-                "name": "test_pipeline",
-                "query_yaml": expected_pipeline_yaml
-            }
+            json={"name": "test_pipeline", "query_yaml": expected_pipeline_yaml},
         )
-
 
     @pytest.mark.asyncio
     async def test_publish_index_with_outputs_and_additional_params(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test publishing an index with outputs and additional input parameters."""
         mock_api = AsyncMock()
         service = PipelineService(mock_api)
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default")
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
+        )
         mock_pipeline = Mock(spec=Pipeline)
         mock_pipeline.dumps.return_value = "pipeline_yaml"
         config = PublishConfig(
             name="test_index",
             pipeline_type=PipelineType.INDEX,
             inputs=PipelineInputs(
-                files=["file_classifier.sources"],
-                custom_param="custom_value",
-                additional_meta=["test_meta"]
+                files=["file_classifier.sources"], custom_param="custom_value", additional_meta=["test_meta"]
             ),
             outputs=PipelineOutputs(
                 documents="meta_ranker.documents",
                 custom_output="custom_output_value",
-                other_custom_output=["other_custom_output_value"]
-            )
+                other_custom_output=["other_custom_output_value"],
+            ),
         )
 
         await service.publish(mock_pipeline, config)
-        expected_pipeline_yaml = textwrap.dedent("""pipeline_yaml
+        expected_pipeline_yaml = textwrap.dedent(
+            """pipeline_yaml
 
 inputs:
   files:
@@ -235,15 +244,13 @@ outputs:
   custom_output: custom_output_value
   other_custom_output:
   - other_custom_output_value
-      """)
+      """
+        )
 
         mock_api.post.assert_called_once_with(
             workspace_name="default",
             endpoint="indexes",
-            json={
-                "name": "test_index",
-                "config_yaml": expected_pipeline_yaml
-            }
+            json={"name": "test_index", "config_yaml": expected_pipeline_yaml},
         )
 
 
@@ -260,7 +267,7 @@ class TestEnablePublishToDeepset:
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
         enable_publish_to_deepset()
-        
+
         assert hasattr(mock_pipeline, "publish")
         assert callable(mock_pipeline.publish)
         assert hasattr(mock_async_pipeline, "publish")
@@ -274,10 +281,10 @@ class TestEnablePublishToDeepset:
         existing_publish = Mock()
         mock_pipeline.publish = existing_publish
         mock_async_pipeline.publish = existing_publish
-        
+
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
-        
+
         enable_publish_to_deepset()
 
         assert mock_pipeline.publish == existing_publish
