@@ -7,9 +7,6 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineType,
     PublishConfig,
 )
-from deepset_cloud_sdk.workflows.user_facing_docs.pipeline_service_docs import (
-    PipelineServiceDocs,
-)
 
 
 class TestPipelineInputs:

@@ -84,6 +84,7 @@ class PublishConfig(BaseModel):
     )
 
     @field_validator("inputs")
+    @classmethod
     def validate_inputs(cls, v: PipelineInputs, values: ValidationInfo) -> PipelineInputs:
         """Validate inputs based on pipeline type."""
         pipeline_type = values.data.get("pipeline_type")
@@ -96,6 +97,7 @@ class PublishConfig(BaseModel):
         return v
 
     @field_validator("outputs")
+    @classmethod
     def validate_outputs(cls, v: PipelineOutputs, values: ValidationInfo) -> PipelineOutputs:
         """Validate outputs based on pipeline type."""
         pipeline_type = values.data.get("pipeline_type")
