@@ -1,5 +1,6 @@
 """Pipeline publishing service for deepset Cloud SDK."""
 # pylint: disable=unnecessary-ellipsis,import-outside-toplevel
+import asyncio
 from typing import Any, Protocol, runtime_checkable
 
 import structlog
@@ -50,30 +51,49 @@ def _enable_publish_to_deepset() -> None:
     except ImportError as err:
         raise ImportError("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed.") from err
 
-    async def publish_to_deepset(self: PipelineProtocol, config: PublishConfig) -> None:
-        """Publish this pipeline to deepset AI platform.
+    async def publish_to_deepset_async(self: PipelineProtocol, config: PublishConfig) -> None:
+        """Publish this pipeline to deepset AI platform asynchronously.
 
         :param config: Configuration for publishing
         """
         api_config = CommonConfig()  # Uses environment variables
         async with DeepsetCloudAPI.factory(api_config) as api:
             service = PipelineService(api)
-            await service.publish(self, config)
+            await service.publish_async(self, config)
 
-    # Add publish method to Pipeline if it doesn't exist
-    if not hasattr(HaystackPipeline, "publish"):
-        HaystackPipeline.publish = publish_to_deepset
-        logger.debug("Successfully added publish method to Haystack Pipeline class")
-    else:
-        logger.debug("Publish method already exists on HaystackPipeline class")
+    def publish_to_deepset(self: PipelineProtocol, config: PublishConfig) -> None:
+        """Publish this pipeline to deepset AI platform synchronously.
 
-    # Add publish method to AsyncPipeline if it doesn't exist
-    if not hasattr(HaystackAsyncPipeline, "publish"):
-        logger.debug("Adding publish method to Haystack AsyncPipeline class")
-        HaystackAsyncPipeline.publish = publish_to_deepset
-        logger.debug("Successfully added publish method to Haystack AsyncPipeline class")
-    else:
-        logger.debug("Publish method already exists on Haystack AsyncPipeline class")
+        :param config: Configuration for publishing
+        """
+        # creates a sync wrapper around the async method since the APIs are async
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        return loop.run_until_complete(publish_to_deepset_async(self, config))
+
+    def add_method_if_not_exists(cls: type, method_name: str, method: Any, class_name: str) -> None:
+        """Add a method to a class if it doesn't exist.
+
+        :param cls: Class to add the method to
+        :param method_name: Name of the method to add
+        :param method: Method to add
+        :param class_name: Name of the class for logging
+        """
+        if not hasattr(cls, method_name):
+            setattr(cls, method_name, method)
+            logger.debug(f"Successfully added {method_name} method to {class_name} class")
+        else:
+            logger.debug(f"{method_name} method already exists on {class_name} class")
+
+    # Add methods to both Pipeline classes
+    add_method_if_not_exists(HaystackPipeline, "publish_async", publish_to_deepset_async, "Pipeline")
+    add_method_if_not_exists(HaystackPipeline, "publish", publish_to_deepset, "Pipeline")
+    add_method_if_not_exists(HaystackAsyncPipeline, "publish_async", publish_to_deepset_async, "AsyncPipeline")
+    add_method_if_not_exists(HaystackAsyncPipeline, "publish", publish_to_deepset, "AsyncPipeline")
 
 
 class PipelineService:
@@ -95,8 +115,8 @@ class PipelineService:
         async with DeepsetCloudAPI.factory(config) as api:
             return cls(api)
 
-    async def publish(self, pipeline: PipelineProtocol, config: PublishConfig) -> None:
-        """Publish a pipeline or indexto deepset AI platform.
+    async def publish_async(self, pipeline: PipelineProtocol, config: PublishConfig) -> None:
+        """Publish a pipeline or index to deepset AI platform.
 
         :param pipeline: The pipeline or index to publish. Must be a Haystack Pipeline or AsyncPipeline
         :param config: Configuration for publishing
@@ -105,7 +125,7 @@ class PipelineService:
         :raises ValueError: If no workspace is configured
         :raises ImportError: If haystack-ai is not installed
         """
-        logger.debug(f"Starting publish process for {config.pipeline_type.value}: {config.name}")
+        logger.debug(f"Starting async publishing for {config.pipeline_type.value}: {config.name}")
 
         try:
             from haystack import AsyncPipeline as HaystackAsyncPipeline
@@ -133,7 +153,7 @@ class PipelineService:
         :param config: Configuration for publishing
         """
         pipeline_yaml = self._create_config_yaml(pipeline, config)
-        response = await self.api.post(
+        response = await self._api.post(
             workspace_name=DEFAULT_WORKSPACE_NAME,
             endpoint="indexes",
             json={"name": config.name, "config_yaml": pipeline_yaml},
@@ -150,7 +170,7 @@ class PipelineService:
         """
         logger.debug(f"Publishing {config.pipeline_type.value}: {config.name}")
         pipeline_yaml = self._create_config_yaml(pipeline, config)
-        response = await self.api.post(
+        response = await self._api.post(
             workspace_name=DEFAULT_WORKSPACE_NAME,
             endpoint="pipelines",
             json={"name": config.name, "query_yaml": pipeline_yaml},
