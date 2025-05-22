@@ -1,24 +1,24 @@
 """Tests for the pipeline service."""
 import textwrap
 from typing import Any
-import pytest
 from unittest.mock import AsyncMock, Mock
-from haystack import AsyncPipeline, Pipeline
-from haystack.components.converters import (
-    TextFileToDocument,
-    CSVToDocument,
-)
-from haystack.components.routers import FileTypeRouter
-from haystack.components.joiners import DocumentJoiner
 
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import PipelineService
+import pytest
+from haystack import AsyncPipeline, Pipeline
+from haystack.components.converters import CSVToDocument, TextFileToDocument
+from haystack.components.joiners import DocumentJoiner
+from haystack.components.routers import FileTypeRouter
+
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
-    PipelineType,
     PipelineInputs,
+    PipelineOutputs,
+    PipelineType,
     PublishConfig,
 )
-from deepset_cloud_sdk.workflows.pipeline_client.models import PipelineOutputs
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import enable_publish_to_deepset
+from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
+    PipelineService,
+    enable_publish_to_deepset,
+)
 
 
 class TestPublishPipelineService:

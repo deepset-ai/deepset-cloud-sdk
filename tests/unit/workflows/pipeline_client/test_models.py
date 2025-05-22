@@ -1,5 +1,5 @@
-from pydantic import ValidationError
 import pytest
+from pydantic import ValidationError
 
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
@@ -7,7 +7,9 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineType,
     PublishConfig,
 )
-from deepset_cloud_sdk.workflows.user_facing_docs.pipeline_service_docs import PipelineServiceDocs
+from deepset_cloud_sdk.workflows.user_facing_docs.pipeline_service_docs import (
+    PipelineServiceDocs,
+)
 
 
 class TestPipelineInputs:

@@ -1,13 +1,17 @@
 """Models for the pipeline service."""
 from enum import Enum
 from typing import List
-from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
-from deepset_cloud_sdk.workflows.user_facing_docs.pipeline_service_docs import PipelineServiceDocs
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
+
+from deepset_cloud_sdk.workflows.user_facing_docs.pipeline_service_docs import (
+    PipelineServiceDocs,
+)
 
 
 class PipelineType(str, Enum):
     """Enum for pipeline types that can be published."""
+
     PIPELINE = "pipeline"
     INDEX = "index"
 
