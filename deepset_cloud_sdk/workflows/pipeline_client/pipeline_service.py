@@ -196,7 +196,7 @@ def enable_publish_to_deepset() -> None:
     
     Usage:
 
-    Run `deepset-cloud login` and follow the instructions to authenticate.
+    Run `deepset-cloud login` and follow the instructions to authenticate to deepset AI platform.
 
     ```python
     from haystack import Pipeline
