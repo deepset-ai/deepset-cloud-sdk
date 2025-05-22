@@ -225,32 +225,32 @@ def enable_publish_to_deepset() -> None:
     try:
         from haystack import AsyncPipeline as HaystackAsyncPipeline
         from haystack import Pipeline as HaystackPipeline
-
-        async def publish_to_deepset(self: PipelineProtocol, config: PublishConfig) -> None:
-            """Publish this pipeline to deepset AI platform.
-
-            :param config: Configuration for publishing
-            """
-            api_config = CommonConfig()  # Uses environment variables
-            async with DeepsetCloudAPI.factory(api_config) as api:
-                service = PipelineService(api)
-                await service.publish(self, config)
-
-        # Add publish method to Pipeline if it doesn't exist
-        if not hasattr(HaystackPipeline, "publish"):
-            logger.info("Adding publish method to Haystack Pipeline class")
-            HaystackPipeline.publish = publish_to_deepset
-            logger.info("Successfully added publish method to Haystack Pipeline class")
-        else:
-            logger.info("Publish method already exists on HaystackPipeline class")
-
-        # Add publish method to AsyncPipeline if it doesn't exist
-        if not hasattr(HaystackAsyncPipeline, "publish"):
-            logger.info("Adding publish method to Haystack AsyncPipeline class")
-            HaystackAsyncPipeline.publish = publish_to_deepset
-            logger.info("Successfully added publish method to Haystack AsyncPipeline class")
-        else:
-            logger.info("Publish method already exists on HaystackAsyncPipeline class")
-
     except ImportError:
         logger.error("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed.")
+        return
+
+    async def publish_to_deepset(self: PipelineProtocol, config: PublishConfig) -> None:
+        """Publish this pipeline to deepset AI platform.
+
+        :param config: Configuration for publishing
+        """
+        api_config = CommonConfig()  # Uses environment variables
+        async with DeepsetCloudAPI.factory(api_config) as api:
+            service = PipelineService(api)
+            await service.publish(self, config)
+
+    # Add publish method to Pipeline if it doesn't exist
+    if not hasattr(HaystackPipeline, "publish"):
+        HaystackPipeline.publish = publish_to_deepset
+        logger.debug("Successfully added publish method to Haystack Pipeline class")
+    else:
+        logger.debug("Publish method already exists on HaystackPipeline class")
+
+    # Add publish method to AsyncPipeline if it doesn't exist
+    if not hasattr(HaystackAsyncPipeline, "publish"):
+        logger.info("Adding publish method to Haystack AsyncPipeline class")
+        HaystackAsyncPipeline.publish = publish_to_deepset
+        logger.debug("Successfully added publish method to Haystack AsyncPipeline class")
+    else:
+        logger.debug("Publish method already exists on Haystack AsyncPipeline class")
+        
