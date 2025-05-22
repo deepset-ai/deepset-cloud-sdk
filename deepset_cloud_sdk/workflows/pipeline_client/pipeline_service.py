@@ -1,15 +1,15 @@
 """Pipeline publishing service for deepset Cloud SDK."""
 # pylint: disable=unnecessary-ellipsis,import-outside-toplevel
 import asyncio
+from io import StringIO
 from typing import Any, Protocol, runtime_checkable
 
 import structlog
+from ruamel.yaml import YAML
 
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
-    PipelineInputs,
-    PipelineOutputs,
     PipelineType,
     PublishConfig,
 )
@@ -105,6 +105,9 @@ class PipelineService:
         :param api: An initialized DeepsetCloudAPI instance
         """
         self._api = api
+        self._yaml = YAML()
+        self._yaml.preserve_quotes = True
+        self._yaml.indent(mapping=2, sequence=2)
 
     @classmethod
     async def factory(cls, config: CommonConfig) -> "PipelineService":
@@ -186,52 +189,28 @@ class PipelineService:
         :param config: Configuration for publishing
         :return: Complete YAML string with inputs and outputs
         """
-        config_yaml = pipeline.dumps()
-        config_yaml = self._append_inputs_to_yaml(config_yaml, config.inputs)
-        config_yaml = self._append_outputs_to_yaml(config_yaml, config.outputs)
-        return config_yaml
+        # Parse the pipeline YAML
+        pipeline_yaml = self._yaml.load(pipeline.dumps())
 
-    def _append_inputs_to_yaml(self, yaml_str: str, inputs: PipelineInputs) -> str:
-        """Append inputs configuration to the YAML string.
+        # Add inputs and outputs
+        if config.inputs and (converted_inputs := self._convert_to_yaml_dict(config.inputs)):
+            pipeline_yaml["inputs"] = converted_inputs
+        if config.outputs and (converted_outputs := self._convert_to_yaml_dict(config.outputs)):
+            pipeline_yaml["outputs"] = converted_outputs
 
-        :param yaml_str: Original YAML string
-        :param inputs: Input configuration to append
-        :return: YAML string with inputs appended
+        # Convert back to string
+        string_stream = StringIO()
+        self._yaml.dump(pipeline_yaml, string_stream)
+        return string_stream.getvalue()
+
+    def _convert_to_yaml_dict(self, model: Any) -> dict:
+        """Convert a Pydantic model to a YAML-compatible dictionary.
+
+        Clears empty values from the dictionary.
+
+        :param model: Pydantic model to convert
+        :return: Dictionary ready for YAML serialization
         """
-        input_fields = inputs.model_dump()
-        return self._append_section_to_yaml(yaml_str, "inputs", input_fields)
-
-    def _append_outputs_to_yaml(self, yaml_str: str, outputs: PipelineOutputs) -> str:
-        """Append outputs configuration to the YAML string.
-
-        :param yaml_str: Original YAML string
-        :param outputs: Output configuration to append
-        :return: YAML string with outputs appended
-        """
-        output_fields = outputs.model_dump()
-        return self._append_section_to_yaml(yaml_str, "outputs", output_fields)
-
-    def _append_section_to_yaml(self, yaml_str: str, section_name: str, fields: dict) -> str:
-        """Append a section configuration to the YAML string.
-
-        :param yaml_str: Original YAML string
-        :param section_name: Name of the section to append (e.g., 'inputs' or 'outputs')
-        :param fields: Dictionary of fields to append
-        :return: YAML string with section appended
-        """
+        fields = model.model_dump()
         # Remove empty values
-        fields = {k: v for k, v in fields.items() if v}
-
-        if not fields:
-            return yaml_str
-
-        section_yaml = f"\n{section_name}:\n"
-        for key, value in fields.items():
-            if isinstance(value, list):
-                section_yaml += f"  {key}:\n"
-                for item in value:
-                    section_yaml += f"  - {item}\n"
-            else:
-                section_yaml += f"  {key}: {value}\n"
-
-        return yaml_str.rstrip() + "\n" + section_yaml
+        return {k: v for k, v in fields.items() if v}

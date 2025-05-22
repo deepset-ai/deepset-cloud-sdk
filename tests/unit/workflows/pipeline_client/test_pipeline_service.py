@@ -92,7 +92,7 @@ class TestPublishPipelineService:
     type: haystack.components.converters.csv.CSVToDocument
   file_type_router:
     init_parameters:
-      additional_mimetypes: null
+      additional_mimetypes:
       mime_types:
       - text/plain
       - text/csv
@@ -101,8 +101,8 @@ class TestPublishPipelineService:
     init_parameters:
       join_mode: concatenate
       sort_by_score: false
-      top_k: null
-      weights: null
+      top_k:
+      weights:
     type: haystack.components.joiners.document_joiner.DocumentJoiner
   text_converter:
     init_parameters:
@@ -121,7 +121,6 @@ connections:
   sender: csv_converter.documents
 max_runs_per_component: 100
 metadata: {}
-
 inputs:
   files:
   - file_type_router.sources
@@ -175,7 +174,12 @@ inputs:
         mock_api = AsyncMock()
         service = PipelineService(mock_api)
         mock_pipeline = Mock(spec=Pipeline)
-        mock_pipeline.dumps.return_value = "pipeline_yaml"
+        mock_pipeline.dumps.return_value = textwrap.dedent(
+            """components:
+  retriever:
+    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
+"""
+        )
         monkeypatch.setattr(
             "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
         )
@@ -189,16 +193,16 @@ inputs:
 
         await service.publish_async(mock_pipeline, config)
         expected_pipeline_yaml = textwrap.dedent(
-            """pipeline_yaml
-
+            """components:
+  retriever:
+    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
 inputs:
   query:
   - retriever.query
-
 outputs:
   documents: meta_ranker.documents
   answers: answer_builder.answers
-      """
+"""
         )
         mock_api.post.assert_called_once_with(
             workspace_name="default",
@@ -237,7 +241,12 @@ outputs:
             "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
         )
         mock_pipeline = Mock(spec=Pipeline)
-        mock_pipeline.dumps.return_value = "pipeline_yaml"
+        mock_pipeline.dumps.return_value = textwrap.dedent(
+            """components:
+  retriever:
+    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
+"""
+        )
         config = PublishConfig(
             name="test_index",
             pipeline_type=PipelineType.INDEX,
@@ -253,15 +262,15 @@ outputs:
 
         await service.publish_async(mock_pipeline, config)
         expected_pipeline_yaml = textwrap.dedent(
-            """pipeline_yaml
-
+            """components:
+  retriever:
+    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
 inputs:
   files:
   - file_classifier.sources
   custom_param: custom_value
   additional_meta:
   - test_meta
-
 outputs:
   documents: meta_ranker.documents
   custom_output: custom_output_value
