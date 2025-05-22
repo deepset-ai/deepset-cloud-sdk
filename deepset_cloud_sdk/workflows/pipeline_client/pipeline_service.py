@@ -84,7 +84,7 @@ class PipelineService:
 
         :param api: An initialized DeepsetCloudAPI instance
         """
-        self.api = api
+        self._api = api
 
     @classmethod
     async def factory(cls, config: CommonConfig) -> "PipelineService":
