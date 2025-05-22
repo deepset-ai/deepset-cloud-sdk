@@ -207,6 +207,28 @@ outputs:
         )
 
     @pytest.mark.asyncio
+    async def test_publish_pipeline_import_error(
+        self, pipeline_service: PipelineService, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test publishing a pipeline when haystack-ai is not installed."""
+
+        def mock_import(*args: Any, **kwargs: Any) -> None:
+            raise ImportError("Can't import Pipeline or AsyncPipeline.")
+
+        monkeypatch.setattr("builtins.__import__", mock_import)
+
+        config = PublishConfig(
+            name="test_pipeline",
+            pipeline_type=PipelineType.PIPELINE,
+            inputs=PipelineInputs(query=["retriever.query"]),
+        )
+
+        with pytest.raises(
+            ImportError, match="Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed."
+        ):
+            await pipeline_service.publish(Mock(), config)
+
+    @pytest.mark.asyncio
     async def test_publish_index_with_outputs_and_additional_params(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test publishing an index with outputs and additional input parameters."""
         mock_api = AsyncMock()

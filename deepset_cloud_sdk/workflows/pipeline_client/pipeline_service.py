@@ -1,6 +1,6 @@
 """Pipeline publishing service for deepset Cloud SDK."""
 # pylint: disable=unnecessary-ellipsis,import-outside-toplevel
-from typing import Any, Dict, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 import structlog
 
@@ -30,27 +30,10 @@ class PipelineProtocol(Protocol):
         """
         ...
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert the pipeline to a dictionary representation.
-
-        :return: Dictionary representation of the pipeline
-        """
-        ...
-
     def add_component(self, name: str, instance: Any) -> None:
         """Add a component to the pipeline.
-
         :param name: Name of the component
         :param instance: Component instance to add
-        """
-        ...
-
-    def connect(self, sender: str, receiver: str) -> "PipelineProtocol":
-        """Connect two components in the pipeline.
-
-        :param sender: Component name or component.connection_name that sends data
-        :param receiver: Component name or component.connection_name that receives data
-        :return: The pipeline instance for method chaining
         """
         ...
 
@@ -167,15 +150,22 @@ class PipelineService:
     async def publish(self, pipeline: PipelineProtocol, config: PublishConfig) -> None:
         """Publish a pipeline or indexto deepset AI platform.
 
-        :param pipeline: The pipeline or index to publish. Must implement the PipelineProtocol
+        :param pipeline: The pipeline or index to publish. Must be a Haystack Pipeline or AsyncPipeline
         :param config: Configuration for publishing
 
-        :raises TypeError: If the pipeline object doesn't implement the required protocol
+        :raises TypeError: If the pipeline object isn't a Haystack Pipeline or AsyncPipeline
         :raises ValueError: If no workspace is configured
+        :raises ImportError: If haystack-ai is not installed
         """
         logger.debug(f"Starting publish process for {config.pipeline_type.value}: {config.name}")
 
-        if not isinstance(pipeline, PipelineProtocol):
+        try:
+            from haystack import AsyncPipeline as HaystackAsyncPipeline
+            from haystack import Pipeline as HaystackPipeline
+        except ImportError as err:
+            raise ImportError("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed.") from err
+
+        if not isinstance(pipeline, (HaystackPipeline, HaystackAsyncPipeline)):
             raise TypeError(PipelineServiceDocs.INVALID_PIPELINE_TYPE_ERROR)
 
         if not DEFAULT_WORKSPACE_NAME:
