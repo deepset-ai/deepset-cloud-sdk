@@ -137,7 +137,7 @@ class PipelineService:
         :param pipeline: The pipeline to publish
         :param config: Configuration for publishing
         """
-        logger.info(f"Publishing {config.pipeline_type.value}: {config.name}")
+        logger.debug(f"Publishing {config.pipeline_type.value}: {config.name}")
         pipeline_yaml = self._create_config_yaml(pipeline, config)
         response = await self.api.post(
             workspace_name=DEFAULT_WORKSPACE_NAME,
@@ -146,7 +146,7 @@ class PipelineService:
         )
         response.raise_for_status()
         if response.status_code == 201:
-            logger.info(f"{config.pipeline_type.value} {config.name} successfully created")
+            logger.debug(f"{config.pipeline_type.value} {config.name} successfully created")
 
     async def _publish_index(self, pipeline: PipelineProtocol, config: PublishConfig) -> None:
         """Publish an index pipeline to deepset Cloud.
@@ -162,7 +162,7 @@ class PipelineService:
         )
         response.raise_for_status()
         if response.status_code == 201:
-            logger.info(f"Index {config.name} successfully created")
+            logger.debug(f"Index {config.name} successfully created")
 
     async def publish(self, pipeline: PipelineProtocol, config: PublishConfig) -> None:
         """Publish a pipeline or indexto deepset AI platform.
@@ -173,7 +173,7 @@ class PipelineService:
         :raises TypeError: If the pipeline object doesn't implement the required protocol
         :raises ValueError: If no workspace is configured
         """
-        logger.info(f"Starting publish process for {config.pipeline_type.value}: {config.name}")
+        logger.debug(f"Starting publish process for {config.pipeline_type.value}: {config.name}")
 
         if not isinstance(pipeline, PipelineProtocol):
             raise TypeError(PipelineServiceDocs.INVALID_PIPELINE_TYPE_ERROR)
@@ -181,7 +181,7 @@ class PipelineService:
         if not DEFAULT_WORKSPACE_NAME:
             raise ValueError(PipelineServiceDocs.WORKSPACE_REQUIRED_ERROR)
 
-        logger.info(f"Publishing {config.pipeline_type.value} to workspace {DEFAULT_WORKSPACE_NAME}")
+        logger.debug(f"Publishing {config.pipeline_type.value} to workspace {DEFAULT_WORKSPACE_NAME}")
 
         if config.pipeline_type == PipelineType.INDEX:
             await self._publish_index(pipeline, config)
@@ -248,9 +248,8 @@ def enable_publish_to_deepset() -> None:
 
     # Add publish method to AsyncPipeline if it doesn't exist
     if not hasattr(HaystackAsyncPipeline, "publish"):
-        logger.info("Adding publish method to Haystack AsyncPipeline class")
+        logger.debug("Adding publish method to Haystack AsyncPipeline class")
         HaystackAsyncPipeline.publish = publish_to_deepset
         logger.debug("Successfully added publish method to Haystack AsyncPipeline class")
     else:
         logger.debug("Publish method already exists on Haystack AsyncPipeline class")
-        
