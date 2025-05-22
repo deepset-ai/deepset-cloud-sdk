@@ -31,10 +31,10 @@ class TestPipelineInputs:
 
     def test_pipeline_inputs_with_additional_fields(self) -> None:
         """Test that PipelineInputs allows additional fields."""
-        inputs = PipelineInputs(query=["retriever.query"], additional_meta="test", custom_field=123)
+        inputs = PipelineInputs(query=["retriever.query"], additional_meta="test", custom_field=123)  # type: ignore
         assert inputs.query == ["retriever.query"]
-        assert inputs.additional_meta == "test"
-        assert inputs.custom_field == 123
+        assert inputs.additional_meta == "test"  # type: ignore
+        assert inputs.custom_field == 123  # type: ignore
 
 
 class TestPipelineOutputs:
@@ -54,10 +54,10 @@ class TestPipelineOutputs:
 
     def test_pipeline_outputs_with_additional_fields(self) -> None:
         """Test that PipelineOutputs allows additional fields."""
-        outputs = PipelineOutputs(documents="retriever.documents", additional_meta="test", custom_field=123)
+        outputs = PipelineOutputs(documents="retriever.documents", additional_meta="test", custom_field=123)  # type: ignore
         assert outputs.documents == "retriever.documents"
-        assert outputs.additional_meta == "test"
-        assert outputs.custom_field == 123
+        assert outputs.additional_meta == "test"  # type: ignore
+        assert outputs.custom_field == 123  # type: ignore
 
 
 class TestPublishConfig:
@@ -81,12 +81,12 @@ class TestPublishConfig:
         config = PublishConfig(
             name="test_pipeline",
             pipeline_type=PipelineType.PIPELINE,
-            inputs=PipelineInputs(query=["retriever.query"], additional_meta="test", custom_field=123),
+            inputs=PipelineInputs(query=["retriever.query"], additional_meta="test", custom_field=123),  # type: ignore
             outputs=PipelineOutputs(documents="retriever.documents"),
         )
         assert config.inputs.query == ["retriever.query"]
-        assert config.inputs.additional_meta == "test"
-        assert config.inputs.custom_field == 123
+        assert config.inputs.additional_meta == "test"  # type: ignore
+        assert config.inputs.custom_field == 123  # type: ignore
 
     def test_publish_config_rejects_additional_fields(self) -> None:
         """Test that PublishConfig rejects additional fields at its level."""
@@ -96,7 +96,8 @@ class TestPublishConfig:
                 pipeline_type=PipelineType.PIPELINE,
                 inputs=PipelineInputs(query=["retriever.query"]),
                 outputs=PipelineOutputs(documents="retriever.documents"),
-                additional_field="test",  # This should cause an error
+                # this should cause a validation error
+                additional_field="test",  # type: ignore
             )
 
     def test_publish_index_pipeline_without_files(self) -> None:

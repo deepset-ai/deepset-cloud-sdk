@@ -11,8 +11,8 @@ from haystack.components.converters import (
 from haystack.components.routers import FileTypeRouter
 from haystack.components.joiners import DocumentJoiner
 
-from deepset_cloud_sdk.workflows.pipeline_client import (
-    PipelineService,
+from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import PipelineService
+from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineType,
     PipelineInputs,
     PublishConfig,
@@ -219,12 +219,12 @@ outputs:
             name="test_index",
             pipeline_type=PipelineType.INDEX,
             inputs=PipelineInputs(
-                files=["file_classifier.sources"], custom_param="custom_value", additional_meta=["test_meta"]
+                files=["file_classifier.sources"], custom_param="custom_value", additional_meta=["test_meta"]  # type: ignore
             ),
             outputs=PipelineOutputs(
                 documents="meta_ranker.documents",
-                custom_output="custom_output_value",
-                other_custom_output=["other_custom_output_value"],
+                custom_output="custom_output_value",  # type: ignore
+                other_custom_output=["other_custom_output_value"],  # type: ignore
             ),
         )
 
