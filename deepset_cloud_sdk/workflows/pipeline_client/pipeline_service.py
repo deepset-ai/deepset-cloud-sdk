@@ -1,14 +1,15 @@
 """Pipeline publishing service for deepset Cloud SDK."""
 # pylint: disable=unnecessary-ellipsis,import-outside-toplevel
-from typing import Protocol, runtime_checkable, Dict, Any
+from typing import Any, Dict, Protocol, runtime_checkable
 
 import structlog
+
+from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk._api.config import CommonConfig, DEFAULT_WORKSPACE_NAME
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
+    PipelineInputs,
     PipelineOutputs,
     PipelineType,
-    PipelineInputs,
     PublishConfig,
 )
 from deepset_cloud_sdk.workflows.user_facing_docs.pipeline_service_docs import (
