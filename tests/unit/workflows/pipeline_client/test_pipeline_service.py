@@ -144,7 +144,7 @@ inputs:
         invalid_pipeline = object()
 
         with pytest.raises(TypeError, match="Haystack Pipeline or AsyncPipeline object expected.*"):
-            await pipeline_service.publish(invalid_pipeline, config)
+            await pipeline_service.publish(invalid_pipeline, config)  # type: ignore
 
     @pytest.mark.parametrize("empty_value", ["", None])
     @pytest.mark.asyncio
