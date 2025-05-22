@@ -200,7 +200,7 @@ def enable_publish_to_deepset() -> None:
 
     ```python
     from haystack import Pipeline
-    from deepset_cloud_sdk.workflows.pipeline_client import enable_publish_to_deepset
+    from deepset_cloud_sdk.workflows import enable_publish_to_deepset
     enable_publish_to_deepset()
 
     # define your Haystack Pipeline
