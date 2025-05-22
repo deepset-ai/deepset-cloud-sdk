@@ -9,6 +9,7 @@ from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
 from haystack.components.routers import FileTypeRouter
 
+from deepset_cloud_sdk.workflows import DeepsetSDK
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
     PipelineOutputs,
@@ -17,7 +18,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
 )
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
     PipelineService,
-    enable_publish_to_deepset,
+    _enable_publish_to_deepset,
 )
 
 
@@ -266,7 +267,8 @@ class TestEnablePublishToDeepset:
 
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
-        enable_publish_to_deepset()
+
+        _enable_publish_to_deepset()
 
         assert hasattr(mock_pipeline, "publish")
         assert callable(mock_pipeline.publish)
@@ -285,15 +287,20 @@ class TestEnablePublishToDeepset:
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
 
-        enable_publish_to_deepset()
+        _enable_publish_to_deepset()
 
         assert mock_pipeline.publish == existing_publish
         assert mock_async_pipeline.publish == existing_publish
 
     def test_enable_publish_to_deepset_no_haystack_installed(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test enabling publish when haystack-ai is not installed."""
-        mock_pipeline = Mock(side_effect=ImportError)
-        mock_async_pipeline = Mock(side_effect=ImportError)
-        monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
-        monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
-        enable_publish_to_deepset()
+
+        def mock_import(*args: Any, **kwargs: Any) -> None:
+            raise ImportError("Can't import Pipeline or AsyncPipeline.")
+
+        monkeypatch.setattr("builtins.__import__", mock_import)
+
+        with pytest.raises(
+            ImportError, match="Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed."
+        ):
+            _enable_publish_to_deepset()

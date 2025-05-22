@@ -1,15 +1,15 @@
 """Workflows for deepset Cloud SDK."""
 
-from deepset_cloud_sdk.workflows.pipeline_client import (
+from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
     PipelineType,
     PublishConfig,
-    enable_publish_to_deepset,
 )
+from deepset_cloud_sdk.workflows.sdk import DeepsetSDK
 
 __all__ = [
     "PipelineType",
     "PipelineInputs",
     "PublishConfig",
-    "enable_publish_to_deepset",
+    "DeepsetSDK",
 ]

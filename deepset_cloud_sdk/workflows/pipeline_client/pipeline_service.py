@@ -189,45 +189,17 @@ class PipelineService:
             await self._publish_pipeline(pipeline, config)
 
 
-def enable_publish_to_deepset() -> None:
-    """Add the publish method to the Haystack Pipeline and AsyncPipeline classes if not already added.
+def _enable_publish_to_deepset() -> None:
+    """Internal function to add the publish method to the Haystack Pipeline and AsyncPipeline classes.
 
-    Usage:
-
-    Run `deepset-cloud login` and follow the instructions to authenticate to deepset AI platform.
-
-    ```python
-    from haystack import Pipeline
-    from deepset_cloud_sdk.workflows import enable_publish_to_deepset
-    enable_publish_to_deepset()
-
-    # define your Haystack Pipeline
-    pipeline = Pipeline()
-
-    # add components to the pipeline and connect them...
-
-    # define your publish config
-    publish_config = PublishConfig(
-        name="my-pipeline",
-        pipeline_type=PipelineType.PIPELINE,
-        inputs=PipelineInputs(
-            query=["chat_summary_prompt_builder.question"]),
-            filters=["bm25_retriever.filters", "embedding_retriever.filters"]
-        ),
-        outputs=PipelineOutputs(
-            documents="ranker.documents",
-            answers="ranker.answers"
-        )
-    )
-    asyncio.run(pipeline.publish(pipeline=pipeline, config=publish_config))
-    ```
+    This function is called by deepset_cloud_sdk.init() to set up the SDK.
+    Users should not call this function directly.
     """
     try:
         from haystack import AsyncPipeline as HaystackAsyncPipeline
         from haystack import Pipeline as HaystackPipeline
-    except ImportError:
-        logger.error("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed.")
-        return
+    except ImportError as err:
+        raise ImportError("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed.") from err
 
     async def publish_to_deepset(self: PipelineProtocol, config: PublishConfig) -> None:
         """Publish this pipeline to deepset AI platform.
