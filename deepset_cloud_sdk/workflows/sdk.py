@@ -33,6 +33,14 @@ class DeepsetSDK:
         """Initialize the DeepsetSDK instance."""
         self._initialized = False
 
+    @property
+    def is_initialized(self) -> bool:
+        """Check if the SDK has been initialized.
+
+        :return: True if the SDK has been initialized, False otherwise
+        """
+        return self._initialized
+
     def init(self) -> None:
         """Initialize the SDK features.
 
@@ -53,11 +61,3 @@ class DeepsetSDK:
         except ImportError as err:
             logger.error(f"Failed to initialize SDK: {str(err)}")
             self._initialized = False
-
-    @property
-    def is_initialized(self) -> bool:
-        """Check if the SDK has been initialized.
-
-        :return: True if the SDK has been initialized, False otherwise
-        """
-        return self._initialized
