@@ -33,6 +33,7 @@ dependencies = [
   "tqdm>=4.66.4",
   "yaspin>=3.0.0",
   "pyrate-limiter>=3.7.0",
+  "pydantic>=2.11.4",
 ]
 
 [project.urls]
@@ -48,7 +49,7 @@ deepset-cloud = "deepset_cloud_sdk.cli:run_packaged"
 path = "deepset_cloud_sdk/__about__.py"
 
 [tool.hatch.envs.default.scripts]
-tests-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
+tests-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit/"
 tests-unit = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
 tests-integration = "pytest tests/integration"
 
@@ -59,12 +60,17 @@ python = ["3.10"]
 dependencies = []
 
 [tool.hatch.envs.test.scripts]
-unit-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
+unit-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit/workflows/pipeline_client/test_pipeline_service.py"
 integration = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/integration"
 
 [tool.hatch.envs.test]
 template = 'default'
-dependencies = ["pytest-cov==4.0.0", "pytest==7.3.1", "pytest-asyncio==0.21.0"]
+dependencies = [
+  "pytest-cov==4.0.0",
+  "pytest==7.3.1",
+  "pytest-asyncio==0.21.0",
+  "haystack-ai>=2.13.2",
+]
 
 
 [tool.hatch.envs.code-quality]
@@ -82,7 +88,6 @@ dependencies = [
   "types-aiofiles==23.1.0.2",
   "types-tabulate==0.9.0.2",
   "autoflake==2.1.1",
-
 ]
 
 [tool.hatch.envs.code-quality.scripts]
