@@ -1,6 +1,6 @@
 import datetime
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Any, Generator, List
 from unittest.mock import AsyncMock, Mock, patch
 from uuid import UUID
@@ -34,7 +34,7 @@ class TestCLIMethods:
             processors=[
                 structlog.processors.UnicodeDecoder(),
                 structlog.processors.format_exc_info,
-                structlog.dev.ConsoleRenderer()
+                structlog.dev.ConsoleRenderer(),
             ],
             wrapper_class=structlog.BoundLogger,
             context_class=dict,
