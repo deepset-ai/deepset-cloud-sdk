@@ -33,6 +33,7 @@ class PipelineProtocol(Protocol):
 
     def add_component(self, name: str, instance: Any) -> None:
         """Add a component to the pipeline.
+
         :param name: Name of the component
         :param instance: Component instance to add
         """
@@ -40,9 +41,9 @@ class PipelineProtocol(Protocol):
 
 
 def _enable_publish_to_deepset() -> None:
-    """Internal function to add the publish method to the Haystack Pipeline and AsyncPipeline classes.
+    """Add publish methods to the Haystack Pipeline and AsyncPipeline classes.
 
-    This function is called by deepset_cloud_sdk.init() to set up the SDK.
+    This function is called by deepset_sdk.init() to set up the SDK.
     Users should not call this function directly.
     """
     try:
