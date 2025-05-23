@@ -25,7 +25,12 @@ class DeepsetSDK:
         # Now you can use the publish functionality
         pipeline = Pipeline()
         # ... configure your pipeline ...
-        await pipeline.publish(config)
+
+        # sync execution
+        pipeline.publish(config)
+
+        # async execution
+        await pipeline.publish_async(config)
         ```
     """
 
