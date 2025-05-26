@@ -52,12 +52,12 @@ def _enable_publish_to_deepset() -> None:
     async def publish_to_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Publish index or pipeline to deepset AI platform asynchronously.
 
+        An index is a special type of pipeline with the purpose to preprocess files, preparing them for
+        search and store them in a document store.
+
         :param config: Configuration for publishing, either `IndexConfig` or `PipelineConfig`.
             If publishing an index, the config argument is expected to be of type `IndexConfig`,
             if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
-
-            The purpose of indexes is to preprocess files, preparing them for search and store them
-            in a document store.
         """
         api_config = CommonConfig()  # Uses environment variables
         async with DeepsetCloudAPI.factory(api_config) as api:
@@ -67,12 +67,14 @@ def _enable_publish_to_deepset() -> None:
     def publish_to_deepset(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Publish index or pipeline to deepset AI platform synchronously.
 
+        An index is a special type of pipeline with the purpose to preprocess files, preparing them for
+        search and store them in a document store.
+    
         :param config: Configuration for publishing, either `IndexConfig` or `PipelineConfig`.
             If publishing an index, the config argument is expected to be of type `IndexConfig`,
             if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
 
-            The purpose of indexes is to preprocess files, preparing them for search and store them
-            in a document store.
+
         """
         # creates a sync wrapper around the async method since the APIs are async
         try:
