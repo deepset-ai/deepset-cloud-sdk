@@ -66,7 +66,8 @@ class PipelineOutputs(BaseModel):
 
 class IndexOutputs(BaseModel):
     """Output configuration for the index.
-    Index outputs are not mandatory.
+
+    Index outputs are optional.
     """
 
     model_config = {"extra": "allow"}  # Allow additional fields in outputs

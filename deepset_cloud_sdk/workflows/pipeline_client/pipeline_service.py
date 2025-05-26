@@ -69,7 +69,7 @@ def _enable_publish_to_deepset() -> None:
 
         An index is a special type of pipeline with the purpose to preprocess files, preparing them for
         search and store them in a document store.
-    
+
         :param config: Configuration for publishing, either `IndexConfig` or `PipelineConfig`.
             If publishing an index, the config argument is expected to be of type `IndexConfig`,
             if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
