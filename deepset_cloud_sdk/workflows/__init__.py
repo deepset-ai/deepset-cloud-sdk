@@ -2,14 +2,21 @@
 
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
-    PipelineType,
-    PublishConfig,
+    IndexInputs,
+    IndexConfig,
+    PipelineInputs,
+    PipelineConfig,
+    PipelineOutputs,
+    IndexOutputs,
 )
 from deepset_cloud_sdk.workflows.sdk import DeepsetSDK
 
 __all__ = [
-    "PipelineType",
     "PipelineInputs",
-    "PublishConfig",
+    "IndexInputs",
+    "IndexConfig",
+    "PipelineConfig",
+    "PipelineOutputs",
+    "IndexOutputs",
     "DeepsetSDK",
 ]

@@ -10,8 +10,8 @@ from ruamel.yaml import YAML
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
-    PipelineType,
-    PublishConfig,
+    IndexConfig,
+    PipelineConfig,
 )
 from deepset_cloud_sdk.workflows.user_facing_docs.pipeline_service_docs import (
     PipelineServiceDocs,
@@ -52,20 +52,30 @@ def _enable_publish_to_deepset() -> None:
     except ImportError as err:
         raise ImportError("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed.") from err
 
-    async def publish_to_deepset_async(self: PipelineProtocol, config: PublishConfig) -> None:
-        """Publish this pipeline to deepset AI platform asynchronously.
+    async def publish_to_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
+        """Publish index or pipeline to deepset AI platform asynchronously.
 
-        :param config: Configuration for publishing
+        :param config: Configuration for publishing, either `IndexConfig` or `PipelineConfig`.
+            If publishing an index, the config argument is expected to be of type `IndexConfig`,
+            if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
+
+            The purpose of indexes is to preprocess files, preparing them for search and store them
+            in a document store.
         """
         api_config = CommonConfig()  # Uses environment variables
         async with DeepsetCloudAPI.factory(api_config) as api:
             service = PipelineService(api)
             await service.publish_async(self, config)
 
-    def publish_to_deepset(self: PipelineProtocol, config: PublishConfig) -> None:
-        """Publish this pipeline to deepset AI platform synchronously.
+    def publish_to_deepset(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
+        """Publish index or pipeline to deepset AI platform synchronously.
 
-        :param config: Configuration for publishing
+        :param config: Configuration for publishing, either `IndexConfig` or `PipelineConfig`.
+            If publishing an index, the config argument is expected to be of type `IndexConfig`,
+            if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
+
+            The purpose of indexes is to preprocess files, preparing them for search and store them
+            in a document store.
         """
         # creates a sync wrapper around the async method since the APIs are async
         try:
@@ -119,17 +129,19 @@ class PipelineService:
         async with DeepsetCloudAPI.factory(config) as api:
             return cls(api)
 
-    async def publish_async(self, pipeline: PipelineProtocol, config: PublishConfig) -> None:
+    async def publish_async(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Publish a pipeline or index to deepset AI platform.
 
         :param pipeline: The pipeline or index to publish. Must be a Haystack Pipeline or AsyncPipeline
-        :param config: Configuration for publishing
+        :param config: Configuration for publishing, either `IndexConfig` or `PipelineConfig`.
+            If publishing an index, the config argument is expected to be of type `IndexConfig`,
+            if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
 
         :raises TypeError: If the pipeline object isn't a Haystack Pipeline or AsyncPipeline
         :raises ValueError: If no workspace is configured
         :raises ImportError: If haystack-ai is not installed
         """
-        logger.debug(f"Starting async publishing for {config.pipeline_type.value}: {config.name}")
+        logger.debug(f"Starting async publishing for {config.name}")
 
         try:
             from haystack import AsyncPipeline as HaystackAsyncPipeline
@@ -143,14 +155,14 @@ class PipelineService:
         if not DEFAULT_WORKSPACE_NAME:
             raise ValueError(PipelineServiceDocs.WORKSPACE_REQUIRED_ERROR)
 
-        logger.debug(f"Publishing {config.pipeline_type.value} to workspace {DEFAULT_WORKSPACE_NAME}")
-
-        if config.pipeline_type == PipelineType.INDEX:
+        if isinstance(config, IndexConfig):
+            logger.debug(f"Publishing index to workspace {DEFAULT_WORKSPACE_NAME}")
             await self._publish_index(pipeline, config)
         else:
+            logger.debug(f"Publishing pipeline to workspace {DEFAULT_WORKSPACE_NAME}")
             await self._publish_pipeline(pipeline, config)
 
-    async def _publish_index(self, pipeline: PipelineProtocol, config: PublishConfig) -> None:
+    async def _publish_index(self, pipeline: PipelineProtocol, config: IndexConfig) -> None:
         """Publish an index pipeline to deepset Cloud.
 
         :param pipeline: The Haystack pipeline to publish
@@ -166,13 +178,13 @@ class PipelineService:
         if response.status_code == 201:
             logger.debug(f"Index {config.name} successfully created")
 
-    async def _publish_pipeline(self, pipeline: PipelineProtocol, config: PublishConfig) -> None:
+    async def _publish_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
         """Publish a pipeline to deepset Cloud.
 
         :param pipeline: The pipeline to publish
         :param config: Configuration for publishing
         """
-        logger.debug(f"Publishing {config.pipeline_type.value}: {config.name}")
+        logger.debug(f"Publishing pipeline {config.name}")
         pipeline_yaml = self._create_config_yaml(pipeline, config)
         response = await self._api.post(
             workspace_name=DEFAULT_WORKSPACE_NAME,
@@ -181,9 +193,9 @@ class PipelineService:
         )
         response.raise_for_status()
         if response.status_code == 201:
-            logger.debug(f"{config.pipeline_type.value} {config.name} successfully created")
+            logger.debug(f"Pipeline {config.name} successfully created")
 
-    def _create_config_yaml(self, pipeline: PipelineProtocol, config: PublishConfig) -> str:
+    def _create_config_yaml(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
         """Create the config YAML string.
 
         :param pipeline: The Haystack pipeline to convert to YAML

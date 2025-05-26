@@ -11,10 +11,12 @@ from haystack.components.routers import FileTypeRouter
 
 from deepset_cloud_sdk.workflows import DeepsetSDK
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
+    IndexConfig,
+    IndexInputs,
+    IndexOutputs,
+    PipelineConfig,
     PipelineInputs,
     PipelineOutputs,
-    PipelineType,
-    PublishConfig,
 )
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
     PipelineService,
@@ -61,7 +63,7 @@ class TestPublishPipelineService:
         return pipeline_index
 
     @pytest.mark.asyncio
-    async def test_publish_index_pipeline(
+    async def test_publish_index(
         self,
         pipeline_service: PipelineService,
         index_pipeline: Pipeline,
@@ -74,10 +76,9 @@ class TestPublishPipelineService:
         )
 
         # Create publish config
-        config = PublishConfig(
+        config = IndexConfig(
             name="test_index",
-            pipeline_type=PipelineType.INDEX,
-            inputs=PipelineInputs(files=["file_type_router.sources"]),
+            inputs=IndexInputs(files=["file_type_router.sources"]),
         )
 
         # Publish the pipeline
@@ -136,9 +137,7 @@ inputs:
     @pytest.mark.asyncio
     async def test_publish_index_pipeline_with_invalid_pipeline(self, pipeline_service: PipelineService) -> None:
         """Test publishing unexpected pipeline object."""
-        config = PublishConfig(
-            name="test_index", pipeline_type=PipelineType.INDEX, inputs=PipelineInputs(files=["my_component.files"])
-        )
+        config = IndexConfig(name="test_index", inputs=IndexInputs(files=["my_component.files"]))
 
         # Create an invalid pipeline (doesn't implement PipelineProtocol)
         invalid_pipeline = object()
@@ -159,10 +158,9 @@ inputs:
         monkeypatch.setattr(
             "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", empty_value
         )
-        config = PublishConfig(
+        config = IndexConfig(
             name="test_index",
-            pipeline_type=PipelineType.INDEX,
-            inputs=PipelineInputs(files=["file_classifier.sources"]),
+            inputs=IndexInputs(files=["file_classifier.sources"]),
         )
 
         with pytest.raises(ValueError, match="We couldn't find the workspace"):
@@ -184,9 +182,8 @@ inputs:
             "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
         )
 
-        config = PublishConfig(
+        config = PipelineConfig(
             name="test_pipeline",
-            pipeline_type=PipelineType.PIPELINE,
             inputs=PipelineInputs(query=["retriever.query"]),
             outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
         )
@@ -221,10 +218,10 @@ outputs:
 
         monkeypatch.setattr("builtins.__import__", mock_import)
 
-        config = PublishConfig(
+        config = PipelineConfig(
             name="test_pipeline",
-            pipeline_type=PipelineType.PIPELINE,
             inputs=PipelineInputs(query=["retriever.query"]),
+            outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
         )
 
         with pytest.raises(
@@ -247,14 +244,13 @@ outputs:
     type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
 """
         )
-        config = PublishConfig(
+        config = IndexConfig(
             name="test_index",
-            pipeline_type=PipelineType.INDEX,
-            inputs=PipelineInputs(
+            inputs=IndexInputs(
                 files=["file_classifier.sources"], custom_param="custom_value", additional_meta=["test_meta"]  # type: ignore
             ),
-            outputs=PipelineOutputs(
-                documents="meta_ranker.documents",
+            outputs=IndexOutputs(
+                documents="meta_ranker.documents",  # type: ignore
                 custom_output="custom_output_value",  # type: ignore
                 other_custom_output=["other_custom_output_value"],  # type: ignore
             ),
@@ -327,7 +323,11 @@ class TestEnablePublishToDeepset:
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
 
-        config = PublishConfig(name="test", pipeline_type=PipelineType.PIPELINE)
+        config = PipelineConfig(
+            name="test",
+            inputs=PipelineInputs(query=["retriever.query"]),
+            outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
+        )
 
         # Test sync Pipeline
         await mock_pipeline.publish_async(config)
@@ -348,7 +348,7 @@ class TestEnablePublishToDeepset:
         mock_async_pipeline.publish_async = AsyncMock()
 
         # Mock PipelineService.publish_async to prevent actual execution
-        async def mock_service_publish_async(self: Any, pipeline: Any, config: PublishConfig) -> None:
+        async def mock_service_publish_async(self: Any, pipeline: Any, config: PipelineConfig | IndexConfig) -> None:
             await pipeline.publish_async(config)
 
         monkeypatch.setattr(
@@ -360,7 +360,11 @@ class TestEnablePublishToDeepset:
 
         _enable_publish_to_deepset()
 
-        config = PublishConfig(name="test", pipeline_type=PipelineType.PIPELINE)
+        config = PipelineConfig(
+            name="test",
+            inputs=PipelineInputs(query=["retriever.query"]),
+            outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
+        )
 
         # Test that calling sync publish calls the async method
         # Get the bound method and call it
