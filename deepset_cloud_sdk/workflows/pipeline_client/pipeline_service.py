@@ -13,9 +13,6 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
     PipelineConfig,
 )
-from deepset_cloud_sdk.workflows.user_facing_docs.pipeline_service_docs import (
-    PipelineServiceDocs,
-)
 
 logger = structlog.get_logger(__name__)
 
@@ -150,10 +147,17 @@ class PipelineService:
             raise ImportError("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed.") from err
 
         if not isinstance(pipeline, (HaystackPipeline, HaystackAsyncPipeline)):
-            raise TypeError(PipelineServiceDocs.INVALID_PIPELINE_TYPE_ERROR)
+            raise TypeError(
+                "Haystack Pipeline or AsyncPipeline object expected. "
+                "Make sure you have installed haystack-ai and use Pipeline or AsyncPipeline "
+                "to define your pipeline or index."
+            )
 
         if not DEFAULT_WORKSPACE_NAME:
-            raise ValueError(PipelineServiceDocs.WORKSPACE_REQUIRED_ERROR)
+            raise ValueError(
+                "We couldn't find the workspace to publish to in your environment. "
+                "Please run 'deepset-cloud login' and follow the instructions."
+            )
 
         if isinstance(config, IndexConfig):
             logger.debug(f"Publishing index to workspace {DEFAULT_WORKSPACE_NAME}")

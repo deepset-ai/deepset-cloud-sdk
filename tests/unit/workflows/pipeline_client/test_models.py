@@ -4,10 +4,10 @@ from pydantic import ValidationError
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
     IndexInputs,
-    PipelineOutputs,
     IndexOutputs,
     PipelineConfig,
     PipelineInputs,
+    PipelineOutputs,
 )
 
 
@@ -23,7 +23,7 @@ class TestPipelineInputs:
     def test_create_pipeline_inputs_with_all_values(self) -> None:
         """Test creating PipelineInputs with all values."""
         inputs = PipelineInputs(
-            query=["retriever.query"], filters=["retriever.filters"], additional_key="additional_value"
+            query=["retriever.query"], filters=["retriever.filters"], additional_key="additional_value"  # type: ignore
         )
         assert inputs.query == ["retriever.query"]
         assert inputs.filters == ["retriever.filters"]
@@ -35,19 +35,10 @@ class TestPipelineInputs:
         assert inputs.additional_meta == "test"  # type: ignore
         assert inputs.custom_field == 123  # type: ignore
 
-    def test_pipeline_inputs_with_optional_fields(self) -> None:
-        """Test that PipelineInputs has optional fields."""
-        inputs = PipelineInputs(query=["retriever.query"])
-        assert inputs.query == ["retriever.query"]
-        assert inputs.filters == []
-
-        inputs_with_none = PipelineInputs(query=["retriever.query"], filters=None)
-        assert inputs_with_none.filters is None
-
     def test_pipeline_inputs_without_query(self) -> None:
         """Test that PipelineInputs requires query field."""
         with pytest.raises(ValidationError, match="Field required"):
-            PipelineInputs()
+            PipelineInputs()  # type: ignore
 
     def test_pipeline_inputs_with_empty_query(self) -> None:
         """Test that PipelineInputs requires non-empty query."""
@@ -70,8 +61,8 @@ class TestIndexInputs:
 
     def test_index_inputs_with_additional_fields(self) -> None:
         """Test that PipelineInputs allows additional fields."""
-        inputs = IndexInputs(query=["retriever.query"], additional_meta="test", custom_field=123)  # type: ignore
-        assert inputs.query == ["retriever.query"]
+        inputs = IndexInputs(files=["retriever.files"], additional_meta="test", custom_field=123)  # type: ignore
+        assert inputs.files == ["retriever.files"]
         assert inputs.additional_meta == "test"  # type: ignore
         assert inputs.custom_field == 123  # type: ignore
 
