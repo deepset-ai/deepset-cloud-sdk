@@ -1,5 +1,6 @@
 """Pipeline importing service for deepset Cloud SDK."""
 # pylint: disable=unnecessary-ellipsis,import-outside-toplevel
+from __future__ import annotations
 import asyncio
 from http import HTTPStatus
 from io import StringIO
@@ -129,7 +130,7 @@ class PipelineService:
         self._yaml.indent(mapping=2, sequence=2)
 
     @classmethod
-    async def factory(cls, config: CommonConfig) -> "PipelineService":
+    async def factory(cls, config: CommonConfig) -> PipelineService:
         """Create a new instance of the pipeline service.
 
         :param config: CommonConfig object.

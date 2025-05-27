@@ -1,4 +1,4 @@
-"""Deepset Cloud SDK main class."""
+"""Deepset AI platform SDK main class."""
 import structlog
 
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
