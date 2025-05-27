@@ -48,7 +48,7 @@ def _enable_publish_to_deepset() -> None:
         from haystack import AsyncPipeline as HaystackAsyncPipeline
         from haystack import Pipeline as HaystackPipeline
     except ImportError as err:
-        raise ImportError("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed.") from err
+        raise ImportError("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed. Run 'pip install haystack-ai'") from err
 
     async def publish_to_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Publish index or pipeline to deepset AI platform asynchronously.
