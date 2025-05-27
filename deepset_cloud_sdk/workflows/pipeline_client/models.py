@@ -98,8 +98,8 @@ class PipelineConfig(BaseModel):
     """Pipeline configuration for importing a pipeline to deepset AI platform.
 
     :param name: Name of the pipeline to be imported
-    :param inputs: Input configuration for the pipeline.
-    :param outputs: Pipeline outputs.
+    :param inputs: Pipeline inputs. Use `PipelineInputs` model to define the inputs.
+    :param outputs: Pipeline outputs. Use `PipelineOutputs` model to define the outputs.
     """
 
     model_config = {"extra": "forbid"}
@@ -139,8 +139,8 @@ class IndexConfig(BaseModel):
     """Index configuration for importing an index to deepset AI platform.
 
     :param name: Name of the index to be imported
-    :param inputs: Input configuration for the index
-    :param outputs: Index outputs configuration. Optional.
+    :param inputs: Index inputs. Use `IndexInputs` model to define the inputs.
+    :param outputs: Index outputs. Optional. Use `IndexOutputs` model to define the outputs.
     """
 
     model_config = {"extra": "forbid"}
