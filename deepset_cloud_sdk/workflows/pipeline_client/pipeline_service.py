@@ -48,7 +48,9 @@ def _enable_publish_to_deepset() -> None:
         from haystack import AsyncPipeline as HaystackAsyncPipeline
         from haystack import Pipeline as HaystackPipeline
     except ImportError as err:
-        raise ImportError("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed. Run 'pip install haystack-ai'") from err
+        raise ImportError(
+            "Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed. Run 'pip install haystack-ai'"
+        ) from err
 
     async def publish_to_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Publish index or pipeline to deepset AI platform asynchronously.
@@ -207,34 +209,28 @@ class PipelineService:
             logger.debug(f"Pipeline {config.name} successfully created")
 
     def _create_config_yaml(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
-        """Create the config YAML string.
+        """Create a YAML configuration for the pipeline.
 
-        :param pipeline: The Haystack pipeline to convert to YAML
+        :param pipeline: The pipeline to create the configuration for
         :param config: Configuration for publishing
-        :return: Complete YAML string with inputs and outputs
+        :return: YAML configuration as a string
         """
         # Parse the pipeline YAML
-        pipeline_yaml = self._yaml.load(pipeline.dumps())
-
-        # Add inputs and outputs
-        if config.inputs and (converted_inputs := self._convert_to_yaml_dict(config.inputs)):
-            pipeline_yaml["inputs"] = converted_inputs
-        if config.outputs and (converted_outputs := self._convert_to_yaml_dict(config.outputs)):
-            pipeline_yaml["outputs"] = converted_outputs
+        pipeline_dict = self._yaml.load(pipeline.dumps())
+        self._add_inputs_and_outputs(pipeline_dict, config)
 
         # Convert back to string
-        string_stream = StringIO()
-        self._yaml.dump(pipeline_yaml, string_stream)
-        return string_stream.getvalue()
+        yaml_str = StringIO()
+        self._yaml.dump(pipeline_dict, yaml_str)
+        return yaml_str.getvalue()
 
-    def _convert_to_yaml_dict(self, model: Any) -> dict:
-        """Convert a Pydantic model to a YAML-compatible dictionary.
+    def _add_inputs_and_outputs(self, pipeline_dict: dict, config: IndexConfig | PipelineConfig) -> None:
+        """Add inputs and outputs to the pipeline dictionary from config.
 
-        Clears empty values from the dictionary.
-
-        :param model: Pydantic model to convert
-        :return: Dictionary ready for YAML serialization
+        :param pipeline_dict: The pipeline dictionary to add inputs and outputs to
+        :param config: Configuration for publishing
         """
-        fields = model.model_dump()
-        # Remove empty values
-        return {k: v for k, v in fields.items() if v}
+        if config.inputs and (converted_inputs := config.inputs.to_yaml_dict()):
+            pipeline_dict["inputs"] = converted_inputs
+        if config.outputs and (converted_outputs := config.outputs.to_yaml_dict()):
+            pipeline_dict["outputs"] = converted_outputs

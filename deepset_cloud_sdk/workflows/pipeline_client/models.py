@@ -4,7 +4,25 @@ from typing import List
 from pydantic import BaseModel, Field, model_validator
 
 
-class PipelineInputs(BaseModel):
+class InputOutputBaseModel(BaseModel):
+    """Base model for input and output configurations.
+
+    This class provides common functionality for input and output models, such as YAML conversion.
+    """
+
+    def to_yaml_dict(self) -> dict:
+        """Convert the model to a YAML-compatible dictionary.
+
+        Clears empty values from the dictionary.
+
+        :return: Dictionary ready for YAML serialization
+        """
+        fields = self.model_dump()
+        # Remove empty values
+        return {k: v for k, v in fields.items() if v}
+
+
+class PipelineInputs(InputOutputBaseModel):
     """Input configuration for the pipeline.
 
     :param query: List of component names that will receive the query input
@@ -32,7 +50,7 @@ class PipelineInputs(BaseModel):
     )
 
 
-class PipelineOutputs(BaseModel):
+class PipelineOutputs(InputOutputBaseModel):
     """Output configuration for the pipeline.
 
     Must define at least one of `documents` or `answers`, or both.
@@ -57,14 +75,14 @@ class PipelineOutputs(BaseModel):
     )
 
     @model_validator(mode="after")
-    def validate_documents_xor_answers(self) -> PipelineOutputs:
+    def validate_documents_xor_answers(self) -> "PipelineOutputs":
         """Validate that at least one of documents or answers is defined."""
         if not self.documents and not self.answers:
             raise ValueError("At least one of 'documents' or 'answers' must be defined")
         return self
 
 
-class IndexOutputs(BaseModel):
+class IndexOutputs(InputOutputBaseModel):
     """Output configuration for the index.
 
     Index outputs are optional.
@@ -90,7 +108,7 @@ class PipelineConfig(BaseModel):
     )
 
 
-class IndexInputs(BaseModel):
+class IndexInputs(InputOutputBaseModel):
     """Input configuration for the pipeline index.
 
     :param files: List of component names that will receive files as input.

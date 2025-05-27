@@ -45,6 +45,24 @@ class TestPipelineInputs:
         with pytest.raises(ValidationError, match="List should have at least 1 item"):
             PipelineInputs(query=[])
 
+    def test_pipeline_inputs_to_yaml_dict(self) -> None:
+        """Test that to_yaml_dict correctly transforms PipelineInputs."""
+        inputs = PipelineInputs(
+            query=["retriever.query"], filters=["retriever.filters"], additional_key="additional_value"  # type: ignore
+        )
+        yaml_dict = inputs.to_yaml_dict()
+        assert yaml_dict == {
+            "query": ["retriever.query"],
+            "filters": ["retriever.filters"],
+            "additional_key": "additional_value",
+        }
+
+    def test_pipeline_inputs_to_yaml_dict_removes_empty_values(self) -> None:
+        """Test that to_yaml_dict removes empty values."""
+        inputs = PipelineInputs(query=["retriever.query"], filters=[], additional_key="")  # type: ignore
+        yaml_dict = inputs.to_yaml_dict()
+        assert yaml_dict == {"query": ["retriever.query"]}
+
 
 class TestIndexInputs:
     """Test suite for IndexInputs model."""
@@ -65,6 +83,18 @@ class TestIndexInputs:
         assert inputs.files == ["retriever.files"]
         assert inputs.additional_meta == "test"  # type: ignore
         assert inputs.custom_field == 123  # type: ignore
+
+    def test_index_inputs_to_yaml_dict(self) -> None:
+        """Test that to_yaml_dict correctly transforms IndexInputs."""
+        inputs = IndexInputs(files=["retriever.files"], additional_meta="test", custom_field=123)  # type: ignore
+        yaml_dict = inputs.to_yaml_dict()
+        assert yaml_dict == {"files": ["retriever.files"], "additional_meta": "test", "custom_field": 123}
+
+    def test_index_inputs_to_yaml_dict_removes_empty_values(self) -> None:
+        """Test that to_yaml_dict removes empty values."""
+        inputs = IndexInputs(files=[], additional_meta="")  # type: ignore
+        yaml_dict = inputs.to_yaml_dict()
+        assert yaml_dict == {}
 
 
 class TestPipelineOutputs:
@@ -102,6 +132,28 @@ class TestPipelineOutputs:
         assert outputs.additional_meta == "test"  # type: ignore
         assert outputs.custom_field == 123  # type: ignore
 
+    def test_pipeline_outputs_to_yaml_dict(self) -> None:
+        """Test that to_yaml_dict correctly transforms PipelineOutputs."""
+        outputs = PipelineOutputs(
+            documents="retriever.documents",
+            answers="reader.answers",
+            additional_meta="test",
+            custom_field=123,  # type: ignore
+        )
+        yaml_dict = outputs.to_yaml_dict()
+        assert yaml_dict == {
+            "documents": "retriever.documents",
+            "answers": "reader.answers",
+            "additional_meta": "test",
+            "custom_field": 123,
+        }
+
+    def test_pipeline_outputs_to_yaml_dict_removes_empty_values(self) -> None:
+        """Test that to_yaml_dict removes empty values."""
+        outputs = PipelineOutputs(documents="retriever.documents", answers=None, additional_meta="")  # type: ignore
+        yaml_dict = outputs.to_yaml_dict()
+        assert yaml_dict == {"documents": "retriever.documents"}
+
 
 class TestIndexOutputs:
     """Test suite for the IndexOutputs model."""
@@ -116,6 +168,18 @@ class TestIndexOutputs:
         outputs = IndexOutputs(additional_meta="test", custom_field=123)  # type: ignore
         assert outputs.additional_meta == "test"  # type: ignore
         assert outputs.custom_field == 123  # type: ignore
+
+    def test_index_outputs_to_yaml_dict(self) -> None:
+        """Test that to_yaml_dict correctly transforms IndexOutputs."""
+        outputs = IndexOutputs(additional_meta="test", custom_field=123)  # type: ignore
+        yaml_dict = outputs.to_yaml_dict()
+        assert yaml_dict == {"additional_meta": "test", "custom_field": 123}
+
+    def test_index_outputs_to_yaml_dict_removes_empty_values(self) -> None:
+        """Test that to_yaml_dict removes empty values."""
+        outputs = IndexOutputs(additional_meta="", custom_field=None)  # type: ignore
+        yaml_dict = outputs.to_yaml_dict()
+        assert yaml_dict == {}
 
 
 class TestPipelineConfig:
