@@ -168,7 +168,7 @@ class PipelineService:
         if not DEFAULT_WORKSPACE_NAME:
             raise ValueError(
                 "We couldn't find the workspace to import into in your environment. "
-                "Please run 'deepset-cloud login' and follow the instructions."
+                "Run 'deepset-cloud login' and follow the instructions."
             )
 
         if isinstance(config, IndexConfig):
