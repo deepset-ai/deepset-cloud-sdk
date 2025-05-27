@@ -203,7 +203,7 @@ class PipelineService:
             json={"name": config.name, "query_yaml": pipeline_yaml},
         )
         response.raise_for_status()
-        if response.status_code == 201:
+        if response.status_code == HTTPStatus.NO_CONTENT:
             logger.debug(f"Pipeline {config.name} successfully created")
 
     def _create_config_yaml(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
