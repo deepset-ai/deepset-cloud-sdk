@@ -109,7 +109,9 @@ class PipelineConfig(BaseModel):
 
 
 class IndexInputs(InputOutputBaseModel):
-    """Input configuration for the pipeline index.
+    """Index input configuration.
+    
+   Defines the index component that should receive the `Files` input.
 
     :param files: List of component names that will receive files as input.
         Each component should be specified as '<component-name>.<run-parameter-name>', e.g., 'file_type_router.sources'
