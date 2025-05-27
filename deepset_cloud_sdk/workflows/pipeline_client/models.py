@@ -51,7 +51,7 @@ class PipelineInputs(InputOutputBaseModel):
 
 
 class PipelineOutputs(InputOutputBaseModel):
-    """Output configuration for the pipeline.
+    """Pipeline output configuration. 
 
     Must define at least one of `documents` or `answers`, or both.
 
