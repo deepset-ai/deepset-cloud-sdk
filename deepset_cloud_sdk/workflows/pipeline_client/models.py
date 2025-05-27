@@ -102,7 +102,7 @@ class PipelineConfig(BaseModel):
     model_config = {"extra": "forbid"}
 
     name: str = Field(..., description="Name of the pipeline to be imported", min_length=1)
-    inputs: PipelineInputs = Field(default_factory=PipelineInputs, description="Input configuration for the pipeline")
+    inputs: PipelineInputs = Field(default_factory=PipelineInputs, description="Pipeline input configuration.")
     outputs: PipelineOutputs = Field(
         default_factory=PipelineOutputs, description="Output configuration for the pipeline"
     )
