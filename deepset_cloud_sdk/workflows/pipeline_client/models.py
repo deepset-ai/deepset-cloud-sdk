@@ -45,7 +45,7 @@ class PipelineInputs(InputOutputBaseModel):
         default_factory=list,
         description=(
             "List of components that will receive the `filters` input when they are executed. "
-            "Format: '<component-name>.<run-parameter-name>', e.g., 'retriever.filters'"
+            "Use the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.filters'."
         ),
     )
 
