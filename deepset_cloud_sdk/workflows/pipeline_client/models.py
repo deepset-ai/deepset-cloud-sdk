@@ -76,7 +76,7 @@ class PipelineOutputs(InputOutputBaseModel):
 
     @model_validator(mode="after")
     def validate_documents_xor_answers(self) -> "PipelineOutputs":
-        """Validate that at least one of documents or answers is defined."""
+        """Validate that either `documents`, `answers`, or both are defined."""
         if not self.documents and not self.answers:
             raise ValueError("At least one of 'documents' or 'answers' must be defined")
         return self
