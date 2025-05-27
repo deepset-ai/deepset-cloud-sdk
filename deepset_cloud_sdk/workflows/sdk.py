@@ -68,7 +68,7 @@ class DeepsetSDK:
     def init(self) -> None:
         """Initialize the SDK features.
 
-        This method sets up the SDK for use with haystack pipelines.
+        This method sets up the SDK for use with Haystack pipelines.
         It enables the import functionality for haystack Pipeline and AsyncPipeline classes.
 
         Note:
