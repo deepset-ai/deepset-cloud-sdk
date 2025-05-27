@@ -29,7 +29,7 @@ class PipelineInputs(InputOutputBaseModel):
 
     :param query: List of components that will receive the `query` input.
         Specify each component in the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.query'
-    :param filters: Optional list of components that will receive the filters input. 
+    :param filters: Optional list of components that will receive the filters input.
         Specify each component using the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.filters'.
     """
 
@@ -55,10 +55,10 @@ class PipelineInputs(InputOutputBaseModel):
 class PipelineOutputs(InputOutputBaseModel):
     """Pipeline output configuration.
 
-    Specify the components that will output `documents`, `answers`, or both. 
+    Specify the components that will output `documents`, `answers`, or both.
     You must include at least one. The outputs of these components become the final output of the pipeline.
 
-    :param documents: Name of the component that will provide `documents` as output. 
+    :param documents: Name of the component that will provide `documents` as output.
         Use the format '<component-name>.<output-parameter>', for example: 'retriever.documents'.
     :param answers: Name of the component that will provide `answers` as output.
         Use the format '<component-name>.<output-parameter>', for example: 'reader.answers'.
@@ -117,7 +117,7 @@ class PipelineConfig(BaseModel):
 
 class IndexInputs(InputOutputBaseModel):
     """Index input configuration.
-    
+
     Defines the index components that should receive the `Files` input.
 
     :param files: List of component names that will receive files as input.
