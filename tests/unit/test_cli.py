@@ -29,6 +29,19 @@ runner = CliRunner()
 class TestCLIMethods:
     @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
     def test_uploading(self, async_upload_mock: AsyncMock) -> None:
+        # Configure logger to output to stdout and avoid interference with other tests
+        structlog.configure(
+            processors=[
+                structlog.processors.UnicodeDecoder(),
+                structlog.processors.format_exc_info,
+                structlog.dev.ConsoleRenderer(),
+            ],
+            wrapper_class=structlog.BoundLogger,
+            context_class=dict,
+            logger_factory=structlog.PrintLoggerFactory(),
+            cache_logger_on_first_use=True,
+        )
+
         def log_upload_folder_mock(
             *args: Any,
             **kwargs: Any,
