@@ -23,7 +23,9 @@ class InputOutputBaseModel(BaseModel):
 
 
 class PipelineInputs(InputOutputBaseModel):
-    """Input configuration for the pipeline.
+    """Pipeline input configuration.
+
+    Defines the components that should receive the Query input and any filters that apply to it.
 
     :param query: List of component names that will receive the query input
         Each component should be specified as '<component-name>.<run-parameter-name>', e.g., 'retriever.query'
@@ -102,9 +104,13 @@ class PipelineConfig(BaseModel):
     model_config = {"extra": "forbid"}
 
     name: str = Field(..., description="Name of the pipeline to be imported", min_length=1)
-    inputs: PipelineInputs = Field(default_factory=PipelineInputs, description="Input configuration for the pipeline")
+    inputs: PipelineInputs = Field(
+        default_factory=PipelineInputs,
+        description=("Input configuration for the pipeline. Use `PipelineInputs` model to define the inputs."),
+    )
     outputs: PipelineOutputs = Field(
-        default_factory=PipelineOutputs, description="Output configuration for the pipeline"
+        default_factory=PipelineOutputs,
+        description=("Output configuration for the pipeline. Use `PipelineOutputs` model to define the inputs."),
     )
 
 
@@ -137,7 +143,13 @@ class IndexConfig(BaseModel):
     model_config = {"extra": "forbid"}
 
     name: str = Field(..., description="Name of the index to be imported", min_length=1)
-    inputs: IndexInputs = Field(default_factory=PipelineInputs, description="Input configuration for the index.")
+    inputs: IndexInputs = Field(
+        default_factory=IndexInputs,
+        description=("Input configuration for the index. Use `IndexInputs` model to define the inputs."),
+    )
     outputs: IndexOutputs | None = Field(
-        default_factory=IndexOutputs, description="Optional output configuration for the index."
+        default_factory=IndexOutputs,
+        description=(
+            "Optional output configuration for the index. Use `IndexOutputs` model to define the outputs."
+        ),
     )

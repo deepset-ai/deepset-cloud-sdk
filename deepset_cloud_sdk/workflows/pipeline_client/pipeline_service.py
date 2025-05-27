@@ -109,7 +109,9 @@ def _enable_import_into_deepset() -> None:
     # Add methods to both Pipeline classes
     add_method_if_not_exists(HaystackPipeline, "import_into_deepset_async", import_into_deepset_async, "Pipeline")
     add_method_if_not_exists(HaystackPipeline, "import_into_deepset", import_into_deepset, "Pipeline")
-    add_method_if_not_exists(HaystackAsyncPipeline, "import_into_deepset_async", import_into_deepset_async, "AsyncPipeline")
+    add_method_if_not_exists(
+        HaystackAsyncPipeline, "import_into_deepset_async", import_into_deepset_async, "AsyncPipeline"
+    )
     add_method_if_not_exists(HaystackAsyncPipeline, "import_into_deepset", import_into_deepset, "AsyncPipeline")
 
 
