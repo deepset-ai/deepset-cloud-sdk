@@ -17,7 +17,7 @@ class TestDeepsetSDK:
     def test_init_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test successful SDK initialization."""
         mock_enable = Mock()
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk._enable_publish_to_deepset", mock_enable)
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk._enable_import_into_deepset", mock_enable)
 
         sdk = DeepsetSDK()
         sdk.init()
@@ -28,7 +28,7 @@ class TestDeepsetSDK:
     def test_init_already_initialized(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test that init does nothing if already initialized."""
         mock_enable = Mock()
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk._enable_publish_to_deepset", mock_enable)
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk._enable_import_into_deepset", mock_enable)
 
         sdk = DeepsetSDK()
         sdk.init()
@@ -42,7 +42,7 @@ class TestDeepsetSDK:
     def test_init_failure(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test SDK initialization failure."""
         mock_enable = Mock(side_effect=ImportError("Test error"))
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk._enable_publish_to_deepset", mock_enable)
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk._enable_import_into_deepset", mock_enable)
 
         sdk = DeepsetSDK()
         sdk.init()

@@ -19,12 +19,12 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
 )
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
     PipelineService,
-    _enable_publish_to_deepset,
+    _enable_import_into_deepset,
 )
 
 
-class TestPublishPipelineService:
-    """Test suite for the PipelineService publish functionality."""
+class TestImportPipelineService:
+    """Test suite for the PipelineService import functionality."""
 
     @pytest.fixture
     def mock_api(self) -> AsyncMock:
@@ -62,26 +62,26 @@ class TestPublishPipelineService:
         return pipeline_index
 
     @pytest.mark.asyncio
-    async def test_publish_index(
+    async def test_import_index(
         self,
         pipeline_service: PipelineService,
         index_pipeline: Pipeline,
         mock_api: AsyncMock,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Test publishing an index pipeline."""
+        """Test importing an index pipeline."""
         monkeypatch.setattr(
             "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
         )
 
-        # Create publish config
+        # Create Import config
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
         )
 
-        # Publish the pipeline
-        await pipeline_service.publish_async(index_pipeline, config)
+        # Import the pipeline
+        await pipeline_service.import_async(index_pipeline, config)
 
         expected_pipeline_yaml = textwrap.dedent(
             """components:
@@ -134,26 +134,26 @@ inputs:
         )
 
     @pytest.mark.asyncio
-    async def test_publish_index_pipeline_with_invalid_pipeline(self, pipeline_service: PipelineService) -> None:
-        """Test publishing unexpected pipeline object."""
+    async def test_import_index_pipeline_with_invalid_pipeline(self, pipeline_service: PipelineService) -> None:
+        """Test importing unexpected pipeline object."""
         config = IndexConfig(name="test_index", inputs=IndexInputs(files=["my_component.files"]))
 
         # Create an invalid pipeline (doesn't implement PipelineProtocol)
         invalid_pipeline = object()
 
         with pytest.raises(TypeError, match="Haystack Pipeline or AsyncPipeline object expected.*"):
-            await pipeline_service.publish_async(invalid_pipeline, config)  # type: ignore
+            await pipeline_service.import_async(invalid_pipeline, config)  # type: ignore
 
     @pytest.mark.parametrize("empty_value", ["", None])
     @pytest.mark.asyncio
-    async def test_publish_index_pipeline_without_workspace(
+    async def test_import_index_pipeline_without_workspace(
         self,
         empty_value: Any,
         pipeline_service: PipelineService,
         index_pipeline: Pipeline,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Test publishing an index pipeline without workspace configuration."""
+        """Test importing an index pipeline without workspace configuration."""
         monkeypatch.setattr(
             "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", empty_value
         )
@@ -163,11 +163,11 @@ inputs:
         )
 
         with pytest.raises(ValueError, match="We couldn't find the workspace"):
-            await pipeline_service.publish_async(index_pipeline, config)
+            await pipeline_service.import_async(index_pipeline, config)
 
     @pytest.mark.asyncio
-    async def test_publish_pipeline_with_outputs(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test publishing a pipeline."""
+    async def test_import_pipeline_with_outputs(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test importing a pipeline."""
         mock_api = AsyncMock()
         service = PipelineService(mock_api)
         mock_pipeline = Mock(spec=Pipeline)
@@ -187,7 +187,7 @@ inputs:
             outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
         )
 
-        await service.publish_async(mock_pipeline, config)
+        await service.import_async(mock_pipeline, config)
         expected_pipeline_yaml = textwrap.dedent(
             """components:
   retriever:
@@ -207,10 +207,10 @@ outputs:
         )
 
     @pytest.mark.asyncio
-    async def test_publish_pipeline_import_error(
+    async def test_import_pipeline_import_error(
         self, pipeline_service: PipelineService, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test publishing a pipeline when haystack-ai is not installed."""
+        """Test importing a pipeline when haystack-ai is not installed."""
 
         def mock_import(*args: Any, **kwargs: Any) -> None:
             raise ImportError("Can't import Pipeline or AsyncPipeline.")
@@ -226,11 +226,11 @@ outputs:
         with pytest.raises(
             ImportError, match="Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed."
         ):
-            await pipeline_service.publish_async(Mock(), config)
+            await pipeline_service.import_async(Mock(), config)
 
     @pytest.mark.asyncio
-    async def test_publish_index_with_outputs_and_additional_params(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test publishing an index with outputs and additional input parameters."""
+    async def test_import_index_with_outputs_and_additional_params(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test importing an index with outputs and additional input parameters."""
         mock_api = AsyncMock()
         service = PipelineService(mock_api)
         monkeypatch.setattr(
@@ -255,7 +255,7 @@ outputs:
             ),
         )
 
-        await service.publish_async(mock_pipeline, config)
+        await service.import_async(mock_pipeline, config)
         expected_pipeline_yaml = textwrap.dedent(
             """components:
   retriever:
@@ -281,43 +281,43 @@ outputs:
         )
 
 
-class TestEnablePublishToDeepset:
-    """Test suite for the enable_publish_to_deepset functionality."""
+class TestEnableImportIntoDeepset:
+    """Test suite for the enable_import_into_deepset functionality."""
 
-    def test_enable_publish_to_deepset_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test successful enabling of publish to deepset."""
+    def test_enable_import_into_deepset_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test successful enabling of import into deepset."""
         mock_pipeline = Mock(spec=Pipeline)
         mock_async_pipeline = Mock(spec=AsyncPipeline)
 
-        assert not hasattr(mock_pipeline, "publish")
-        assert not hasattr(mock_pipeline, "publish_async")
-        assert not hasattr(mock_async_pipeline, "publish")
-        assert not hasattr(mock_async_pipeline, "publish_async")
+        assert not hasattr(mock_pipeline, "import_into_deepset")
+        assert not hasattr(mock_pipeline, "import_into_deepset_async")
+        assert not hasattr(mock_async_pipeline, "import_into_deepset")
+        assert not hasattr(mock_async_pipeline, "import_into_deepset_async")
 
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
 
-        _enable_publish_to_deepset()
+        _enable_import_into_deepset()
 
         # Check sync methods
-        assert hasattr(mock_pipeline, "publish")
-        assert callable(mock_pipeline.publish)
-        assert hasattr(mock_async_pipeline, "publish")
-        assert callable(mock_async_pipeline.publish)
+        assert hasattr(mock_pipeline, "import_into_deepset")
+        assert callable(mock_pipeline.import_into_deepset)
+        assert hasattr(mock_async_pipeline, "import_into_deepset")
+        assert callable(mock_async_pipeline.import_into_deepset)
 
         # Check async methods
-        assert hasattr(mock_pipeline, "publish_async")
-        assert callable(mock_pipeline.publish_async)
-        assert hasattr(mock_async_pipeline, "publish_async")
-        assert callable(mock_async_pipeline.publish_async)
+        assert hasattr(mock_pipeline, "import_into_deepset_async")
+        assert callable(mock_pipeline.import_into_deepset_async)
+        assert hasattr(mock_async_pipeline, "import_into_deepset_async")
+        assert callable(mock_async_pipeline.import_into_deepset_async)
 
     @pytest.mark.asyncio
-    async def test_publish_async_works(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test that the async publish method works correctly."""
+    async def test_import_into_deepset_async_works(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test that the async import into deepset method works correctly."""
         mock_pipeline = Mock(spec=Pipeline)
         mock_async_pipeline = Mock(spec=AsyncPipeline)
-        mock_pipeline.publish_async = AsyncMock()
-        mock_async_pipeline.publish_async = AsyncMock()
+        mock_pipeline.import_into_deepset_async = AsyncMock()
+        mock_async_pipeline.import_into_deepset_async = AsyncMock()
 
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
@@ -329,35 +329,35 @@ class TestEnablePublishToDeepset:
         )
 
         # Test sync Pipeline
-        await mock_pipeline.publish_async(config)
-        mock_pipeline.publish_async.assert_called_once_with(config)
+        await mock_pipeline.import_into_deepset_async(config)
+        mock_pipeline.import_into_deepset_async.assert_called_once_with(config)
 
         # Test AsyncPipeline
-        await mock_async_pipeline.publish_async(config)
-        mock_async_pipeline.publish_async.assert_called_once_with(config)
+        await mock_async_pipeline.import_into_deepset_async(config)
+        mock_async_pipeline.import_into_deepset_async.assert_called_once_with(config)
 
-    def test_publish_sync_works(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test that the sync publish method works correctly."""
+    def test_import_sync_works(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test that the sync import method works correctly."""
         # Create mocks for the pipeline classes
         mock_pipeline = Mock(spec=Pipeline)
         mock_async_pipeline = Mock(spec=AsyncPipeline)
 
         # Set up the mocks
-        mock_pipeline.publish_async = AsyncMock()
-        mock_async_pipeline.publish_async = AsyncMock()
+        mock_pipeline.import_async = AsyncMock()
+        mock_async_pipeline.import_async = AsyncMock()
 
-        # Mock PipelineService.publish_async to prevent actual execution
-        async def mock_service_publish_async(self: Any, pipeline: Any, config: PipelineConfig | IndexConfig) -> None:
-            await pipeline.publish_async(config)
+        # Mock PipelineService.import_async to prevent actual execution
+        async def mock_service_import_async(self: Any, pipeline: Any, config: PipelineConfig | IndexConfig) -> None:
+            await pipeline.import_async(config)
 
         monkeypatch.setattr(
-            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.PipelineService.publish_async",
-            mock_service_publish_async,
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.PipelineService.import_async",
+            mock_service_import_async,
         )
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
 
-        _enable_publish_to_deepset()
+        _enable_import_into_deepset()
 
         config = PipelineConfig(
             name="test",
@@ -365,45 +365,45 @@ class TestEnablePublishToDeepset:
             outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
         )
 
-        # Test that calling sync publish calls the async method
+        # Test that calling sync import calls the async method
         # Get the bound method and call it
-        publish_method = getattr(mock_pipeline, "publish")
-        publish_method(mock_pipeline, config)
+        import_method = getattr(mock_pipeline, "import_into_deepset")
+        import_method(mock_pipeline, config)
 
-        publish_method = getattr(mock_async_pipeline, "publish")
-        publish_method(mock_async_pipeline, config)
+        import_method = getattr(mock_async_pipeline, "import_into_deepset")
+        import_method(mock_async_pipeline, config)
 
-        # Verify that publish_async was called with the correct arguments
-        assert mock_pipeline.publish_async.call_count == 1
-        assert mock_async_pipeline.publish_async.call_count == 1
-        mock_pipeline.publish_async.assert_called_with(config)
-        mock_async_pipeline.publish_async.assert_called_with(config)
+        # Verify that import_async was called with the correct arguments
+        assert mock_pipeline.import_async.call_count == 1
+        assert mock_async_pipeline.import_async.call_count == 1
+        mock_pipeline.import_async.assert_called_with(config)
+        mock_async_pipeline.import_async.assert_called_with(config)
 
-    def test_enable_publish_to_deepset_already_exists(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test enabling publish when the methods already exist."""
-        # Mock both Pipeline and AsyncPipeline classes with existing publish methods
+    def test_enable_import_into_deepset_already_exists(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test enabling import when the methods already exist."""
+        # Mock both Pipeline and AsyncPipeline classes with existing import methods
         mock_pipeline = Mock(spec=Pipeline)
         mock_async_pipeline = Mock(spec=AsyncPipeline)
-        existing_publish = Mock()
-        existing_publish_async = Mock()
-        mock_pipeline.publish = existing_publish
-        mock_pipeline.publish_async = existing_publish_async
-        mock_async_pipeline.publish = existing_publish
-        mock_async_pipeline.publish_async = existing_publish_async
+        existing_import = Mock()
+        existing_import_async = Mock()
+        mock_pipeline.import_into_deepset = existing_import
+        mock_pipeline.import_into_deepset_async = existing_import_async
+        mock_async_pipeline.import_into_deepset = existing_import
+        mock_async_pipeline.import_into_deepset_async = existing_import_async
 
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
 
-        _enable_publish_to_deepset()
+        _enable_import_into_deepset()
 
         # Verify existing methods weren't overwritten
-        assert mock_pipeline.publish == existing_publish
-        assert mock_pipeline.publish_async == existing_publish_async
-        assert mock_async_pipeline.publish == existing_publish
-        assert mock_async_pipeline.publish_async == existing_publish_async
+        assert mock_pipeline.import_into_deepset == existing_import
+        assert mock_pipeline.import_into_deepset_async == existing_import_async
+        assert mock_async_pipeline.import_into_deepset == existing_import
+        assert mock_async_pipeline.import_into_deepset_async == existing_import_async
 
-    def test_enable_publish_to_deepset_no_haystack_installed(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test enabling publish when haystack-ai is not installed."""
+    def test_enable_import_into_deepset_no_haystack_installed(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test enabling import into deepset when haystack-ai is not installed."""
 
         def mock_import(*args: Any, **kwargs: Any) -> None:
             raise ImportError("Can't import Pipeline or AsyncPipeline.")
@@ -413,4 +413,4 @@ class TestEnablePublishToDeepset:
         with pytest.raises(
             ImportError, match="Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed."
         ):
-            _enable_publish_to_deepset()
+            _enable_import_into_deepset()

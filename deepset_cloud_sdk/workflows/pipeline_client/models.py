@@ -92,16 +92,16 @@ class IndexOutputs(InputOutputBaseModel):
 
 
 class PipelineConfig(BaseModel):
-    """Pipeline configuration for publishing a pipeline to deepset AI platform.
+    """Pipeline configuration for importing a pipeline to deepset AI platform.
 
-    :param name: Name of the pipeline to be published
+    :param name: Name of the pipeline to be imported
     :param inputs: Input configuration for the pipeline.
     :param outputs: Output configuration for the pipeline.
     """
 
     model_config = {"extra": "forbid"}
 
-    name: str = Field(..., description="Name of the pipeline to be published", min_length=1)
+    name: str = Field(..., description="Name of the pipeline to be imported", min_length=1)
     inputs: PipelineInputs = Field(default_factory=PipelineInputs, description="Input configuration for the pipeline")
     outputs: PipelineOutputs = Field(
         default_factory=PipelineOutputs, description="Output configuration for the pipeline"
@@ -127,16 +127,16 @@ class IndexInputs(InputOutputBaseModel):
 
 
 class IndexConfig(BaseModel):
-    """Index configuration for publishing an index to deepset AI platform.
+    """Index configuration for importing an index to deepset AI platform.
 
-    :param name: Name of the index to be published
+    :param name: Name of the index to be imported
     :param inputs: Input configuration for the index
     :param outputs: Optional output configuration for the index
     """
 
     model_config = {"extra": "forbid"}
 
-    name: str = Field(..., description="Name of the index to be published", min_length=1)
+    name: str = Field(..., description="Name of the index to be imported", min_length=1)
     inputs: IndexInputs = Field(default_factory=PipelineInputs, description="Input configuration for the index.")
     outputs: IndexOutputs | None = Field(
         default_factory=IndexOutputs, description="Optional output configuration for the index."

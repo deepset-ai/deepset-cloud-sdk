@@ -1,4 +1,4 @@
-"""Pipeline publishing service for deepset Cloud SDK."""
+"""Pipeline importing service for deepset Cloud SDK."""
 # pylint: disable=unnecessary-ellipsis,import-outside-toplevel
 import asyncio
 from http import HTTPStatus
@@ -38,8 +38,8 @@ class PipelineProtocol(Protocol):
         ...
 
 
-def _enable_publish_to_deepset() -> None:
-    """Add publish methods to the Haystack Pipeline and AsyncPipeline classes.
+def _enable_import_into_deepset() -> None:
+    """Add import methods to the Haystack Pipeline and AsyncPipeline classes.
 
     This function is called by deepset_sdk.init() to set up the SDK.
     Users should not call this function directly.
@@ -52,30 +52,30 @@ def _enable_publish_to_deepset() -> None:
             "Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed. Run 'pip install haystack-ai'"
         ) from err
 
-    async def publish_to_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
-        """Publish index or pipeline to deepset AI platform asynchronously.
+    async def import_into_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
+        """Import index or pipeline into deepset AI platform asynchronously.
 
         An index is a special type of pipeline with the purpose to preprocess files, preparing them for
         search and store them in a document store.
 
-        :param config: Configuration for publishing, either `IndexConfig` or `PipelineConfig`.
-            If publishing an index, the config argument is expected to be of type `IndexConfig`,
-            if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
+        :param config: Configuration for importing, use either `IndexConfig` or `PipelineConfig`.
+            If importing an index, the config argument is expected to be of type `IndexConfig`,
+            if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
         """
         api_config = CommonConfig()  # Uses environment variables
         async with DeepsetCloudAPI.factory(api_config) as api:
             service = PipelineService(api)
-            await service.publish_async(self, config)
+            await service.import_async(self, config)
 
-    def publish_to_deepset(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
-        """Publish index or pipeline to deepset AI platform synchronously.
+    def import_into_deepset(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
+        """Import index or pipeline into deepset AI platform synchronously.
 
         An index is a special type of pipeline with the purpose to preprocess files, preparing them for
         search and store them in a document store.
 
-        :param config: Configuration for publishing, use either `IndexConfig` or `PipelineConfig`.
-            If publishing an index, the config argument is expected to be of type `IndexConfig`,
-            if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
+        :param config: Configuration for importing into deepset, use either `IndexConfig` or `PipelineConfig`.
+            If importing an index, the config argument is expected to be of type `IndexConfig`,
+            if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
         """
         # creates a sync wrapper around the async method since the APIs are async
         try:
@@ -87,7 +87,7 @@ def _enable_publish_to_deepset() -> None:
             should_close = True
 
         try:
-            return loop.run_until_complete(publish_to_deepset_async(self, config))
+            return loop.run_until_complete(import_into_deepset_async(self, config))
         finally:
             if should_close:
                 loop.close()
@@ -107,14 +107,14 @@ def _enable_publish_to_deepset() -> None:
             logger.debug(f"{method_name} method already exists on {class_name} class")
 
     # Add methods to both Pipeline classes
-    add_method_if_not_exists(HaystackPipeline, "publish_async", publish_to_deepset_async, "Pipeline")
-    add_method_if_not_exists(HaystackPipeline, "publish", publish_to_deepset, "Pipeline")
-    add_method_if_not_exists(HaystackAsyncPipeline, "publish_async", publish_to_deepset_async, "AsyncPipeline")
-    add_method_if_not_exists(HaystackAsyncPipeline, "publish", publish_to_deepset, "AsyncPipeline")
+    add_method_if_not_exists(HaystackPipeline, "import_into_deepset_async", import_into_deepset_async, "Pipeline")
+    add_method_if_not_exists(HaystackPipeline, "import_into_deepset", import_into_deepset, "Pipeline")
+    add_method_if_not_exists(HaystackAsyncPipeline, "import_into_deepset_async", import_into_deepset_async, "AsyncPipeline")
+    add_method_if_not_exists(HaystackAsyncPipeline, "import_into_deepset", import_into_deepset, "AsyncPipeline")
 
 
 class PipelineService:
-    """Handles the publishing of Haystack pipelines and indexes to deepset AI platform."""
+    """Handles the importing of Haystack pipelines and indexes into deepset AI platform."""
 
     def __init__(self, api: DeepsetCloudAPI) -> None:
         """Initialize the pipeline service.
@@ -135,19 +135,19 @@ class PipelineService:
         async with DeepsetCloudAPI.factory(config) as api:
             return cls(api)
 
-    async def publish_async(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
-        """Publish a pipeline or index to deepset AI platform.
+    async def import_async(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
+        """Import a pipeline or index into deepset AI platform.
 
-        :param pipeline: The pipeline or index to publish. Must be a Haystack Pipeline or AsyncPipeline
-        :param config: Configuration for publishing, either `IndexConfig` or `PipelineConfig`.
-            If publishing an index, the config argument is expected to be of type `IndexConfig`,
-            if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
+        :param pipeline: The pipeline or index to import. Must be a Haystack Pipeline or AsyncPipeline
+        :param config: Configuration for importing, either `IndexConfig` or `PipelineConfig`.
+            If importing an index, the config argument is expected to be of type `IndexConfig`,
+            if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
 
         :raises TypeError: If the pipeline object isn't a Haystack Pipeline or AsyncPipeline
         :raises ValueError: If no workspace is configured
         :raises ImportError: If haystack-ai is not installed
         """
-        logger.debug(f"Starting async publishing for {config.name}")
+        logger.debug(f"Starting async importing for {config.name}")
 
         try:
             from haystack import AsyncPipeline as HaystackAsyncPipeline
@@ -164,22 +164,22 @@ class PipelineService:
 
         if not DEFAULT_WORKSPACE_NAME:
             raise ValueError(
-                "We couldn't find the workspace to publish to in your environment. "
+                "We couldn't find the workspace to import into in your environment. "
                 "Please run 'deepset-cloud login' and follow the instructions."
             )
 
         if isinstance(config, IndexConfig):
-            logger.debug(f"Publishing index to workspace {DEFAULT_WORKSPACE_NAME}")
-            await self._publish_index(pipeline, config)
+            logger.debug(f"Importing index into workspace {DEFAULT_WORKSPACE_NAME}")
+            await self._import_index(pipeline, config)
         else:
-            logger.debug(f"Publishing pipeline to workspace {DEFAULT_WORKSPACE_NAME}")
-            await self._publish_pipeline(pipeline, config)
+            logger.debug(f"Importing pipeline into workspace {DEFAULT_WORKSPACE_NAME}")
+            await self._import_pipeline(pipeline, config)
 
-    async def _publish_index(self, pipeline: PipelineProtocol, config: IndexConfig) -> None:
-        """Publish an index pipeline to deepset Cloud.
+    async def _import_index(self, pipeline: PipelineProtocol, config: IndexConfig) -> None:
+        """Import an index pipeline into deepset Cloud.
 
-        :param pipeline: The Haystack pipeline to publish
-        :param config: Configuration for publishing
+        :param pipeline: The Haystack pipeline to import
+        :param config: Configuration for importing an Index
         """
         pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
@@ -191,13 +191,13 @@ class PipelineService:
         if response.status_code == HTTPStatus.NO_CONTENT:
             logger.debug(f"Index {config.name} successfully created")
 
-    async def _publish_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
-        """Publish a pipeline to deepset Cloud.
+    async def _import_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
+        """Import a pipeline into deepset Cloud.
 
-        :param pipeline: The pipeline to publish
-        :param config: Configuration for publishing
+        :param pipeline: The pipeline to import
+        :param config: Configuration for importing a Pipeline
         """
-        logger.debug(f"Publishing pipeline {config.name}")
+        logger.debug(f"Importing pipeline {config.name}")
         pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
             workspace_name=DEFAULT_WORKSPACE_NAME,
@@ -212,7 +212,7 @@ class PipelineService:
         """Create a YAML configuration from the pipeline.
 
         :param pipeline: The pipeline to create the configuration for
-        :param config: Configuration for publishing
+        :param config: Configuration for importing
         :return: YAML configuration as a string
         """
         # Parse the pipeline YAML
@@ -228,7 +228,7 @@ class PipelineService:
         """Add inputs and outputs to the pipeline dictionary from config.
 
         :param pipeline_dict: The pipeline dictionary to add inputs and outputs to
-        :param config: Configuration for publishing
+        :param config: Configuration for importing
         """
         if config.inputs and (converted_inputs := config.inputs.to_yaml_dict()):
             pipeline_dict["inputs"] = converted_inputs

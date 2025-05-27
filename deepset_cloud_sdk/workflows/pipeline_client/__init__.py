@@ -1,1 +1,1 @@
-"""Package to publish pipelines and indexes to deepset AI platform."""
+"""Package to enable importing pipelines and indexes to deepset AI platform."""

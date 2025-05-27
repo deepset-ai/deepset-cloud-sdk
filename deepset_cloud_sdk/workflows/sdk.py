@@ -2,7 +2,7 @@
 import structlog
 
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
-    _enable_publish_to_deepset,
+    _enable_import_into_deepset,
 )
 
 logger = structlog.get_logger(__name__)
@@ -13,26 +13,26 @@ class DeepsetSDK:
 
     This class provides a centralized way to initialize and manage SDK features.
 
-    Example for publishing an index or pipeline:
+    Example for importing an index or pipeline to deepset AI platform:
         ```python
         from deepset_cloud_sdk.workflows import DeepsetSDK
         from haystack import Pipeline
 
-        # Initialize the SDK to enable using publishing functionality
+        # Initialize the SDK to enable using importing functionality
         sdk = DeepsetSDK()
         sdk.init()
 
         # Configure your pipeline
         pipeline = Pipeline()
 
-        # Configure publishing config
-        # if publishing an index, use IndexConfig
+        # Configure import
+        # if importing an index, use IndexConfig
         config = IndexConfig(
             name="my-index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
         )
 
-        # if publishing a pipeline, use PipelineConfig
+        # if importing a pipeline, use PipelineConfig
         config = PipelineConfig(
             name="my-pipeline",
             inputs=PipelineInputs(
@@ -46,10 +46,10 @@ class DeepsetSDK:
         )
 
         # sync execution
-        pipeline.publish(config)
+        pipeline.import_into_deepset(config)
 
         # async execution
-        await pipeline.publish_async(config)
+        await pipeline.import_into_deepset_async(config)
         ```
     """
 
@@ -69,7 +69,7 @@ class DeepsetSDK:
         """Initialize the SDK features.
 
         This method sets up the SDK for use with haystack pipelines.
-        It enables the publish functionality for haystack Pipeline and AsyncPipeline classes.
+        It enables the import functionality for haystack Pipeline and AsyncPipeline classes.
 
         Note:
             This method should be called before using any SDK features that require initialization.
@@ -79,7 +79,7 @@ class DeepsetSDK:
             return
 
         try:
-            _enable_publish_to_deepset()
+            _enable_import_into_deepset()
             self._initialized = True
             logger.debug("SDK initialized successfully")
         except ImportError as err:
