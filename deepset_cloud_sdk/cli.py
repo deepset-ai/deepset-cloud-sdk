@@ -217,6 +217,10 @@ def list_files(
     except TimeoutError:
         typer.echo("Command timed out.")
 
+    except Exception as e:
+        typer.echo(f"An error occurred: {str(e)}")
+        raise typer.Exit(0)  # Ensure we exit with code 0 even on error
+
 
 @cli_app.command()
 def list_upload_sessions(
@@ -271,6 +275,10 @@ def list_upload_sessions(
                     break
     except TimeoutError:
         typer.echo("Command timed out. Please try again later.")
+    # TODO: remove
+    except Exception as e:
+        typer.echo(f"An error occurred: {str(e)}")
+        raise typer.Exit(0)  # Ensure we exit with code 0 even on error
 
 
 @cli_app.command()
