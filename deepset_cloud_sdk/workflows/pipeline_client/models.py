@@ -122,7 +122,7 @@ class IndexInputs(InputOutputBaseModel):
     files: List[str] = Field(
         default_factory=list,
         description=(
-            "List of component names that will receive files as input when being executed. "
+            "List of components that will receive files as input when they're executed. "
             "Format: '<component-name>.<run-parameter-name>', for example: 'file_type_router.sources'."
         ),
     )
