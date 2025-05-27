@@ -102,7 +102,10 @@ class TestPipelineOutputs:
 
     def test_create_outputs_without_documents_or_answers(self) -> None:
         """Test creating Outputs with default values."""
-        with pytest.raises(ValidationError, match="At least one of 'documents' or 'answers' must be defined"):
+        with pytest.raises(
+            ValidationError,
+            match="Define at least one pipeline output, either 'documents, 'answers' or both.*",
+        ):
             PipelineOutputs()
 
     def test_create_outputs_with_documents(self) -> None:
