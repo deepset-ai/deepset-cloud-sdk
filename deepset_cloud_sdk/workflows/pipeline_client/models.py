@@ -96,7 +96,7 @@ class PipelineConfig(BaseModel):
 
     :param name: Name of the pipeline to be imported
     :param inputs: Input configuration for the pipeline.
-    :param outputs: Output configuration for the pipeline.
+    :param outputs: Pipeline outputs.
     """
 
     model_config = {"extra": "forbid"}
