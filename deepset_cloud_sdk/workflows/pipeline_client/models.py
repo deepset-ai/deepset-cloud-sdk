@@ -25,7 +25,7 @@ class InputOutputBaseModel(BaseModel):
 class PipelineInputs(InputOutputBaseModel):
     """Input configuration for the pipeline.
 
-    :param query: List of component names that will receive the query input
+    :param query: List of components that will receive the `query` input.
         Each component should be specified as '<component-name>.<run-parameter-name>', e.g., 'retriever.query'
     :param filters: Optional list of component names that will receive filters input.
         Each component should be specified as '<component-name>.<run-parameter-name>', e.g., 'retriever.filters'
