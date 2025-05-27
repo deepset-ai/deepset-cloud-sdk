@@ -77,11 +77,17 @@ def _enable_publish_to_deepset() -> None:
         # creates a sync wrapper around the async method since the APIs are async
         try:
             loop = asyncio.get_event_loop()
+            should_close = False
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
+            should_close = True
 
-        return loop.run_until_complete(publish_to_deepset_async(self, config))
+        try:
+            return loop.run_until_complete(publish_to_deepset_async(self, config))
+        finally:
+            if should_close:
+                loop.close()
 
     def add_method_if_not_exists(cls: type, method_name: str, method: Any, class_name: str) -> None:
         """Add a method to a class if it doesn't exist.
