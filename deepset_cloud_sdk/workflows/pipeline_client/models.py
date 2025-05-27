@@ -53,7 +53,7 @@ class PipelineInputs(InputOutputBaseModel):
 class PipelineOutputs(InputOutputBaseModel):
     """Pipeline output configuration. 
 
-    Must define at least one of `documents` or `answers`, or both.
+    Specify the components that will output `documents`, `answers`, or both. You must include at least one. The outputs of these components become the final output of the pipeline.
 
     :param documents: Component name that will provide documents as output.
         Should be specified as '<component-name>.<output-parameter>', e.g., 'retriever.documents'
