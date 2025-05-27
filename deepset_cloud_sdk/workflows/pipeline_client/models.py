@@ -17,7 +17,7 @@ class InputOutputBaseModel(BaseModel):
 
         :return: Dictionary ready for YAML serialization
         """
-        fields = self.model_dump()
+        fields = self.model_dump(exclude_none=True)
         # Remove empty values
         return {k: v for k, v in fields.items() if v}
 
@@ -149,7 +149,5 @@ class IndexConfig(BaseModel):
     )
     outputs: IndexOutputs | None = Field(
         default_factory=IndexOutputs,
-        description=(
-            "Optional output configuration for the index. Use `IndexOutputs` model to define the outputs."
-        ),
+        description=("Optional output configuration for the index. Use `IndexOutputs` model to define the outputs."),
     )
