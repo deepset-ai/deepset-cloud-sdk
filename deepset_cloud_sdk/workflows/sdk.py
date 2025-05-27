@@ -8,7 +8,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
 logger = structlog.get_logger(__name__)
 
 
-class DeepsetSDK:
+class DeepsetSDK:  # pylint: disable=too-few-public-methods
     """Main class for Deepset Cloud SDK functionality.
 
     This class provides a centralized way to initialize and manage SDK features.
