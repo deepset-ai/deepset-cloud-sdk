@@ -114,7 +114,7 @@ class IndexInputs(InputOutputBaseModel):
    Defines the index component that should receive the `Files` input.
 
     :param files: List of component names that will receive files as input.
-        Each component should be specified as '<component-name>.<run-parameter-name>', e.g., 'file_type_router.sources'
+        Specify the components using the format: '<component-name>.<run-method-parameter-name>', for example: 'file_type_router.sources'.
     """
 
     model_config = {"extra": "allow"}  # Allow additional fields in inputs
