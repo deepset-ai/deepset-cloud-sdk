@@ -98,8 +98,13 @@ class PipelineConfig(BaseModel):
     """Pipeline configuration for importing a pipeline to deepset AI platform.
 
     :param name: Name of the pipeline to be imported
+<<<<<<< HEAD
     :param inputs: Pipeline input configuration. Use `PipelineInputs` model to define the inputs.
     :param outputs: Pipeline output configuration. Use `PipelineOutputs` model to define the outputs.
+=======
+    :param inputs: Pipeline inputs. 
+    :param outputs: Pipeline outputs.
+>>>>>>> 53e7c6665b4851ee2a6a3c72e0d39b822277ae56
     """
 
     model_config = {"extra": "forbid"}
@@ -120,7 +125,7 @@ class IndexInputs(InputOutputBaseModel):
 
     Defines the index components that should receive the `Files` input.
 
-    :param files: List of component names that will receive files as input.
+    :param files: List of components that should receive files as input.
         Specify the components using the format: '<component-name>.<run-method-parameter-name>', for example: 'file_type_router.sources'.
     """
 

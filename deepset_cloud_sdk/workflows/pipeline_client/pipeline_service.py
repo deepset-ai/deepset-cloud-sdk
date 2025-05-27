@@ -55,8 +55,8 @@ def _enable_import_into_deepset() -> None:
     async def import_into_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Import index or pipeline into deepset AI platform asynchronously.
 
-        An index is a special type of pipeline with the purpose to preprocess files, preparing them for
-        search and store them in a document store.
+        An index processes files and stores them in a document store, making them available for
+        query pipelines to search.
 
         :param config: Configuration for importing, use either `IndexConfig` or `PipelineConfig`.
             If importing an index, the config argument is expected to be of type `IndexConfig`,
@@ -70,8 +70,8 @@ def _enable_import_into_deepset() -> None:
     def import_into_deepset(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Import index or pipeline into deepset AI platform synchronously.
 
-        An index is a special type of pipeline with the purpose to preprocess files, preparing them for
-        search and store them in a document store.
+        An index processes files and stores them in a document store, making them available for
+        query pipelines to search.
 
         :param config: Configuration for importing into deepset, use either `IndexConfig` or `PipelineConfig`.
             If importing an index, the config argument is expected to be of type `IndexConfig`,
