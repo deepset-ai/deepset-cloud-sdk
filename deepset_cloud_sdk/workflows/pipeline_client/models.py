@@ -55,7 +55,7 @@ class PipelineOutputs(InputOutputBaseModel):
 
     Specify the components that will output `documents`, `answers`, or both. You must include at least one. The outputs of these components become the final output of the pipeline.
 
-    :param documents: Component name that will provide documents as output.
+    :param documents: Name of the component that will provide `documents` as output. 
         Should be specified as '<component-name>.<output-parameter>', e.g., 'retriever.documents'
     :param answers: Component name that will provide answers as output.
         Should be specified as '<component-name>.<output-parameter>', e.g., 'reader.answers'
