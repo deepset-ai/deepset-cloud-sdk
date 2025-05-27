@@ -26,7 +26,7 @@ dependencies = [
   "httpx>=0.27.2",
   "python-dotenv>=1.0.1",
   "typer>=0.16.0",
-  "click==8.2.0",  # fixed because of bug 8.2.1, see https://github.com/deepset-ai/haystack-hub-api/pull/5127/files
+  "click==8.2.0",  # fixed because of bug in 8.2.1, see https://github.com/deepset-ai/haystack-hub-api/pull/5127/files
   "tenacity>=8.3.0",
   "aiohttp>=3.10.10",
   "aiofiles>=24.1.0",
