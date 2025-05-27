@@ -181,7 +181,7 @@ class PipelineService:
         :param pipeline: The Haystack pipeline to publish
         :param config: Configuration for publishing
         """
-        pipeline_yaml = self._create_config_yaml(pipeline, config)
+        pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
             workspace_name=DEFAULT_WORKSPACE_NAME,
             endpoint="indexes",
@@ -198,7 +198,7 @@ class PipelineService:
         :param config: Configuration for publishing
         """
         logger.debug(f"Publishing pipeline {config.name}")
-        pipeline_yaml = self._create_config_yaml(pipeline, config)
+        pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
             workspace_name=DEFAULT_WORKSPACE_NAME,
             endpoint="pipelines",
@@ -208,8 +208,8 @@ class PipelineService:
         if response.status_code == HTTPStatus.NO_CONTENT:
             logger.debug(f"Pipeline {config.name} successfully created")
 
-    def _create_config_yaml(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
-        """Create a YAML configuration for the pipeline.
+    def _from_haystack_pipeline(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
+        """Create a YAML configuration from the pipeline.
 
         :param pipeline: The pipeline to create the configuration for
         :param config: Configuration for publishing
