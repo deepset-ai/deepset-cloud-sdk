@@ -36,7 +36,7 @@ class PipelineInputs(InputOutputBaseModel):
     query: List[str] = Field(
         ...,
         description=(
-            "List of component names that will receive the query input when being executed. "
+            "List of components that will receive the `query` input when they are executed. "
             "Format: '<component-name>.<run-parameter-name>', e.g., 'retriever.query'"
         ),
         min_items=1,
