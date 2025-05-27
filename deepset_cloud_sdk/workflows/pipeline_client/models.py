@@ -98,7 +98,7 @@ class PipelineConfig(BaseModel):
     """Pipeline configuration for importing a pipeline to deepset AI platform.
 
     :param name: Name of the pipeline to be imported
-    :param inputs: Input configuration for the pipeline.
+    :param inputs: Pipeline inputs. 
     :param outputs: Pipeline outputs.
     """
 
