@@ -61,7 +61,7 @@ class DeepsetSDK:
     def is_initialized(self) -> bool:
         """Check if the SDK has been initialized.
 
-        :return: True if the SDK has been initialized, False otherwise
+        :return: True if the SDK has been initialized, False otherwise.
         """
         return self._initialized
 
@@ -81,7 +81,7 @@ class DeepsetSDK:
         try:
             _enable_import_into_deepset()
             self._initialized = True
-            logger.debug("SDK initialized successfully")
+            logger.debug("SDK initialized successfully.")
         except ImportError as err:
-            logger.error(f"Failed to initialize SDK: {str(err)}")
+            logger.error(f"Failed to initialize SDK: {str(err)}.")
             self._initialized = False

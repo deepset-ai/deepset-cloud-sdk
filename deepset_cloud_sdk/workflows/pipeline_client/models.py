@@ -15,7 +15,7 @@ class InputOutputBaseModel(BaseModel):
 
         Clears empty values from the dictionary.
 
-        :return: Dictionary ready for YAML serialization
+        :return: Dictionary ready for YAML serialization.
         """
         fields = self.model_dump(exclude_none=True)
         # Remove empty values
@@ -98,13 +98,8 @@ class PipelineConfig(BaseModel):
     """Pipeline configuration for importing a pipeline to deepset AI platform.
 
     :param name: Name of the pipeline to be imported
-<<<<<<< HEAD
     :param inputs: Pipeline input configuration. Use `PipelineInputs` model to define the inputs.
     :param outputs: Pipeline output configuration. Use `PipelineOutputs` model to define the outputs.
-=======
-    :param inputs: Pipeline inputs. 
-    :param outputs: Pipeline outputs.
->>>>>>> 53e7c6665b4851ee2a6a3c72e0d39b822277ae56
     """
 
     model_config = {"extra": "forbid"}
@@ -143,14 +138,14 @@ class IndexInputs(InputOutputBaseModel):
 class IndexConfig(BaseModel):
     """Index configuration for importing an index to deepset AI platform.
 
-    :param name: Name of the index to be imported
+    :param name: Name of the index to be imported.
     :param inputs: Index input configuration. Use `IndexInputs` model to define the inputs.
     :param outputs: Index output configuration. Optional. Use `IndexOutputs` model to define the outputs.
     """
 
     model_config = {"extra": "forbid"}
 
-    name: str = Field(..., description="Name of the index to be imported", min_length=1)
+    name: str = Field(..., description="Name of the index to be imported.", min_length=1)
     inputs: IndexInputs = Field(
         default_factory=IndexInputs,
         description=("Input configuration for the index. Use `IndexInputs` model to define the inputs."),

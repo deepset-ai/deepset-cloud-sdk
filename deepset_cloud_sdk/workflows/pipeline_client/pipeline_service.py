@@ -25,7 +25,7 @@ class PipelineProtocol(Protocol):
     def dumps(self) -> str:
         """Convert the pipeline to a YAML string.
 
-        :return: YAML string representation of the pipeline
+        :return: YAML string representation of the pipeline.
         """
         ...
 
@@ -49,7 +49,7 @@ def _enable_import_into_deepset() -> None:
         from haystack import Pipeline as HaystackPipeline
     except ImportError as err:
         raise ImportError(
-            "Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed. Run 'pip install haystack-ai'"
+            "Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed. Run 'pip install haystack-ai'."
         ) from err
 
     async def import_into_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
@@ -95,10 +95,10 @@ def _enable_import_into_deepset() -> None:
     def add_method_if_not_exists(cls: type, method_name: str, method: Any, class_name: str) -> None:
         """Add a method to a class if it doesn't exist.
 
-        :param cls: Class to add the method to
-        :param method_name: Name of the method to add
-        :param method: Method to add
-        :param class_name: Name of the class for logging
+        :param cls: Class to add the method to.
+        :param method_name: Name of the method to add.
+        :param method: Method to add.
+        :param class_name: Name of the class for logging.
         """
         if not hasattr(cls, method_name):
             setattr(cls, method_name, method)
@@ -121,7 +121,7 @@ class PipelineService:
     def __init__(self, api: DeepsetCloudAPI) -> None:
         """Initialize the pipeline service.
 
-        :param api: An initialized DeepsetCloudAPI instance
+        :param api: An initialized DeepsetCloudAPI instance.
         """
         self._api = api
         self._yaml = YAML()
@@ -140,14 +140,14 @@ class PipelineService:
     async def import_async(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Import a pipeline or index into deepset AI platform.
 
-        :param pipeline: The pipeline or index to import. Must be a Haystack Pipeline or AsyncPipeline
+        :param pipeline: The pipeline or index to import. Must be a Haystack Pipeline or AsyncPipeline.
         :param config: Configuration for importing, either `IndexConfig` or `PipelineConfig`.
             If importing an index, the config argument is expected to be of type `IndexConfig`,
             if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
 
-        :raises TypeError: If the pipeline object isn't a Haystack Pipeline or AsyncPipeline
-        :raises ValueError: If no workspace is configured
-        :raises ImportError: If haystack-ai is not installed
+        :raises TypeError: If the pipeline object isn't a Haystack Pipeline or AsyncPipeline.
+        :raises ValueError: If no workspace is configured.
+        :raises ImportError: If haystack-ai is not installed.
         """
         logger.debug(f"Starting async importing for {config.name}")
 
@@ -180,8 +180,8 @@ class PipelineService:
     async def _import_index(self, pipeline: PipelineProtocol, config: IndexConfig) -> None:
         """Import an index pipeline into deepset Cloud.
 
-        :param pipeline: The Haystack pipeline to import
-        :param config: Configuration for importing an Index
+        :param pipeline: The Haystack pipeline to import.
+        :param config: Configuration for importing an Index.
         """
         pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
@@ -191,13 +191,13 @@ class PipelineService:
         )
         response.raise_for_status()
         if response.status_code == HTTPStatus.NO_CONTENT:
-            logger.debug(f"Index {config.name} successfully created")
+            logger.debug(f"Index {config.name} successfully created.")
 
     async def _import_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
         """Import a pipeline into deepset Cloud.
 
-        :param pipeline: The pipeline to import
-        :param config: Configuration for importing a Pipeline
+        :param pipeline: The pipeline to import.
+        :param config: Configuration for importing a Pipeline.
         """
         logger.debug(f"Importing pipeline {config.name}")
         pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
@@ -208,14 +208,14 @@ class PipelineService:
         )
         response.raise_for_status()
         if response.status_code == HTTPStatus.NO_CONTENT:
-            logger.debug(f"Pipeline {config.name} successfully created")
+            logger.debug(f"Pipeline {config.name} successfully created.")
 
     def _from_haystack_pipeline(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
         """Create a YAML configuration from the pipeline.
 
-        :param pipeline: The pipeline to create the configuration for
-        :param config: Configuration for importing
-        :return: YAML configuration as a string
+        :param pipeline: The pipeline to create the configuration for.
+        :param config: Configuration for importing.
+        :return: YAML configuration as a string.
         """
         # Parse the pipeline YAML
         pipeline_dict = self._yaml.load(pipeline.dumps())
@@ -229,8 +229,8 @@ class PipelineService:
     def _add_inputs_and_outputs(self, pipeline_dict: dict, config: IndexConfig | PipelineConfig) -> None:
         """Add inputs and outputs to the pipeline dictionary from config.
 
-        :param pipeline_dict: The pipeline dictionary to add inputs and outputs to
-        :param config: Configuration for importing
+        :param pipeline_dict: The pipeline dictionary to add inputs and outputs to.
+        :param config: Configuration for importing.
         """
         if config.inputs and (converted_inputs := config.inputs.to_yaml_dict()):
             pipeline_dict["inputs"] = converted_inputs
