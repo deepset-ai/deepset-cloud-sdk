@@ -53,18 +53,6 @@ class DeepsetSDK:
         ```
     """
 
-    def __init__(self) -> None:
-        """Initialize the DeepsetSDK instance."""
-        self._initialized = False
-
-    @property
-    def is_initialized(self) -> bool:
-        """Check if the SDK has been initialized.
-
-        :return: True if the SDK has been initialized, False otherwise.
-        """
-        return self._initialized
-
     def init(self) -> None:
         """Initialize the SDK features.
 
@@ -74,14 +62,9 @@ class DeepsetSDK:
         Note:
             This method should be called before using any SDK features that require initialization.
         """
-        if self._initialized:
-            logger.debug("SDK already initialized")
-            return
-
         try:
             _enable_import_into_deepset()
-            self._initialized = True
             logger.debug("SDK initialized successfully.")
         except ImportError as err:
             logger.error(f"Failed to initialize SDK: {str(err)}.")
-            self._initialized = False
+            raise
