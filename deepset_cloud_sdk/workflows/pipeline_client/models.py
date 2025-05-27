@@ -71,7 +71,7 @@ class PipelineOutputs(InputOutputBaseModel):
     answers: str | None = Field(
         default=None,
         description="Name of the component that will provide `answers` as output. "
-        "Format: '<component-name>.<output-parameter>', e.g., 'answers_builder.answers'",
+        "Format: '<component-name>.<output-parameter>', for example: 'answers_builder.answers'",
     )
 
     @model_validator(mode="after")
