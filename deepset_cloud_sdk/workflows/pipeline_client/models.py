@@ -53,9 +53,10 @@ class PipelineInputs(InputOutputBaseModel):
 
 
 class PipelineOutputs(InputOutputBaseModel):
-    """Pipeline output configuration. 
+    """Pipeline output configuration.
 
-    Specify the components that will output `documents`, `answers`, or both. You must include at least one. The outputs of these components become the final output of the pipeline.
+    Specify the components that will output `documents`, `answers`, or both. 
+    You must include at least one. The outputs of these components become the final output of the pipeline.
 
     :param documents: Name of the component that will provide `documents` as output. 
         Use the format '<component-name>.<output-parameter>', for example: 'retriever.documents'.
@@ -104,24 +105,20 @@ class PipelineConfig(BaseModel):
     model_config = {"extra": "forbid"}
 
     name: str = Field(..., description="Name of the pipeline to be imported", min_length=1)
-<<<<<<< HEAD
     inputs: PipelineInputs = Field(
         default_factory=PipelineInputs,
-        description=("Input configuration for the pipeline. Use `PipelineInputs` model to define the inputs."),
+        description=("Pipeline input configuration. Use `PipelineInputs` model to define the inputs."),
     )
-=======
-    inputs: PipelineInputs = Field(default_factory=PipelineInputs, description="Pipeline input configuration.")
->>>>>>> 3be9b59cad8f3237a71a38f4e70c3a4902fc9319
     outputs: PipelineOutputs = Field(
         default_factory=PipelineOutputs,
-        description=("Output configuration for the pipeline. Use `PipelineOutputs` model to define the inputs."),
+        description=("Pipeline output configuration. Use `PipelineOutputs` model to define the outputs."),
     )
 
 
 class IndexInputs(InputOutputBaseModel):
     """Index input configuration.
     
-   Defines the index component that should receive the `Files` input.
+    Defines the index components that should receive the `Files` input.
 
     :param files: List of component names that will receive files as input.
         Specify the components using the format: '<component-name>.<run-method-parameter-name>', for example: 'file_type_router.sources'.
