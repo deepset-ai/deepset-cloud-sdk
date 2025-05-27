@@ -58,7 +58,7 @@ class PipelineOutputs(InputOutputBaseModel):
     :param documents: Name of the component that will provide `documents` as output. 
         Use the format '<component-name>.<output-parameter>', for example: 'retriever.documents'.
     :param answers: Name of the component that will provide `answers` as output.
-        Should be specified as '<component-name>.<output-parameter>', e.g., 'reader.answers'
+        Use the format '<component-name>.<output-parameter>', for example: 'reader.answers'.
     """
 
     model_config = {"extra": "allow"}  # Allow additional fields in outputs
