@@ -133,7 +133,7 @@ class IndexConfig(BaseModel):
 
     :param name: Name of the index to be imported
     :param inputs: Input configuration for the index
-    :param outputs: Optional output configuration for the index
+    :param outputs: Index outputs configuration. Optional.
     """
 
     model_config = {"extra": "forbid"}
