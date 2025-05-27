@@ -44,7 +44,7 @@ class PipelineInputs(InputOutputBaseModel):
     filters: List[str] = Field(
         default_factory=list,
         description=(
-            "List of component names that will receive filters input when being executed. "
+            "List of components that will receive the `filters` input when they are executed. "
             "Format: '<component-name>.<run-parameter-name>', e.g., 'retriever.filters'"
         ),
     )
