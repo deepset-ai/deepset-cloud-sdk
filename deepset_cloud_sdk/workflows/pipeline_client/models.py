@@ -28,7 +28,7 @@ class PipelineInputs(InputOutputBaseModel):
     :param query: List of components that will receive the `query` input.
         Specify each component in the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.query'
     :param filters: Optional list of components that will receive the filters input. 
-        Each component should be specified as '<component-name>.<run-parameter-name>', e.g., 'retriever.filters'
+        Specify each component using the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.filters'.
     """
 
     model_config = {"extra": "allow"}  # Allow additional fields in inputs
