@@ -10,6 +10,7 @@ import httpx
 import pytest
 import structlog
 from dotenv import load_dotenv
+from pyrate_limiter import Limiter
 
 # from faker import Faker
 from tenacity import retry, stop_after_delay, wait_fixed
@@ -27,6 +28,20 @@ from deepset_cloud_sdk._s3.upload import S3
 load_dotenv()
 
 logger = structlog.get_logger(__name__)
+
+
+@pytest.fixture(autouse=True)
+def cleanup_pyrate_limiter():
+    """Cleanup fixture to ensure PyrateLimiter is properly shut down after tests."""
+    yield
+
+    # Clean up after the test by disposing of any limiter buckets
+    # This is the recommended way to clean up PyrateLimiter instances
+    try:
+        for limiter in Limiter._buckets:
+            limiter.dispose()
+    except (AttributeError, ImportError):
+        pass
 
 
 def _get_file_names(integration_config: CommonConfig, workspace_name: str) -> List[str]:
