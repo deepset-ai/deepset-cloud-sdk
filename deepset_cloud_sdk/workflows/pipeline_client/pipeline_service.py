@@ -185,7 +185,7 @@ class PipelineService:
             json={"name": config.name, "config_yaml": pipeline_yaml},
         )
         response.raise_for_status()
-        if response.status_code == 201:
+        if response.status_code ==  HTTPStatus.NO_CONTENT:
             logger.debug(f"Index {config.name} successfully created")
 
     async def _publish_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
