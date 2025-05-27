@@ -66,7 +66,7 @@ class PipelineOutputs(InputOutputBaseModel):
     documents: str | None = Field(
         default=None,
         description="Name of the component that will provide `documents` as output. "
-        "Format: '<component-name>.<output-parameter>', e.g., 'meta_ranker.documents'",
+        "Format: '<component-name>.<output-parameter>', for example: 'meta_ranker.documents'",
     )
     answers: str | None = Field(
         default=None,
