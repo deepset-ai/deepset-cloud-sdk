@@ -1,4 +1,4 @@
-"""Workflows for deepset Cloud SDK."""
+"""Workflows for deepset AI platform SDK."""
 
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
@@ -13,9 +13,9 @@ from deepset_cloud_sdk.workflows.sdk import DeepsetSDK
 __all__ = [
     "PipelineInputs",
     "IndexInputs",
+    "IndexOutputs",
+    "PipelineOutputs",
     "IndexConfig",
     "PipelineConfig",
-    "PipelineOutputs",
-    "IndexOutputs",
     "DeepsetSDK",
 ]

@@ -70,11 +70,9 @@ def _enable_publish_to_deepset() -> None:
         An index is a special type of pipeline with the purpose to preprocess files, preparing them for
         search and store them in a document store.
 
-        :param config: Configuration for publishing, either `IndexConfig` or `PipelineConfig`.
+        :param config: Configuration for publishing, use either `IndexConfig` or `PipelineConfig`.
             If publishing an index, the config argument is expected to be of type `IndexConfig`,
             if publishing a pipeline, the config argument is expected to be of type `PipelineConfig`.
-
-
         """
         # creates a sync wrapper around the async method since the APIs are async
         try:
@@ -107,7 +105,7 @@ def _enable_publish_to_deepset() -> None:
 
 
 class PipelineService:
-    """Handles the publishing of Haystack pipelines and indexes to deepset Cloud."""
+    """Handles the publishing of Haystack pipelines and indexes to deepset AI platform."""
 
     def __init__(self, api: DeepsetCloudAPI) -> None:
         """Initialize the pipeline service.

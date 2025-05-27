@@ -13,18 +13,37 @@ class DeepsetSDK:
 
     This class provides a centralized way to initialize and manage SDK features.
 
-    Example:
+    Example for publishing an index or pipeline:
         ```python
         from deepset_cloud_sdk.workflows import DeepsetSDK
         from haystack import Pipeline
 
-        # Initialize the SDK
+        # Initialize the SDK to enable using publishing functionality
         sdk = DeepsetSDK()
         sdk.init()
 
-        # Now you can use the publish functionality
+        # Configure your pipeline
         pipeline = Pipeline()
-        # ... configure your pipeline ...
+
+        # Configure publishing config
+        # if publishing an index, use IndexConfig
+        config = IndexConfig(
+            name="my-index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+        )
+
+        # if publishing a pipeline, use PipelineConfig
+        config = PipelineConfig(
+            name="my-pipeline",
+            inputs=PipelineInputs(
+                query=["prompt_builder.query"],
+                filters=["bm25_retriever.filters", "embedding_retriever.filters"],
+            ),
+            outputs=PipelineOutputs(
+                answers="answers_builder.answers",
+                documents="ranker.documents",
+            ),
+        )
 
         # sync execution
         pipeline.publish(config)

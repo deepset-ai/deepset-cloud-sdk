@@ -111,7 +111,7 @@ class IndexInputs(BaseModel):
 class IndexConfig(BaseModel):
     """Index configuration for publishing an index to deepset AI platform.
 
-    :param name: Name of the pipeline to be published
+    :param name: Name of the index to be published
     :param inputs: Input configuration for the index
     :param outputs: Optional output configuration for the index
     """
