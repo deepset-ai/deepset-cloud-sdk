@@ -38,7 +38,7 @@ class PipelineInputs(InputOutputBaseModel):
     query: List[str] = Field(
         ...,
         description=(
-            "List of components that will receive the `query` input when they are executed. "
+            "List of components and parameters that will receive the `query` input when they are executed. "
             "Use the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.query'."
         ),
         min_items=1,
@@ -46,7 +46,7 @@ class PipelineInputs(InputOutputBaseModel):
     filters: List[str] = Field(
         default_factory=list,
         description=(
-            "List of components that will receive the `filters` input when they are executed. "
+            "List of components and parameters that will receive the `filters` input when they are executed. "
             "Use the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.filters'."
         ),
     )
@@ -58,9 +58,9 @@ class PipelineOutputs(InputOutputBaseModel):
     Specify the components that will output `documents`, `answers`, or both.
     You must include at least one. The outputs of these components become the final output of the pipeline.
 
-    :param documents: Name of the component that will provide `documents` as output.
+    :param documents: Name of the component and parameter that will provide `documents` as output.
         Use the format '<component-name>.<output-parameter>', for example: 'retriever.documents'.
-    :param answers: Name of the component that will provide `answers` as output.
+    :param answers: Name of the component and parameter that will provide `answers` as output.
         Use the format '<component-name>.<output-parameter>', for example: 'reader.answers'.
     """
 
@@ -120,7 +120,7 @@ class IndexInputs(InputOutputBaseModel):
 
     Defines the index components that should receive the `Files` input.
 
-    :param files: List of components that should receive files as input.
+    :param files: List of components and parameters that should receive files as input.
         Specify the components using the format: '<component-name>.<run-method-parameter-name>', for example: 'file_type_router.sources'.
     """
 
@@ -129,7 +129,7 @@ class IndexInputs(InputOutputBaseModel):
     files: List[str] = Field(
         default_factory=list,
         description=(
-            "List of components that will receive files as input when they're executed. "
+            "List of components and parameters that will receive files as input when they're executed. "
             "Format: '<component-name>.<run-parameter-name>', for example: 'file_type_router.sources'."
         ),
     )
