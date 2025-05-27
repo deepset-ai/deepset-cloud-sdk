@@ -9,7 +9,6 @@ from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
 from haystack.components.routers import FileTypeRouter
 
-from deepset_cloud_sdk.workflows import DeepsetSDK
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
     IndexInputs,

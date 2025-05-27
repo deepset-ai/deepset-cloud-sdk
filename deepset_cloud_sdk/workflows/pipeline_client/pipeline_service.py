@@ -1,6 +1,7 @@
 """Pipeline publishing service for deepset Cloud SDK."""
 # pylint: disable=unnecessary-ellipsis,import-outside-toplevel
 import asyncio
+from http import HTTPStatus
 from io import StringIO
 from typing import Any, Protocol, runtime_checkable
 
@@ -185,7 +186,7 @@ class PipelineService:
             json={"name": config.name, "config_yaml": pipeline_yaml},
         )
         response.raise_for_status()
-        if response.status_code ==  HTTPStatus.NO_CONTENT:
+        if response.status_code == HTTPStatus.NO_CONTENT:
             logger.debug(f"Index {config.name} successfully created")
 
     async def _publish_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
