@@ -37,7 +37,7 @@ class PipelineInputs(InputOutputBaseModel):
         ...,
         description=(
             "List of components that will receive the `query` input when they are executed. "
-            "Format: '<component-name>.<run-parameter-name>', e.g., 'retriever.query'"
+            "Use the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.query'."
         ),
         min_items=1,
     )
