@@ -70,7 +70,7 @@ class PipelineOutputs(InputOutputBaseModel):
     )
     answers: str | None = Field(
         default=None,
-        description="Component name that will provide answers as output. "
+        description="Name of the component that will provide `answers` as output. "
         "Format: '<component-name>.<output-parameter>', e.g., 'answers_builder.answers'",
     )
 
