@@ -33,7 +33,7 @@ class PipelineProtocol(Protocol):
         """Add a component to the pipeline.
 
         :param name: Name of the component.
-        :param instance: Component instance to add
+        :param instance: Component instance to add.
         """
         ...
 
