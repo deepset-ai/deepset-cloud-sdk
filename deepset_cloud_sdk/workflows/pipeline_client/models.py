@@ -27,10 +27,10 @@ class PipelineInputs(InputOutputBaseModel):
 
     Defines the components that should receive the Query input and any filters that apply to it.
 
-    :param query: List of component names that will receive the query input
-        Each component should be specified as '<component-name>.<run-parameter-name>', e.g., 'retriever.query'
-    :param filters: Optional list of component names that will receive filters input.
-        Each component should be specified as '<component-name>.<run-parameter-name>', e.g., 'retriever.filters'
+    :param query: List of components that will receive the `query` input.
+        Specify each component in the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.query'
+    :param filters: Optional list of components that will receive the filters input. 
+        Specify each component using the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.filters'.
     """
 
     model_config = {"extra": "allow"}  # Allow additional fields in inputs
@@ -38,49 +38,49 @@ class PipelineInputs(InputOutputBaseModel):
     query: List[str] = Field(
         ...,
         description=(
-            "List of component names that will receive the query input when being executed. "
-            "Format: '<component-name>.<run-parameter-name>', e.g., 'retriever.query'"
+            "List of components that will receive the `query` input when they are executed. "
+            "Use the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.query'."
         ),
         min_items=1,
     )
     filters: List[str] = Field(
         default_factory=list,
         description=(
-            "List of component names that will receive filters input when being executed. "
-            "Format: '<component-name>.<run-parameter-name>', e.g., 'retriever.filters'"
+            "List of components that will receive the `filters` input when they are executed. "
+            "Use the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.filters'."
         ),
     )
 
 
 class PipelineOutputs(InputOutputBaseModel):
-    """Output configuration for the pipeline.
+    """Pipeline output configuration. 
 
-    Must define at least one of `documents` or `answers`, or both.
+    Specify the components that will output `documents`, `answers`, or both. You must include at least one. The outputs of these components become the final output of the pipeline.
 
-    :param documents: Component name that will provide documents as output.
-        Should be specified as '<component-name>.<output-parameter>', e.g., 'retriever.documents'
-    :param answers: Component name that will provide answers as output.
-        Should be specified as '<component-name>.<output-parameter>', e.g., 'reader.answers'
+    :param documents: Name of the component that will provide `documents` as output. 
+        Use the format '<component-name>.<output-parameter>', for example: 'retriever.documents'.
+    :param answers: Name of the component that will provide `answers` as output.
+        Use the format '<component-name>.<output-parameter>', for example: 'reader.answers'.
     """
 
     model_config = {"extra": "allow"}  # Allow additional fields in outputs
 
     documents: str | None = Field(
         default=None,
-        description="Component name that will provide documents as output. "
-        "Format: '<component-name>.<output-parameter>', e.g., 'meta_ranker.documents'",
+        description="Name of the component that will provide `documents` as output. "
+        "Format: '<component-name>.<output-parameter>', for example: 'meta_ranker.documents'",
     )
     answers: str | None = Field(
         default=None,
-        description="Component name that will provide answers as output. "
-        "Format: '<component-name>.<output-parameter>', e.g., 'answers_builder.answers'",
+        description="Name of the component that will provide `answers` as output. "
+        "Format: '<component-name>.<output-parameter>', for example: 'answers_builder.answers'",
     )
 
     @model_validator(mode="after")
     def validate_documents_xor_answers(self) -> "PipelineOutputs":
-        """Validate that at least one of documents or answers is defined."""
+        """Validate that either `documents`, `answers`, or both are defined."""
         if not self.documents and not self.answers:
-            raise ValueError("At least one of 'documents' or 'answers' must be defined")
+            raise ValueError("Define at least one pipeline output, either 'documents, 'answers' or both.")
         return self
 
 
@@ -98,16 +98,20 @@ class PipelineConfig(BaseModel):
 
     :param name: Name of the pipeline to be imported
     :param inputs: Input configuration for the pipeline.
-    :param outputs: Output configuration for the pipeline.
+    :param outputs: Pipeline outputs.
     """
 
     model_config = {"extra": "forbid"}
 
     name: str = Field(..., description="Name of the pipeline to be imported", min_length=1)
+<<<<<<< HEAD
     inputs: PipelineInputs = Field(
         default_factory=PipelineInputs,
         description=("Input configuration for the pipeline. Use `PipelineInputs` model to define the inputs."),
     )
+=======
+    inputs: PipelineInputs = Field(default_factory=PipelineInputs, description="Pipeline input configuration.")
+>>>>>>> 3be9b59cad8f3237a71a38f4e70c3a4902fc9319
     outputs: PipelineOutputs = Field(
         default_factory=PipelineOutputs,
         description=("Output configuration for the pipeline. Use `PipelineOutputs` model to define the inputs."),
@@ -115,10 +119,12 @@ class PipelineConfig(BaseModel):
 
 
 class IndexInputs(InputOutputBaseModel):
-    """Input configuration for the pipeline index.
+    """Index input configuration.
+    
+   Defines the index component that should receive the `Files` input.
 
     :param files: List of component names that will receive files as input.
-        Each component should be specified as '<component-name>.<run-parameter-name>', e.g., 'file_type_router.sources'
+        Specify the components using the format: '<component-name>.<run-method-parameter-name>', for example: 'file_type_router.sources'.
     """
 
     model_config = {"extra": "allow"}  # Allow additional fields in inputs
@@ -126,8 +132,8 @@ class IndexInputs(InputOutputBaseModel):
     files: List[str] = Field(
         default_factory=list,
         description=(
-            "List of component names that will receive files as input when being executed. "
-            "Format: '<component-name>.<run-parameter-name>', e.g., 'file_type_router.sources'"
+            "List of components that will receive files as input when they're executed. "
+            "Format: '<component-name>.<run-parameter-name>', for example: 'file_type_router.sources'."
         ),
     )
 
@@ -137,7 +143,7 @@ class IndexConfig(BaseModel):
 
     :param name: Name of the index to be imported
     :param inputs: Input configuration for the index
-    :param outputs: Optional output configuration for the index
+    :param outputs: Index outputs configuration. Optional.
     """
 
     model_config = {"extra": "forbid"}

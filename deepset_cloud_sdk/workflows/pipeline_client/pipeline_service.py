@@ -32,8 +32,8 @@ class PipelineProtocol(Protocol):
     def add_component(self, name: str, instance: Any) -> None:
         """Add a component to the pipeline.
 
-        :param name: Name of the component
-        :param instance: Component instance to add
+        :param name: Name of the component.
+        :param instance: Component instance to add.
         """
         ...
 
