@@ -140,7 +140,7 @@ class PipelineService:
             return cls(api)
 
     async def import_async(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
-        """Import a pipeline or index into deepset AI platform.
+        """Import a pipeline or an index into deepset AI platform.
 
         :param pipeline: The pipeline or index to import. Must be a Haystack Pipeline or AsyncPipeline.
         :param config: Configuration for importing, either `IndexConfig` or `PipelineConfig`.
