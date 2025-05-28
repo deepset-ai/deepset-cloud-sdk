@@ -1,5 +1,4 @@
 """Tests for the DeepsetSDK class."""
-import os
 from unittest.mock import Mock
 
 import pytest
@@ -8,15 +7,9 @@ import structlog
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk.workflows import DeepsetSDK
 
-logger = structlog.get_logger(__name__)
-
 
 class TestDeepsetSDK:
     """Test suite for the DeepsetSDK class."""
-
-    @pytest.fixture(autouse=True)
-    def setup_config_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Set up configuration variables for all tests."""
 
     def test_init_with_env_vars_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test successful SDK initialization with environment variables."""
