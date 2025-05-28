@@ -196,7 +196,7 @@ class PipelineService:
             logger.debug(f"Index {config.name} successfully created.")
 
     async def _import_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
-        """Import a pipeline into deepset Cloud.
+        """Import a pipeline into deepset.
 
         :param pipeline: The pipeline to import.
         :param config: Configuration for importing a Pipeline.
