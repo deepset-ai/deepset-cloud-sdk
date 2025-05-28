@@ -2,7 +2,6 @@
 from unittest.mock import Mock
 
 import pytest
-import structlog
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk.workflows import DeepsetSDK
