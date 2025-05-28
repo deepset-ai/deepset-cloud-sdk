@@ -153,7 +153,7 @@ class PipelineService:
         """
         logger.debug(f"Starting async importing for {config.name}")
 
-        try:
+        try: 
             from haystack import AsyncPipeline as HaystackAsyncPipeline
             from haystack import Pipeline as HaystackPipeline
         except ImportError as err:
@@ -180,7 +180,7 @@ class PipelineService:
             await self._import_pipeline(pipeline, config)
 
     async def _import_index(self, pipeline: PipelineProtocol, config: IndexConfig) -> None:
-        """Import an index into deepset.
+        """Import an index into deepset AI Platform.
 
         :param pipeline: The Haystack pipeline to import.
         :param config: Configuration for importing an index.
@@ -196,7 +196,7 @@ class PipelineService:
             logger.debug(f"Index {config.name} successfully created.")
 
     async def _import_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
-        """Import a pipeline into deepset.
+        """Import a pipeline into deepset AI Platform.
 
         :param pipeline: The Haystack pipeline to import.
         :param config: Configuration for importing a pipeline.
