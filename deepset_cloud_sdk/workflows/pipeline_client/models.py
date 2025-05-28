@@ -95,7 +95,7 @@ class IndexOutputs(InputOutputBaseModel):
 
 
 class PipelineConfig(BaseModel):
-    """Pipeline configuration for importing a pipeline to deepset AI platform.
+    """Configuration required to import the pipeline into deepset AI Platform.
 
     :param name: Name of the pipeline to be imported
     :param inputs: Pipeline input configuration. Use `PipelineInputs` model to define the inputs.
@@ -104,7 +104,7 @@ class PipelineConfig(BaseModel):
 
     model_config = {"extra": "forbid"}
 
-    name: str = Field(..., description="Name of the pipeline to be imported", min_length=1)
+    name: str = Field(..., description="The name of the pipeline to be imported", min_length=1)
     inputs: PipelineInputs = Field(
         default_factory=PipelineInputs,
         description=("Pipeline input configuration. Use `PipelineInputs` model to define the inputs."),
