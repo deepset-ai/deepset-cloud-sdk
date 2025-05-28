@@ -199,7 +199,7 @@ class PipelineService:
         """Import a pipeline into deepset.
 
         :param pipeline: The pipeline to import.
-        :param config: Configuration for importing a Pipeline.
+        :param config: Configuration for importing a pipeline.
         """
         logger.debug(f"Importing pipeline {config.name}")
         pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
