@@ -183,7 +183,7 @@ class PipelineService:
         """Import an index pipeline into deepset Cloud.
 
         :param pipeline: The Haystack pipeline to import.
-        :param config: Configuration for importing an Index.
+        :param config: Configuration for importing an index.
         """
         pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
