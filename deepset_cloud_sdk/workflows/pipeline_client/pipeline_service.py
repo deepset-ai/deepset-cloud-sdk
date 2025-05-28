@@ -180,7 +180,7 @@ class PipelineService:
             await self._import_pipeline(pipeline, config)
 
     async def _import_index(self, pipeline: PipelineProtocol, config: IndexConfig) -> None:
-        """Import an index pipeline into deepset Cloud.
+        """Import an index into deepset.
 
         :param pipeline: The Haystack pipeline to import.
         :param config: Configuration for importing an index.
