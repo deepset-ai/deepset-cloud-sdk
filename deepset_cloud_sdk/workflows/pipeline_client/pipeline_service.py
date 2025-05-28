@@ -173,8 +173,8 @@ class PipelineService:
 
         if not self._workspace_name:
             raise ValueError(
-                "We couldn't find the workspace to import into in your environment. "
-                "Run 'deepset-cloud login' and follow the instructions."
+                "The workspace to import into is not configured. "
+                "Run 'deepset-cloud login' and follow the instructions or configure the workspace name on the SDK instance."
             )
 
         if isinstance(config, IndexConfig):

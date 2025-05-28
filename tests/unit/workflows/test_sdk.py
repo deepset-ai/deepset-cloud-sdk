@@ -39,6 +39,9 @@ class TestDeepsetSDK:
         """Test that init can be called multiple times safely."""
         mock_enable = Mock()
         monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk._enable_import_into_deepset", mock_enable)
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.API_KEY", "env-api-key")
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.API_URL", "https://env-api-url.com")
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.DEFAULT_WORKSPACE_NAME", "test-workspace")
 
         sdk = DeepsetSDK()
         sdk.init()
@@ -53,6 +56,9 @@ class TestDeepsetSDK:
         """Test SDK initialization failure."""
         mock_enable = Mock(side_effect=ImportError("Test error"))
         monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk._enable_import_into_deepset", mock_enable)
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.API_KEY", "env-api-key")
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.API_URL", "https://env-api-url.com")
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.DEFAULT_WORKSPACE_NAME", "test-workspace")
 
         sdk = DeepsetSDK()
         with pytest.raises(ImportError, match="Test error"):

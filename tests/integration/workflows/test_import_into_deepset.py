@@ -3,7 +3,7 @@ import json
 
 import pytest
 import respx
-from haystack import Pipeline, AsyncPipeline
+from haystack import AsyncPipeline, Pipeline
 from haystack.components.builders.answer_builder import AnswerBuilder
 from haystack.components.builders.prompt_builder import PromptBuilder
 from haystack.components.converters.txt import TextFileToDocument

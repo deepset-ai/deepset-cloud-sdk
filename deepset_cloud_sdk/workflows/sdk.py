@@ -1,6 +1,4 @@
 """Deepset AI platform SDK main class."""
-from typing import Optional
-
 import structlog
 
 from deepset_cloud_sdk._api.config import (
@@ -72,15 +70,28 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        workspace_name: Optional[str] = None,
-        api_url: Optional[str] = None,
+        api_key: str | None = None,
+        workspace_name: str | None = None,
+        api_url: str | None = None,
     ) -> None:
-        """Initialize the SDK with custom configuration.
+        """Initialize the Deepset SDK.
 
-        :param api_key: API key for deepset AI platform. If not provided, will use environment variable `API_KEY`.
-        :param workspace_name: Name of the workspace to use. If not provided, will use environment variable `DEFAULT_WORKSPACE_NAME`.
-        :param api_url: URL of the deepset AI platform API. If not provided, will use environment variable `API_URL`.
+        The SDK can be configured in two ways:
+
+        1. Using environment variables (recommended):
+           - Run `deepset-cloud login` to set up the following environment variables:
+             - `API_KEY`: Your deepset AI platform API key
+             - `API_URL`: The URL of the deepset AI platform API
+             - `DEFAULT_WORKSPACE_NAME`: The workspace name to use.
+
+        2. Using explicit parameters:
+           - Provide the values directly to this constructor
+           - Any missing parameters will fall back to environment variables
+
+        :param api_key: Your deepset AI platform API key. Falls back to `API_KEY` environment variable.
+        :param workspace_name: The workspace to use. Falls back to `DEFAULT_WORKSPACE_NAME` environment variable.
+        :param api_url: The URL of the deepset AI platform API. Falls back to `API_URL` environment variable.
+        :raises ValueError: If no workspace name is provided and `DEFAULT_WORKSPACE_NAME` is not set.
         """
         self._config = CommonConfig(
             api_key=api_key or API_KEY,
