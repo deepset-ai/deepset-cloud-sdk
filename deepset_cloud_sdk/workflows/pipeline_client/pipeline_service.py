@@ -55,7 +55,7 @@ def _enable_import_into_deepset() -> None:
         ) from err
 
     async def import_into_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
-        """Import index or pipeline into deepset AI platform asynchronously.
+        """Import an index or pipeline into deepset AI platform asynchronously.
 
         An index processes files and stores them in a document store, making them available for
         query pipelines to search.
