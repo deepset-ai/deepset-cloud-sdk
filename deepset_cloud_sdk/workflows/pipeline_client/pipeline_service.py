@@ -153,7 +153,7 @@ class PipelineService:
         """
         logger.debug(f"Starting async importing for {config.name}")
 
-        try: 
+        try:
             from haystack import AsyncPipeline as HaystackAsyncPipeline
             from haystack import Pipeline as HaystackPipeline
         except ImportError as err:
