@@ -22,7 +22,7 @@ logger = structlog.get_logger(__name__)
 
 @runtime_checkable
 class PipelineProtocol(Protocol):
-    """Protocol defining the required methods for a pipeline object."""
+    """Protocol defining the required methods for a Haystack Pipeline or AsyncPipeline."""
 
     def dumps(self) -> str:
         """Convert the pipeline to a YAML string.
@@ -198,7 +198,7 @@ class PipelineService:
     async def _import_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
         """Import a pipeline into deepset.
 
-        :param pipeline: The pipeline to import.
+        :param pipeline: The Haystack pipeline to import.
         :param config: Configuration for importing a pipeline.
         """
         logger.debug(f"Importing pipeline {config.name}")
@@ -215,7 +215,7 @@ class PipelineService:
     def _from_haystack_pipeline(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
         """Create a YAML configuration from the pipeline.
 
-        :param pipeline: The pipeline to create the configuration for.
+        :param pipeline: The Haystack pipeline to create the configuration for.
         :param config: Configuration for importing.
         :return: YAML configuration as a string.
         """
