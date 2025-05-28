@@ -1,4 +1,5 @@
 import datetime
+import sys
 from pathlib import Path
 from typing import Any, Generator, List
 from unittest.mock import AsyncMock, Mock, patch
@@ -28,6 +29,19 @@ runner = CliRunner()
 class TestCLIMethods:
     @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
     def test_uploading(self, async_upload_mock: AsyncMock) -> None:
+        # Configure logger to output to stdout and avoid interference with other tests
+        structlog.configure(
+            processors=[
+                structlog.processors.UnicodeDecoder(),
+                structlog.processors.format_exc_info,
+                structlog.dev.ConsoleRenderer(),
+            ],
+            wrapper_class=structlog.BoundLogger,
+            context_class=dict,
+            logger_factory=structlog.PrintLoggerFactory(),
+            cache_logger_on_first_use=True,
+        )
+
         def log_upload_folder_mock(
             *args: Any,
             **kwargs: Any,
@@ -177,7 +191,7 @@ class TestCLIMethods:
 
     class TestListFiles:
         @patch("deepset_cloud_sdk.cli.sync_list_files")
-        def test_listing_files(self, sync_list_files_mock: AsyncMock) -> None:
+        def test_listing_files(self, sync_list_files_mock: Mock) -> None:
             def mocked_list_files(
                 *args: Any,
                 **kwargs: Any,
@@ -202,14 +216,14 @@ class TestCLIMethods:
             )
 
         @patch("deepset_cloud_sdk.cli.sync_list_files")
-        def test_listing_files_with_timeout(self, sync_list_files_mock: AsyncMock) -> None:
+        def test_listing_files_with_timeout(self, sync_list_files_mock: Mock) -> None:
             sync_list_files_mock.side_effect = TimeoutError()
             result = runner.invoke(cli_app, ["list-files"])
             assert result.exit_code == 0
             assert "Command timed out." in result.stdout
 
         @patch("deepset_cloud_sdk.cli.sync_list_files")
-        def test_listing_files_with_no_found_files(self, sync_list_files_mock: AsyncMock) -> None:
+        def test_listing_files_with_no_found_files(self, sync_list_files_mock: Mock) -> None:
             def mocked_list_files(
                 *args: Any,
                 **kwargs: Any,
@@ -298,7 +312,7 @@ class TestCLIMethods:
 
     class TestListUploadSessions:
         @patch("deepset_cloud_sdk.cli.sync_list_upload_sessions")
-        def test_listing_upload_sessions(self, sync_list_upload_sessions: AsyncMock) -> None:
+        def test_listing_upload_sessions(self, sync_list_upload_sessions: Mock) -> None:
             def mocked_list_upload_sessions(
                 *args: Any,
                 **kwargs: Any,
@@ -327,7 +341,7 @@ class TestCLIMethods:
             )
 
         @patch("deepset_cloud_sdk.cli.sync_list_upload_sessions")
-        def test_listing_upload_sessions_with_break(self, sync_list_upload_sessions: AsyncMock) -> None:
+        def test_listing_upload_sessions_with_break(self, sync_list_upload_sessions: Mock) -> None:
             def mocked_list_upload_sessions(
                 *args: Any,
                 **kwargs: Any,
@@ -367,7 +381,7 @@ class TestCLIMethods:
             assert "Not In There" not in result.stdout
 
         @patch("deepset_cloud_sdk.cli.sync_list_upload_sessions")
-        def test_listing_files_with_timeout(self, sync_list_upload_sessions: AsyncMock) -> None:
+        def test_listing_files_with_timeout(self, sync_list_upload_sessions: Mock) -> None:
             sync_list_upload_sessions.side_effect = TimeoutError()
             result = runner.invoke(cli_app, ["list-upload-sessions"])
             assert result.exit_code == 0
