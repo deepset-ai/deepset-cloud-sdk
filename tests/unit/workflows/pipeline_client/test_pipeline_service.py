@@ -9,6 +9,7 @@ from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
 from haystack.components.routers import FileTypeRouter
 
+from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
     IndexInputs,
@@ -36,7 +37,7 @@ class TestImportPipelineService:
     @pytest.fixture
     def pipeline_service(self, mock_api: AsyncMock) -> PipelineService:
         """Create a pipeline service instance with a mock API client."""
-        return PipelineService(mock_api)
+        return PipelineService(mock_api, workspace_name="default")
 
     @pytest.fixture
     def index_pipeline(self) -> Pipeline:
@@ -70,9 +71,6 @@ class TestImportPipelineService:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test importing an index pipeline."""
-        monkeypatch.setattr(
-            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
-        )
 
         # Create Import config
         config = IndexConfig(
@@ -144,32 +142,11 @@ inputs:
         with pytest.raises(TypeError, match="Haystack Pipeline or AsyncPipeline object expected.*"):
             await pipeline_service.import_async(invalid_pipeline, config)  # type: ignore
 
-    @pytest.mark.parametrize("empty_value", ["", None])
-    @pytest.mark.asyncio
-    async def test_import_index_pipeline_without_workspace(
-        self,
-        empty_value: Any,
-        pipeline_service: PipelineService,
-        index_pipeline: Pipeline,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test importing an index pipeline without workspace configuration."""
-        monkeypatch.setattr(
-            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", empty_value
-        )
-        config = IndexConfig(
-            name="test_index",
-            inputs=IndexInputs(files=["file_classifier.sources"]),
-        )
-
-        with pytest.raises(ValueError, match="We couldn't find the workspace"):
-            await pipeline_service.import_async(index_pipeline, config)
-
     @pytest.mark.asyncio
     async def test_import_pipeline_with_outputs(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test importing a pipeline."""
         mock_api = AsyncMock()
-        service = PipelineService(mock_api)
+        service = PipelineService(mock_api, workspace_name="default")
         mock_pipeline = Mock(spec=Pipeline)
         mock_pipeline.dumps.return_value = textwrap.dedent(
             """components:
@@ -177,10 +154,6 @@ inputs:
     type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
 """
         )
-        monkeypatch.setattr(
-            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
-        )
-
         config = PipelineConfig(
             name="test_pipeline",
             inputs=PipelineInputs(query=["retriever.query"]),
@@ -232,10 +205,7 @@ outputs:
     async def test_import_index_with_outputs_and_additional_params(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test importing an index with outputs and additional input parameters."""
         mock_api = AsyncMock()
-        service = PipelineService(mock_api)
-        monkeypatch.setattr(
-            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_service.DEFAULT_WORKSPACE_NAME", "default"
-        )
+        service = PipelineService(mock_api, workspace_name="my-workspace")
         mock_pipeline = Mock(spec=Pipeline)
         mock_pipeline.dumps.return_value = textwrap.dedent(
             """components:
@@ -275,7 +245,7 @@ outputs:
         )
 
         mock_api.post.assert_called_once_with(
-            workspace_name="default",
+            workspace_name="my-workspace",
             endpoint="indexes",
             json={"name": "test_index", "config_yaml": expected_pipeline_yaml},
         )
@@ -297,7 +267,7 @@ class TestEnableImportIntoDeepset:
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
 
-        _enable_import_into_deepset()
+        _enable_import_into_deepset(CommonConfig(), "my-workspace")
 
         # Check sync methods
         assert hasattr(mock_pipeline, "import_into_deepset")
@@ -357,7 +327,7 @@ class TestEnableImportIntoDeepset:
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
 
-        _enable_import_into_deepset()
+        _enable_import_into_deepset(CommonConfig(), "my-workspace")
 
         config = PipelineConfig(
             name="test",
@@ -394,7 +364,7 @@ class TestEnableImportIntoDeepset:
         monkeypatch.setattr("haystack.Pipeline", mock_pipeline)
         monkeypatch.setattr("haystack.AsyncPipeline", mock_async_pipeline)
 
-        _enable_import_into_deepset()
+        _enable_import_into_deepset(CommonConfig(), "my-workspace")
 
         # Verify existing methods weren't overwritten
         assert mock_pipeline.import_into_deepset == existing_import
@@ -413,4 +383,4 @@ class TestEnableImportIntoDeepset:
         with pytest.raises(
             ImportError, match="Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed."
         ):
-            _enable_import_into_deepset()
+            _enable_import_into_deepset(CommonConfig(), "my-workspace")

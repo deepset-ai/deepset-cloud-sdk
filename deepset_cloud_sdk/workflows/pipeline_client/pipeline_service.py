@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from http import HTTPStatus
 from io import StringIO
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Optional, Protocol, runtime_checkable
 
 import structlog
 from ruamel.yaml import YAML
@@ -40,11 +40,14 @@ class PipelineProtocol(Protocol):
         ...
 
 
-def _enable_import_into_deepset() -> None:
+def _enable_import_into_deepset(api_config: CommonConfig, workspace_name: str) -> None:
     """Add import methods to the Haystack Pipeline and AsyncPipeline classes.
 
     This function is called by deepset_sdk.init() to set up the SDK.
     Users should not call this function directly.
+
+    :param api_config: CommonConfig instance to use for API configuration.
+    :param workspace_name: Workspace name to use.
     """
     try:
         from haystack import AsyncPipeline as HaystackAsyncPipeline
@@ -64,9 +67,8 @@ def _enable_import_into_deepset() -> None:
             If importing an index, the config argument is expected to be of type `IndexConfig`,
             if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
         """
-        api_config = CommonConfig()  # Uses environment variables
         async with DeepsetCloudAPI.factory(api_config) as api:
-            service = PipelineService(api)
+            service = PipelineService(api, workspace_name)
             await service.import_async(self, config)
 
     def import_into_deepset(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
@@ -120,24 +122,27 @@ def _enable_import_into_deepset() -> None:
 class PipelineService:
     """Handles the importing of Haystack pipelines and indexes into deepset AI platform."""
 
-    def __init__(self, api: DeepsetCloudAPI) -> None:
+    def __init__(self, api: DeepsetCloudAPI, workspace_name: Optional[str] = None) -> None:
         """Initialize the pipeline service.
 
         :param api: An initialized DeepsetCloudAPI instance.
+        :param workspace_name: Optional workspace name to use instead of environment variable.
         """
         self._api = api
+        self._workspace_name = workspace_name or DEFAULT_WORKSPACE_NAME
         self._yaml = YAML()
         self._yaml.preserve_quotes = True
         self._yaml.indent(mapping=2, sequence=2)
 
     @classmethod
-    async def factory(cls, config: CommonConfig) -> PipelineService:
+    async def factory(cls, config: CommonConfig, workspace_name: Optional[str] = None) -> PipelineService:
         """Create a new instance of the pipeline service.
 
         :param config: CommonConfig object.
+        :param workspace_name: Optional workspace name to use instead of environment variable.
         """
         async with DeepsetCloudAPI.factory(config) as api:
-            return cls(api)
+            return cls(api, workspace_name)
 
     async def import_async(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Import a pipeline or an index into deepset AI platform.
@@ -166,17 +171,17 @@ class PipelineService:
                 "to define your pipeline or index."
             )
 
-        if not DEFAULT_WORKSPACE_NAME:
+        if not self._workspace_name:
             raise ValueError(
                 "We couldn't find the workspace to import into in your environment. "
                 "Run 'deepset-cloud login' and follow the instructions."
             )
 
         if isinstance(config, IndexConfig):
-            logger.debug(f"Importing index into workspace {DEFAULT_WORKSPACE_NAME}")
+            logger.debug(f"Importing index into workspace {self._workspace_name}")
             await self._import_index(pipeline, config)
         else:
-            logger.debug(f"Importing pipeline into workspace {DEFAULT_WORKSPACE_NAME}")
+            logger.debug(f"Importing pipeline into workspace {self._workspace_name}")
             await self._import_pipeline(pipeline, config)
 
     async def _import_index(self, pipeline: PipelineProtocol, config: IndexConfig) -> None:
@@ -187,7 +192,7 @@ class PipelineService:
         """
         pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
-            workspace_name=DEFAULT_WORKSPACE_NAME,
+            workspace_name=self._workspace_name,
             endpoint="indexes",
             json={"name": config.name, "config_yaml": pipeline_yaml},
         )
@@ -204,7 +209,7 @@ class PipelineService:
         logger.debug(f"Importing pipeline {config.name}")
         pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
-            workspace_name=DEFAULT_WORKSPACE_NAME,
+            workspace_name=self._workspace_name,
             endpoint="pipelines",
             json={"name": config.name, "query_yaml": pipeline_yaml},
         )
