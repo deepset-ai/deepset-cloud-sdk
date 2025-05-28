@@ -40,7 +40,7 @@ else:
         "No environment variables were loaded from the .env file. Create the .env file and add API_KEY and API_URL there, or run `deepset-cloud login` in the terminal to let SDK create the file for you."
     )
 
-# connection to deepset Cloud
+# connection to deepset AI Platform
 API_URL: str = os.getenv("API_URL", "https://api.cloud.deepset.ai/api/v1")
 
 API_KEY: str = os.getenv("API_KEY", "")
@@ -53,7 +53,7 @@ ASYNC_CLIENT_TIMEOUT: int = int(os.getenv("ASYNC_CLIENT_TIMEOUT", "300"))
 
 @dataclass
 class CommonConfig:
-    """Common config for connecting to the deepset Cloud API."""
+    """Common config for connecting to the deepset AI Platform."""
 
     api_key: str = API_KEY
     api_url: str = API_URL
@@ -63,7 +63,7 @@ class CommonConfig:
         """Validate config."""
         assert (
             self.api_key != ""
-        ), "You must set the API_KEY environment variable. Go to [Connections](https://cloud.deepset.ai/settings/connections) in deepset Cloud to get an API key."
+        ), "You must set the API_KEY environment variable. Go to [API Keys](https://cloud.deepset.ai/settings/api-keys) in deepset AI Platform to get an API key."
         assert self.api_url != "", "API_URL environment variable must be set."
 
         if self.api_url.endswith("/"):
