@@ -13,7 +13,7 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
 
     This class provides a centralized way to initialize and manage SDK features.
 
-    Example for importing an index or pipeline to deepset AI platform:
+    Example for importing an Haystack index or pipeline to deepset AI platform:
         ```python
         from deepset_cloud_sdk.workflows import DeepsetSDK
         from haystack import Pipeline
@@ -57,7 +57,7 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
         """Initialize the SDK features.
 
         This method sets up the SDK for use with Haystack pipelines.
-        It enables the import functionality for haystack Pipeline and AsyncPipeline classes.
+        It enables the import functionality for Haystack Pipeline and AsyncPipeline classes.
 
         Note:
             This method should be called before using any SDK features that require initialization.
