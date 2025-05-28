@@ -116,7 +116,7 @@ class PipelineConfig(BaseModel):
 
 
 class IndexInputs(InputOutputBaseModel):
-    """Index input configuration.
+    """Configuration required to import an index into deepset AI Platform.
 
     Defines the index components that should receive the `Files` input.
 
