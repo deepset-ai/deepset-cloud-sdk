@@ -18,7 +18,7 @@ def load_environment() -> bool:
     2. For additional variables, load from global ~/.deepset-cloud/.env
     3. Environment variables can override both
 
-    :return: True if any environment variables were loaded successfully, False otherwise.
+    :return: True if required environment variables were loaded successfully, False otherwise.
     """
     successfully_loaded_env: bool = False
     current_path_env = os.path.join(os.getcwd(), ".env")

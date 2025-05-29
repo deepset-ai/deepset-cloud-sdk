@@ -58,9 +58,8 @@ class TestCLIMethods:
         async_upload_mock.side_effect = AssertionError(
             "API_KEY environment variable must be set. Please visit https://cloud.deepset.ai/settings/connections to get an API key."
         )
-        with pytest.raises(AssertionError) as exc_info:
-            result = runner.invoke(cli_app, ["upload", "./test/data/upload_folder/example.txt"], catch_exceptions=False)
-        # assert result.exit_code == 1
+        result = runner.invoke(cli_app, ["upload", "./test/data/upload_folder/example.txt"])
+        assert result.exit_code == 1
 
     @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
     def test_upload_only_desired_file_types_defaults_to_text(self, async_upload_mock: AsyncMock) -> None:
