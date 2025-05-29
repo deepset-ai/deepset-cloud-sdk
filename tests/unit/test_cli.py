@@ -1,10 +1,10 @@
 import datetime
-import sys
 from pathlib import Path
 from typing import Any, Generator, List
 from unittest.mock import AsyncMock, Mock, patch
 from uuid import UUID
 
+import pytest
 import structlog
 from typer.testing import CliRunner
 
@@ -58,8 +58,9 @@ class TestCLIMethods:
         async_upload_mock.side_effect = AssertionError(
             "API_KEY environment variable must be set. Please visit https://cloud.deepset.ai/settings/connections to get an API key."
         )
-        result = runner.invoke(cli_app, ["upload", "./test/data/upload_folder/example.txt"])
-        assert result.exit_code == 1
+        with pytest.raises(AssertionError) as exc_info:
+            result = runner.invoke(cli_app, ["upload", "./test/data/upload_folder/example.txt"], catch_exceptions=False)
+        # assert result.exit_code == 1
 
     @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
     def test_upload_only_desired_file_types_defaults_to_text(self, async_upload_mock: AsyncMock) -> None:
@@ -414,43 +415,56 @@ class TestCLIMethods:
 
 
 class TestCLIUtils:
-    def test_login_with_minimal(self) -> None:
-        fake_env_path = Path("./tests/tmp/.env")
-        with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
-            result = runner.invoke(cli_app, ["login"], input="eu\ntest_api_key\n\n")
-            assert result.exit_code == 0
-            assert "created successfully" in result.stdout
-            with open(fake_env_path) as f:
-                assert (
-                    "API_KEY=test_api_key\nAPI_URL=https://api.cloud.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=default"
-                    == f.read()
-                )
+    def test_login_with_minimal(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test login command with minimal input."""
+        # Create a temporary directory for the global .env file
+        global_env_dir = tmp_path / ".deepset-cloud"
+        global_env_dir.mkdir()
+        global_env_path = global_env_dir / ".env"
+        monkeypatch.setattr("deepset_cloud_sdk.cli.ENV_FILE_PATH", str(global_env_path))
 
-    def test_login_with_us_environment(self) -> None:
-        fake_env_path = Path("./tests/tmp/.env")
-        with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
-            result = runner.invoke(cli_app, ["login"], input="us\ntest_api_key\nmy_workspace\n")
-            assert result.exit_code == 0
-            assert "created successfully" in result.stdout
-            with open(fake_env_path) as f:
-                assert (
-                    "API_KEY=test_api_key\nAPI_URL=http://api.us.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=my_workspace"
-                    == f.read()
-                )
-
-    def test_login_with_custom_environment(self) -> None:
-        fake_env_path = Path("./tests/tmp/.env")
-        with patch("deepset_cloud_sdk.cli.ENV_FILE_PATH", fake_env_path):
-            result = runner.invoke(
-                cli_app, ["login"], input="custom\nhttps://custom-api.example.com\ntest_api_key\nmy_workspace\n"
+        result = runner.invoke(cli_app, ["login"], input="eu\ntest_api_key\n\n")
+        assert result.exit_code == 0
+        assert f"Global configuration file created at {global_env_path}" in result.stdout
+        with open(global_env_path) as f:
+            assert (
+                "API_KEY=test_api_key\nAPI_URL=https://api.cloud.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=default"
+                == f.read()
             )
-            assert result.exit_code == 0
-            assert "created successfully" in result.stdout
-            with open(fake_env_path) as f:
-                assert (
-                    "API_KEY=test_api_key\nAPI_URL=https://custom-api.example.com\nDEFAULT_WORKSPACE_NAME=my_workspace"
-                    == f.read()
-                )
+
+    def test_login_with_us_environment(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Create a temporary directory for the global .env file
+        global_env_dir = tmp_path / ".deepset-cloud"
+        global_env_dir.mkdir()
+        global_env_path = global_env_dir / ".env"
+        monkeypatch.setattr("deepset_cloud_sdk.cli.ENV_FILE_PATH", str(global_env_path))
+
+        result = runner.invoke(cli_app, ["login"], input="us\ntest_api_key\nmy_workspace\n")
+        assert result.exit_code == 0
+        assert f"Global configuration file created at {global_env_path}" in result.stdout
+        with open(global_env_path) as f:
+            assert (
+                "API_KEY=test_api_key\nAPI_URL=http://api.us.deepset.ai/api/v1\nDEFAULT_WORKSPACE_NAME=my_workspace"
+                == f.read()
+            )
+
+    def test_login_with_custom_environment(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Create a temporary directory for the global .env file
+        global_env_dir = tmp_path / ".deepset-cloud"
+        global_env_dir.mkdir()
+        global_env_path = global_env_dir / ".env"
+        monkeypatch.setattr("deepset_cloud_sdk.cli.ENV_FILE_PATH", str(global_env_path))
+
+        result = runner.invoke(
+            cli_app, ["login"], input="custom\nhttps://custom-api.example.com\ntest_api_key\nmy_workspace\n"
+        )
+        assert result.exit_code == 0
+        assert f"Global configuration file created at {global_env_path}" in result.stdout
+        with open(global_env_path) as f:
+            assert (
+                "API_KEY=test_api_key\nAPI_URL=https://custom-api.example.com\nDEFAULT_WORKSPACE_NAME=my_workspace"
+                == f.read()
+            )
 
     @patch("deepset_cloud_sdk.cli.os")
     def test_logout_if_not_logged_in(self, mocked_os: Mock) -> None:

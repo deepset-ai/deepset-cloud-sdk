@@ -1,20 +1,150 @@
 import os
-from unittest.mock import Mock, patch
+from pathlib import Path
+from unittest.mock import Mock
+
+import pytest
+from dotenv import load_dotenv
 
 from deepset_cloud_sdk._api.config import ENV_FILE_PATH, load_environment
 
 
-def test_load_environment_from_local_env() -> None:
-    current_cwd = os.getcwd()
-    with patch("deepset_cloud_sdk._api.config.os") as mocked_os:
-        mocked_os.path.join.return_value = current_cwd + "/tests/data/.fake-env"
-        mocked_os.path.isfile.return_value = True
-        assert load_environment()
+class TestLoadEnvironment:
+    """Test the environment loading functionality."""
 
+    def test_load_local_env_only(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Test loading only local .env file."""
+        # Create a temporary local .env file
+        local_env = tmp_path / ".env"
+        local_env.write_text("API_KEY=local_key\nAPI_URL=local_url")
 
-@patch("deepset_cloud_sdk._api.config.load_dotenv")
-def test_load_environment_with_login_credentials(mocked_load_dotenv: Mock) -> None:
-    with patch("deepset_cloud_sdk._api.config.os") as mocked_os:
-        mocked_os.path.isfile.return_value = False
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.os.getcwd", Mock(return_value=str(tmp_path)))
+        # Mock os.path.isfile to return True for local .env and False for global
+        monkeypatch.setattr(os.path, "isfile", lambda path: path == str(local_env))
+
+        mocked_load_dotenv = Mock()
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.load_dotenv", mocked_load_dotenv)
+
         assert load_environment()
-        mocked_load_dotenv.assert_called_once_with(ENV_FILE_PATH)
+        mocked_load_dotenv.assert_called_once_with(str(local_env))
+
+    def test_load_global_env_only(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Test loading only global .env file."""
+        # Create a temporary global .env file
+        global_env_dir = tmp_path / "global_config"
+        global_env_dir.mkdir()
+        global_env = global_env_dir / ".env"
+        global_env.write_text("API_KEY=global_key\nAPI_URL=global_url")
+
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.os.getcwd", Mock(return_value=str(tmp_path)))
+        # point mocked global path to global ENV_FILE_PATH definition
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.ENV_FILE_PATH", str(global_env))
+
+        mocked_load_dotenv = Mock()
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.load_dotenv", mocked_load_dotenv)
+
+        assert load_environment()
+        mocked_load_dotenv.assert_called_once_with(str(global_env), override=False)
+
+    def test_load_both_env_files(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Test loading both local and global .env files."""
+        # Create temporary local and global .env files
+        local_env = tmp_path / "local.env"
+        local_env.write_text("API_KEY=local_key\nAPI_URL=local_url")
+        global_env = tmp_path / "global.env"
+        global_env.write_text("API_KEY=global_key\nAPI_URL=global_url")
+
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.os.getcwd", Mock(return_value=str(tmp_path)))
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.os.path.isfile", Mock(return_value=True))
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.ENV_FILE_PATH", str(global_env))
+
+        # Mock os.path.join to return our local env path
+        monkeypatch.setattr(os.path, "join", lambda *args: str(local_env))
+        mocked_load_dotenv = Mock()
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.load_dotenv", mocked_load_dotenv)
+
+        assert load_environment()
+        assert mocked_load_dotenv.call_count == 2
+        mocked_load_dotenv.assert_any_call(str(local_env))
+        mocked_load_dotenv.assert_any_call(str(global_env), override=False)
+
+    def test_global_env_fills_missing_variables(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Test that global .env variables are available when not defined in local .env."""
+        # Create local .env with only API_KEY
+        local_env = tmp_path / ".env"
+        local_env.write_text("API_KEY=local_key")
+
+        # Create global .env with both API_KEY and API_URL
+        global_env_dir = tmp_path / "global_config"
+        global_env_dir.mkdir()
+        global_env = global_env_dir / ".env"
+        global_env.write_text("API_KEY=global_key\nAPI_URL=global_url")
+
+        # Mock environment to start clean
+        original_environ = os.environ.copy()
+        try:
+            # Clear environment for test
+            os.environ.clear()
+
+            monkeypatch.setattr("deepset_cloud_sdk._api.config.os.getcwd", Mock(return_value=str(tmp_path)))
+            monkeypatch.setattr("deepset_cloud_sdk._api.config.ENV_FILE_PATH", str(global_env))
+
+            # Mock isfile to return True for both files
+            monkeypatch.setattr(os.path, "isfile", lambda path: path in [str(local_env), str(global_env)])
+
+            assert load_environment()
+            # Local API_KEY should take precedence
+            assert os.environ["API_KEY"] == "local_key"
+            # Global API_URL should be available
+            assert os.environ["API_URL"] == "global_url"
+        finally:
+            # Restore original environment
+            os.environ.clear()
+            os.environ.update(original_environ)
+
+    def test_pre_existing_env_vars_take_precedence(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Test that pre-existing environment variables take precedence over .env files."""
+        # Create local .env with API_KEY and API_URL
+        local_env = tmp_path / ".env"
+        local_env.write_text("API_KEY=local_key\nAPI_URL=local_url")
+
+        # Create global .env with different values
+        global_env_dir = tmp_path / "global_config"
+        global_env_dir.mkdir()
+        global_env = global_env_dir / ".env"
+        global_env.write_text("API_KEY=global_key\nAPI_URL=global_url")
+
+        # Mock environment to start clean
+        original_environ = os.environ.copy()
+        try:
+            # Clear environment for test
+            os.environ.clear()
+
+            # Set pre-existing environment variables
+            os.environ["API_KEY"] = "pre_existing_key"
+            os.environ["API_URL"] = "pre_existing_url"
+
+            monkeypatch.setattr("deepset_cloud_sdk._api.config.os.getcwd", Mock(return_value=str(tmp_path)))
+            monkeypatch.setattr("deepset_cloud_sdk._api.config.ENV_FILE_PATH", str(global_env))
+
+            # Mock isfile to return True for both files
+            monkeypatch.setattr(os.path, "isfile", lambda path: path in [str(local_env), str(global_env)])
+
+            assert load_environment()
+            # Pre-existing values should take precedence
+            assert os.environ["API_KEY"] == "pre_existing_key"
+            assert os.environ["API_URL"] == "pre_existing_url"
+        finally:
+            # Restore original environment
+            os.environ.clear()
+            os.environ.update(original_environ)
+
+    def test_no_env_files(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Test when no .env files exist."""
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.os.getcwd", Mock(return_value=str(tmp_path)))
+        # Mock os.path.isfile to always return False
+        monkeypatch.setattr(os.path, "isfile", lambda _: False)
+        mocked_load_dotenv = Mock()
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.load_dotenv", mocked_load_dotenv)
+
+        assert not load_environment()
+        assert mocked_load_dotenv.call_count == 0
