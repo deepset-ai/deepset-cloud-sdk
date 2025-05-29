@@ -142,7 +142,7 @@ def login() -> None:
     current_dir = os.getcwd()
     local_env = os.path.join(current_dir, ".env")
     if os.path.isfile(local_env):
-        typer.echo(f"\nNote: Found .env file in the current directory ({local_env})")
+        typer.echo(f"\nNote: Found .env file in the current directory ({local_env}).")
         typer.echo(
             "This local configuration will take precedence over the global configuration you're about to create."
         )
