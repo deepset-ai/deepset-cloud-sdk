@@ -123,7 +123,11 @@ def download(  # pylint: disable=too-many-arguments
 def login() -> None:
     """Log in to deepset AI Platform.
 
-    This command creates a global .env file at ~/.deepset-cloud/.env with your deepset AI Platform API key and the default workspace used for all operations.
+    Run `deepset-cloud login` before performing any tasks in deepset AI platform using the SDK or CLI,
+    unless you already have a configuration.
+
+    This command guides you through creating a global .env file at ~/.deepset-cloud/.env with your
+    deepset AI Platform API_KEY, API_URL and the DEFAULT_WORKSPACE_NAME used for all operations.
 
     The SDK uses a cascading configuration model with the following precedence:
     1. Explicit parameters (passed via code or CLI)
@@ -131,13 +135,6 @@ def login() -> None:
     3. Local .env file in project root
     4. Global ~/.deepset-cloud/.env file (created by this command)
     5. Built-in defaults
-
-    Run this command before performing any tasks in deepset AI platform using the SDK or CLI, unless you already have a configuration.
-
-    Example:
-    `deepset-cloud login`
-
-    This prompts you to provide your deepset AI Platform API key, workspace name, and environment.
     """
     typer.echo("Log in to deepset AI Platform")
 

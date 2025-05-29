@@ -15,8 +15,8 @@ def load_environment() -> bool:
     """Load environment variables using a cascading fallback model.
 
     1. Load local .env file in current directory if it exists
-    2. For any undefined variables, load from global ~/.deepset-cloud/.env
-    3. Environment variables and explicit parameters can override both
+    2. For additional variables, load from global ~/.deepset-cloud/.env
+    3. Environment variables can override both
 
     :return: True if any environment variables were loaded successfully, False otherwise.
     """
@@ -28,33 +28,42 @@ def load_environment() -> bool:
     # First load local config
     if local_env_exists:
         successfully_loaded_env = load_dotenv(current_path_env)
-        logger.debug(f"Loaded local .env file at {current_path_env}")
+        logger.debug(f"Loaded local .env file at {current_path_env}.")
 
-    # Then load global config only for undefined variables
+    # Then load global config only for variables which do not exist in the local .env file
     if global_env_exists:
-        # Load global config
         global_loaded = load_dotenv(ENV_FILE_PATH, override=False)
         if global_loaded:
             successfully_loaded_env = True
-            logger.debug(f"Loaded global .env file at {ENV_FILE_PATH} for undefined variables")
+            logger.debug(
+                f"Loaded global .env file at {ENV_FILE_PATH} for variables which do not exist "
+                "in the local .env file."
+            )
 
     if not successfully_loaded_env:
         logger.warning(
-            "No .env files found. You can create a local .env file in your project directory or run "
-            "`deepset-cloud login` to create a global configuration file."
+            "No .env files found. Run `deepset-cloud login` to create a global configuration file. "
+            "You can also create a custom local .env file in your project directory."
         )
+        return successfully_loaded_env
+
+    # Check for required environment variables
+    required_vars = ["API_KEY", "API_URL", "DEFAULT_WORKSPACE_NAME"]
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+
+    if missing_vars:
+        successfully_loaded_env = False
+        logger.warning(
+            f"Missing required environment variables: {', '.join(missing_vars)}. "
+            "Please run `deepset-cloud login` to set up your configuration or set these variables manually."
+        )
+    else:
+        logger.info("Environment variables loaded successfully.")
 
     return successfully_loaded_env
 
 
 loaded_env_vars = load_environment()
-if loaded_env_vars:
-    logger.info("Environment variables loaded successfully.")
-else:
-    logger.warning(
-        "No environment variables were loaded from .env files. You can set API_KEY and API_URL via environment "
-        "variables, explicit parameters, or by creating an .env file."
-    )
 
 # connection to deepset AI Platform
 API_URL: str = os.getenv("API_URL", "https://api.cloud.deepset.ai/api/v1")
