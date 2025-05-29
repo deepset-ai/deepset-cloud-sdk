@@ -14,7 +14,7 @@ class TestLoadEnvironment:
         """Test loading only local .env file."""
         # Create a temporary local .env file
         local_env = tmp_path / ".env"
-        local_env.write_text("API_KEY=local_key\nAPI_URL=local_url")
+        local_env.write_text("API_KEY=local_key\nAPI_URL=local_url\nDEFAULT_WORKSPACE_NAME=local_workspace")
 
         monkeypatch.setattr("deepset_cloud_sdk._api.config.os.getcwd", Mock(return_value=str(tmp_path)))
         # Mock os.path.isfile to return True for local .env and False for global
@@ -32,7 +32,7 @@ class TestLoadEnvironment:
         global_env_dir = tmp_path / "global_config"
         global_env_dir.mkdir()
         global_env = global_env_dir / ".env"
-        global_env.write_text("API_KEY=global_key\nAPI_URL=global_url")
+        global_env.write_text("API_KEY=global_key\nAPI_URL=global_url\nDEFAULT_WORKSPACE_NAME=global_workspace")
 
         monkeypatch.setattr("deepset_cloud_sdk._api.config.os.getcwd", Mock(return_value=str(tmp_path)))
         # point mocked global path to global ENV_FILE_PATH definition
@@ -48,9 +48,9 @@ class TestLoadEnvironment:
         """Test loading both local and global .env files."""
         # Create temporary local and global .env files
         local_env = tmp_path / "local.env"
-        local_env.write_text("API_KEY=local_key\nAPI_URL=local_url")
+        local_env.write_text("API_KEY=local_key\nAPI_URL=local_url\nDEFAULT_WORKSPACE_NAME=local_workspace")
         global_env = tmp_path / "global.env"
-        global_env.write_text("API_KEY=global_key\nAPI_URL=global_url")
+        global_env.write_text("API_KEY=global_key\nAPI_URL=global_url\nDEFAULT_WORKSPACE_NAME=global_workspace")
 
         monkeypatch.setattr("deepset_cloud_sdk._api.config.os.getcwd", Mock(return_value=str(tmp_path)))
         monkeypatch.setattr("deepset_cloud_sdk._api.config.os.path.isfile", Mock(return_value=True))
