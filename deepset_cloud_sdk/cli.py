@@ -124,10 +124,10 @@ def login() -> None:
     """Log in to deepset AI Platform.
 
     Run `deepset-cloud login` before performing any tasks in deepset AI platform using the SDK or CLI,
-    unless you already have a configuration.
+    unless you already created the .ENV file.
 
     This command guides you through creating a global .env file at ~/.deepset-cloud/.env with your
-    deepset AI Platform API_KEY, API_URL and the DEFAULT_WORKSPACE_NAME used for all operations.
+    deepset AI Platform `API_KEY`, `API_URL` and `DEFAULT_WORKSPACE_NAME` used for all operations.
 
     The SDK uses a cascading configuration model with the following precedence:
     1. Explicit parameters (passed via code or CLI)
