@@ -28,7 +28,7 @@ def load_environment() -> bool:
     # First load local config
     if local_env_exists:
         successfully_loaded_env = load_dotenv(current_path_env)
-        logger.debug(f"Loaded local .env file at {current_path_env}.")
+        logger.info(f"Loaded local .env file at {current_path_env}.")
 
     # Then load global config only for variables which do not exist in the local .env file
     if global_env_exists:
