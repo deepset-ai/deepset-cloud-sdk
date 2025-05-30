@@ -2,27 +2,28 @@
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 import structlog
 from dotenv import load_dotenv
 
 logger = structlog.get_logger(__name__)
 
-ENV_FILE_PATH = os.path.expanduser("~/.deepset-cloud/.env")
+ENV_FILE_PATH = Path.home() / ".deepset-cloud" / ".env"
 
 
 def load_environment() -> bool:
     """Load environment variables using a cascading fallback model.
 
     1. Load local .env file in current directory if it exists
-    2. For additional variables, load from global ~/.deepset-cloud/.env
-    3. Environment variables can override both
+    2. Load from global ~/.deepset-cloud/.env to supplement local .env file
+    3. Environment variables can override both local and global .env files
 
     :return: True if required environment variables were loaded successfully, False otherwise.
     """
-    current_path_env = os.path.join(os.getcwd(), ".env")
-    local_loaded = os.path.isfile(current_path_env) and load_dotenv(current_path_env)
-    global_loaded = os.path.isfile(ENV_FILE_PATH) and load_dotenv(ENV_FILE_PATH, override=False)
+    current_path_env = Path.cwd() / ".env"
+    local_loaded = current_path_env.is_file() and load_dotenv(current_path_env)
+    global_loaded = ENV_FILE_PATH.is_file() and load_dotenv(ENV_FILE_PATH, override=False)
 
     if local_loaded:
         logger.info(f"Environment variables successfully loaded from local .env file at {current_path_env}.")

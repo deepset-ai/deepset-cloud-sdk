@@ -1,7 +1,6 @@
-"""The CLI for the deepset Cloud SDK."""
+"""The CLI for the deepset AI Platform SDK."""
 
 import json
-import os
 from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
@@ -139,9 +138,8 @@ def login() -> None:
     typer.echo("Log in to deepset AI Platform")
 
     # Check for local .env file in the current directory
-    current_dir = os.getcwd()
-    local_env = os.path.join(current_dir, ".env")
-    if os.path.isfile(local_env):
+    local_env = Path.cwd() / ".env"
+    if local_env.is_file():
         typer.echo(f"\nNote: Found .env file in the current directory ({local_env}).")
         typer.echo(
             "This local configuration will take precedence over the global configuration you're about to create."
@@ -164,9 +162,8 @@ def login() -> None:
 
     env_content = f"API_KEY={passed_api_key}\nAPI_URL={api_url}\nDEFAULT_WORKSPACE_NAME={passed_default_workspace_name}"
 
-    os.makedirs(os.path.dirname(ENV_FILE_PATH), exist_ok=True)
-    with open(ENV_FILE_PATH, "w", encoding="utf-8") as env_file:
-        env_file.write(env_content)
+    ENV_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    ENV_FILE_PATH.write_text(env_content, encoding="utf-8")
 
     typer.echo(f"Global configuration file created at {ENV_FILE_PATH}.")
 
@@ -178,13 +175,12 @@ def logout() -> None:
     Example:
     `deepset-cloud logout`
     """
-    typer.echo("Log out of deepset Cloud")
-    config_file_exists = os.path.exists(ENV_FILE_PATH)
-    if not config_file_exists:
-        typer.echo("You are not logged in. Nothing to do!")
+    typer.echo("Log out of deepset AI Platform.")
+    if not ENV_FILE_PATH.exists():
+        typer.echo("No global configuration file found. Nothing to do!")
         return
-    os.remove(ENV_FILE_PATH)
-    typer.echo(f"{ENV_FILE_PATH} removed successfully.")
+    ENV_FILE_PATH.unlink()
+    typer.echo(f"Global configuration file {ENV_FILE_PATH} removed successfully.")
 
 
 @cli_app.command()
