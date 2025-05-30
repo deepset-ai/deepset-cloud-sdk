@@ -133,7 +133,7 @@ def login() -> None:
     1. Explicit parameters (passed via code or CLI)
     2. Environment variables
     3. Local .env file in project root
-    4. Global ~/.deepset-cloud/.env file (created by this command)
+    4. Global ~/.deepset-cloud/.env file (supplements local .env)
     5. Built-in defaults
     """
     typer.echo("Log in to deepset AI Platform")

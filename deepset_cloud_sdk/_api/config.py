@@ -20,47 +20,38 @@ def load_environment() -> bool:
 
     :return: True if required environment variables were loaded successfully, False otherwise.
     """
-    successfully_loaded_env: bool = False
     current_path_env = os.path.join(os.getcwd(), ".env")
-    global_env_exists = os.path.isfile(ENV_FILE_PATH)
-    local_env_exists = os.path.isfile(current_path_env)
+    local_loaded = os.path.isfile(current_path_env) and load_dotenv(current_path_env)
+    global_loaded = os.path.isfile(ENV_FILE_PATH) and load_dotenv(ENV_FILE_PATH, override=False)
 
-    # First load local config
-    if local_env_exists:
-        successfully_loaded_env = load_dotenv(current_path_env)
-        logger.info(f"Loaded local .env file at {current_path_env}.")
+    if local_loaded:
+        logger.info(f"Environment variables successfully loaded from local .env file at {current_path_env}.")
+    if global_loaded:
+        if local_loaded:
+            logger.info(f"Loaded global .env file at {ENV_FILE_PATH} to supplement local .env file.")
+        else:
+            logger.info(f"Environment variables successfully loaded from global .env file at {ENV_FILE_PATH}.")
 
-    # Then load global config only for variables which do not exist in the local .env file
-    if global_env_exists:
-        global_loaded = load_dotenv(ENV_FILE_PATH, override=False)
-        if global_loaded:
-            successfully_loaded_env = True
-            logger.debug(
-                f"Loaded global .env file at {ENV_FILE_PATH} for variables which do not exist "
-                "in the local .env file."
-            )
-
-    if not successfully_loaded_env:
+    if not (local_loaded or global_loaded):
         logger.warning(
             "No .env files found. Run `deepset-cloud login` to create a global configuration file. "
             "You can also create a custom local .env file in your project directory."
         )
-        return successfully_loaded_env
+        return False
 
     # Check for required environment variables
     required_vars = ["API_KEY", "API_URL", "DEFAULT_WORKSPACE_NAME"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
 
     if missing_vars:
-        successfully_loaded_env = False
         logger.warning(
             f"Missing required environment variables: {', '.join(missing_vars)}. "
-            "Please run `deepset-cloud login` to set up your configuration or set these variables manually."
+            "Run `deepset-cloud login` to set up your configuration or set these variables "
+            "manually in your .env file."
         )
-    else:
-        logger.info("Environment variables loaded successfully.")
+        return False
 
-    return successfully_loaded_env
+    return True
 
 
 loaded_env_vars = load_environment()
@@ -84,7 +75,7 @@ class CommonConfig:
     1. Explicit parameters passed to this class
     2. Environment variables
     3. Local .env file in project root
-    4. Global .env file in ~/.deepset-cloud/ (only for undefined variables)
+    4. Global .env file in ~/.deepset-cloud/ (supplements local .env)
     5. Built-in defaults
     """
 
