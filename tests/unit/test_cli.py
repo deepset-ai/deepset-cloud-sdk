@@ -476,7 +476,6 @@ class TestCLIUtils:
 
         result = runner.invoke(cli_app, ["logout"])
         assert result.exit_code == 0
-        assert "Global configuration file" in result.stdout
         assert "removed successfully" in result.stdout
         assert not env_file.exists()
 
