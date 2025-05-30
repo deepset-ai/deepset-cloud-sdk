@@ -42,26 +42,26 @@ class DeepsetCloudAPI:
             "Authorization": f"Bearer {config.api_key}",
             "X-Client-Source": "deepset-cloud-sdk",
         }
-        self.base_url = lambda workspace_name: self._get_base_url(config.api_url)(workspace_name)
+        self.api_url = config.api_url
         self.client = client
         self.max_attempts = SAFE_MODE_MAX_ATTEMPTS if config.safe_mode else DEFAULT_MAX_ATTEMPTS
 
-    @staticmethod
-    def _get_base_url(api_url: str) -> Callable:
-        def func(workspace_name: str) -> str:
-            """Get the base URL for the API.
+    def _get_url(self, workspace_name: Optional[str], endpoint: str) -> str:
+        """Get the URL for the API endpoint.
 
-            :param workspace_name: Name of the workspace to use.
-            :return: Base URL.
-            """
-            if not workspace_name or workspace_name == "":
-                raise WorkspaceNotDefinedError(
-                    f"Workspace name is not defined. Got '{workspace_name}'. Enter the name of the workspace in `workspace_name`."
-                )
+        :param workspace_name: Name of the workspace to use. If None, uses the base API URL.
+        :param endpoint: Endpoint to call.
+        :return: Full URL for the API call.
+        """
+        if workspace_name is None:
+            return f"{self.api_url}/{endpoint}"
+        
+        if not workspace_name or workspace_name == "":
+            raise WorkspaceNotDefinedError(
+                f"Workspace name is not defined. Got '{workspace_name}'. Enter the name of the workspace in `workspace_name`."
+            )
 
-            return f"{api_url}/workspaces/{workspace_name}"
-
-        return func
+        return f"{self.api_url}/workspaces/{workspace_name}/{endpoint}"
 
     @classmethod
     @asynccontextmanager
@@ -80,12 +80,12 @@ class DeepsetCloudAPI:
                 yield cls(config, client)
 
     async def get(
-        self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
+        self, endpoint: str, workspace_name: Optional[str] = None, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
     ) -> Response:
         """Make a GET request to the deepset Cloud API.
 
-        :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
+        :param workspace_name: Name of the workspace to use. If None, uses the base API URL.
         :param params: Query parameters to pass.
         :param timeout_s: Timeout in seconds.
         :return: Response object.
@@ -98,15 +98,15 @@ class DeepsetCloudAPI:
             reraise=True,
         )
         async def retry_wrapper() -> Response:
-            return await self._get(workspace_name, endpoint, params, timeout_s)
+            return await self._get(endpoint, workspace_name, params, timeout_s)
 
         return await retry_wrapper()
 
     async def _get(
-        self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
+        self, endpoint: str, workspace_name: Optional[str] = None, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
     ) -> Response:
         response = await self.client.get(
-            f"{self.base_url(workspace_name)}/{endpoint}",
+            self._get_url(workspace_name, endpoint),
             params=params or {},
             headers=self.headers,
             timeout=timeout_s,
@@ -123,8 +123,8 @@ class DeepsetCloudAPI:
 
     async def post(
         self,
-        workspace_name: str,
         endpoint: str,
+        workspace_name: Optional[str] = None,
         params: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
         files: Optional[Dict[str, Any]] = None,
@@ -133,8 +133,8 @@ class DeepsetCloudAPI:
     ) -> Response:
         """Make a POST request to the deepset Cloud API.
 
-        :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
+        :param workspace_name: Name of the workspace to use. If None, uses the base API URL.
         :param params: Query parameters to pass.
         :param json: JSON data to pass.
         :param data: Data to pass.
@@ -143,7 +143,7 @@ class DeepsetCloudAPI:
         :return: Response object.
         """
         response = await self.client.post(
-            f"{self.base_url(workspace_name)}/{endpoint}",
+            self._get_url(workspace_name, endpoint),
             params=params or {},
             json=json or {},
             data=data or {},
@@ -163,19 +163,19 @@ class DeepsetCloudAPI:
         return response
 
     async def delete(
-        self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
+        self, endpoint: str, workspace_name: Optional[str] = None, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
     ) -> Response:
         """
         Make a DELETE request to the deepset Cloud API.
 
-        :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
+        :param workspace_name: Name of the workspace to use. If None, uses the base API URL.
         :param params: Query parameters to pass.
         :param timeout_s: Timeout in seconds.
         :return: Response object.
         """
         response = await self.client.delete(
-            f"{self.base_url(workspace_name)}/{endpoint}",
+            self._get_url(workspace_name, endpoint),
             params=params or {},
             headers=self.headers,
             timeout=timeout_s,
@@ -192,16 +192,16 @@ class DeepsetCloudAPI:
 
     async def put(
         self,
-        workspace_name: str,
         endpoint: str,
+        workspace_name: Optional[str] = None,
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
         timeout_s: int = 20,
     ) -> Response:
         """Make a PUT request to the deepset Cloud API.
 
-        :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
+        :param workspace_name: Name of the workspace to use. If None, uses the base API URL.
         :param params: Query parameters to pass.
         :param data: Data to pass.
         :param timeout_s: Timeout in seconds.
@@ -215,20 +215,20 @@ class DeepsetCloudAPI:
             reraise=True,
         )
         async def retry_wrapper() -> Response:
-            return await self._put(workspace_name, endpoint, params, data, timeout_s)
+            return await self._put(endpoint, workspace_name, params, data, timeout_s)
 
         return await retry_wrapper()
 
     async def _put(
         self,
-        workspace_name: str,
         endpoint: str,
+        workspace_name: Optional[str] = None,
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
         timeout_s: int = 20,
     ) -> Response:
         response = await self.client.put(
-            f"{self.base_url(workspace_name)}/{endpoint}",
+            self._get_url(workspace_name, endpoint),
             params=params or {},
             json=data or {},
             headers=self.headers,

@@ -94,15 +94,36 @@ class IndexOutputs(InputOutputBaseModel):
     model_config = {"extra": "allow"}  # Allow additional fields in outputs
 
 
-class PipelineConfig(BaseModel):
+class BaseConfig(BaseModel):
+    """Base configuration for importing components into deepset AI Platform."""
+
+    model_config = {"extra": "forbid"}
+
+    name: str = Field(..., min_length=1)
+    mirror_secrets: bool = Field(
+        default=False,
+        description="Whether to mirror secrets to deepset AI platform. If True, a corresponding secret will be created in deepset AI platform.",
+    )
+
+    @property
+    def type_name(self) -> str:
+        """Return the type name of the config.
+
+        Returns 'index' for IndexConfig and 'pipeline' for PipelineConfig.
+        """
+        if isinstance(self, IndexConfig):
+            return "index"
+        else:
+            return "pipeline"
+
+
+class PipelineConfig(BaseConfig):
     """Configuration required to import the pipeline into deepset AI Platform.
 
     :param name: Name of the pipeline to be imported
     :param inputs: Pipeline input configuration. Use `PipelineInputs` model to define the inputs.
     :param outputs: Pipeline output configuration. Use `PipelineOutputs` model to define the outputs.
     """
-
-    model_config = {"extra": "forbid"}
 
     name: str = Field(..., description="The name of the pipeline to be imported", min_length=1)
     inputs: PipelineInputs = Field(
@@ -135,15 +156,13 @@ class IndexInputs(InputOutputBaseModel):
     )
 
 
-class IndexConfig(BaseModel):
+class IndexConfig(BaseConfig):
     """Index configuration for importing an index to deepset AI platform.
 
     :param name: Name of the index to be imported.
     :param inputs: Index input configuration. Use `IndexInputs` model to define the inputs.
     :param outputs: Index output configuration. Optional. Use `IndexOutputs` model to define the outputs.
     """
-
-    model_config = {"extra": "forbid"}
 
     name: str = Field(..., description="Name of the index to be imported.", min_length=1)
     inputs: IndexInputs = Field(

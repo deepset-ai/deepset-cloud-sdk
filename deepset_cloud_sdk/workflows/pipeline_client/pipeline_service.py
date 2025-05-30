@@ -5,8 +5,13 @@ from __future__ import annotations
 import asyncio
 from http import HTTPStatus
 from io import StringIO
+import os
 from typing import Any, Optional, Protocol, runtime_checkable
 
+from typing import Any, Optional, Protocol, runtime_checkable, Set
+
+
+import dpath.util
 import structlog
 from ruamel.yaml import YAML
 
@@ -190,7 +195,7 @@ class PipelineService:
         :param pipeline: The Haystack pipeline to import.
         :param config: Configuration for importing an index.
         """
-        pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
+        pipeline_yaml = await self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
             workspace_name=self._workspace_name,
             endpoint="indexes",
@@ -207,7 +212,7 @@ class PipelineService:
         :param config: Configuration for importing a pipeline.
         """
         logger.debug(f"Importing pipeline {config.name}")
-        pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
+        pipeline_yaml = await self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
             workspace_name=self._workspace_name,
             endpoint="pipelines",
@@ -217,7 +222,7 @@ class PipelineService:
         if response.status_code == HTTPStatus.NO_CONTENT:
             logger.debug(f"Pipeline {config.name} successfully created.")
 
-    def _from_haystack_pipeline(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
+    async def _from_haystack_pipeline(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
         """Create a YAML configuration from the pipeline.
 
         :param pipeline: The Haystack pipeline to create the configuration for.
@@ -227,6 +232,21 @@ class PipelineService:
         # Parse the pipeline YAML
         pipeline_dict = self._yaml.load(pipeline.dumps())
         self._add_inputs_and_outputs(pipeline_dict, config)
+
+        # Find environment secrets in the pipeline
+        env_vars = set()
+        for path, value in dpath.util.search(pipeline_dict, "**/env_vars", yielded=True):
+            if isinstance(value, list):
+                env_vars.update(value)
+
+        if config.mirror_secrets:
+            await self._handle_secrets(pipeline_dict)
+        elif env_vars:
+            logger.warning(
+                f"Found secrets {', '.join(sorted(env_vars))} in your {config.type_name}. "
+                f"Ensure these secrets exist in deepset AI platform before running the {config.type_name}. "
+                f"You can automatically copy local secrets to deepset AI platform by setting `mirror_secrets=True` in the {config.type_name.capitalize()}Config."
+            )
 
         # Convert back to string
         yaml_str = StringIO()
@@ -243,3 +263,39 @@ class PipelineService:
             pipeline_dict["inputs"] = converted_inputs
         if config.outputs and (converted_outputs := config.outputs.to_yaml_dict()):
             pipeline_dict["outputs"] = converted_outputs
+
+    async def _handle_secrets(self, pipeline_dict: dict) -> None:
+        """Handle secrets in the pipeline configuration.
+
+        If mirror_secrets is True, create secrets in deepset AI platform for any Secret objects found in the pipeline.
+
+        :param pipeline_dict: The pipeline dictionary to process for secrets.
+        """
+        # Find all environment variables in the pipeline configuration
+        env_vars = set()
+        for _, value in dpath.util.search(pipeline_dict, "**/env_vars", yielded=True):
+            if isinstance(value, list):
+                env_vars.update(value)
+
+        # Create secrets for each found env_var
+        for env_var in env_vars:
+            try:
+                # fetch the secret from the environment
+                env_secret = os.getenv(env_var)
+                if not env_secret:
+                    logger.warning(
+                        f"Secret '{env_var}' not found in the environment. Ensure the secret is set in the environment."
+                    )
+                    continue
+                # Create the secret in deepset AI platform
+                response = await self._api.post(
+                    workspace_name=self._workspace_name,
+                    endpoint="secrets",
+                    json={"name": env_var, "secret": env_secret},
+                )
+                response.raise_for_status()
+                logger.debug(f"Created secret {env_var} in deepset AI platform")
+            except Exception as e:
+                logger.warning(f"Failed to create secret {env_var}: {str(e)}")
+                # Continue with other secrets even if one fails
+                continue

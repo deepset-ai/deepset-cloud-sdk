@@ -1,13 +1,14 @@
 """Tests for the pipeline service."""
 import textwrap
 from typing import Any
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, call
 
 import pytest
 from haystack import AsyncPipeline, Pipeline
 from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
 from haystack.components.routers import FileTypeRouter
+from httpx import Response
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
@@ -22,6 +23,10 @@ from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
     PipelineService,
     _enable_import_into_deepset,
 )
+
+from haystack.components.generators import OpenAIGenerator, AzureOpenAIGenerator
+from haystack.utils import Secret
+import respx
 
 
 class TestImportPipelineService:
@@ -384,3 +389,154 @@ class TestEnableImportIntoDeepset:
             ImportError, match="Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed."
         ):
             _enable_import_into_deepset(CommonConfig(), "my-workspace")
+
+
+class TestPipelineServiceSecretManagement:
+    """Test suite for the PipelineService."""
+
+    @pytest.fixture
+    def mock_api(self) -> AsyncMock:
+        """Create a mock API client."""
+        mock = AsyncMock()
+        mock.post.return_value = Mock(status_code=201)
+        return mock
+
+    @pytest.fixture
+    def pipeline_service(self, mock_api: AsyncMock) -> PipelineService:
+        """Create a pipeline service instance with a mock API client."""
+        return PipelineService(mock_api, workspace_name="default")
+
+    @pytest.fixture
+    def pipeline_with_secret(self, monkeypatch: pytest.MonkeyPatch) -> Pipeline:
+        """Create a sample pipeline using a secret from the environment."""
+        pipeline = Pipeline()
+        env_secret_name_1 = "MY_CUSTOM_ENV_VAR_1"
+        env_secret_name_2 = "MY_CUSTOM_ENV_VAR_2"
+        monkeypatch.setenv(env_secret_name_1, "my-generator-api-key-1")
+        monkeypatch.setenv(env_secret_name_2, "my-generator-api-key-2")
+        generator = AzureOpenAIGenerator(
+            azure_endpoint="https://my-azure-endpoint.openai.azure.com",
+            api_key=Secret.from_env_var(env_secret_name_1, strict=False),
+            azure_ad_token=Secret.from_env_var(env_secret_name_2, strict=False),
+        )
+        pipeline.add_component("generator", generator)
+
+        return pipeline
+
+    @pytest.mark.asyncio
+    async def test_secrets_are_not_mirrored(
+        self,
+        pipeline_with_secret: Pipeline,
+        pipeline_service: PipelineService,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        config = PipelineConfig(
+            name="test",
+            inputs=PipelineInputs(query=["llm.query"]),
+            outputs=PipelineOutputs(answers="llm.replies"),
+        )
+        pipeline_yaml = await pipeline_service._from_haystack_pipeline(pipeline_with_secret, config)
+        expected_pipeline_yaml = textwrap.dedent(
+            """components:
+  generator:
+    init_parameters:
+      api_key:
+        env_vars:
+        - MY_CUSTOM_ENV_VAR_1
+        strict: false
+        type: env_var
+      api_version: '2023-05-15'
+      azure_ad_token:
+        env_vars:
+        - MY_CUSTOM_ENV_VAR_2
+        strict: false
+        type: env_var
+      azure_ad_token_provider:
+      azure_deployment: gpt-4o-mini
+      azure_endpoint: https://my-azure-endpoint.openai.azure.com
+      default_headers: {}
+      generation_kwargs: {}
+      http_client_kwargs:
+      max_retries: 5
+      organization:
+      streaming_callback:
+      system_prompt:
+      timeout: 30.0
+    type: haystack.components.generators.azure.AzureOpenAIGenerator
+connection_type_validation: true
+connections: []
+max_runs_per_component: 100
+metadata: {}
+inputs:
+  query:
+  - llm.query
+outputs:
+  answers: llm.replies
+"""
+        )
+        assert pipeline_yaml == expected_pipeline_yaml
+        assert "Found secrets MY_CUSTOM_ENV_VAR_1, MY_CUSTOM_ENV_VAR_2 in your pipeline." in caplog.records[0].message
+
+    @pytest.mark.asyncio
+    async def test_secrets_are_mirrored(
+        self,
+        pipeline_with_secret: Pipeline,
+        pipeline_service: PipelineService,
+        caplog: pytest.LogCaptureFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Test that secrets are mirrored when mirror_secrets is True."""
+        config = PipelineConfig(
+            name="test",
+            inputs=PipelineInputs(query=["llm.query"]),
+            outputs=PipelineOutputs(answers="llm.replies"),
+            mirror_secrets=True,
+        )
+
+        mock_api = AsyncMock()
+        service = PipelineService(mock_api, workspace_name="default")
+
+        await service._from_haystack_pipeline(pipeline_with_secret, config)
+
+        assert mock_api.post.call_count == 2
+        mock_api.post.assert_any_call(
+            endpoint="api/v2/secrets",
+            json={"name": "MY_CUSTOM_ENV_VAR_1", "secret": "my-generator-api-key-1"},
+        )
+        mock_api.post.assert_any_call(
+            endpoint="api/v2/secrets",
+            json={"name": "MY_CUSTOM_ENV_VAR_2", "secret": "my-generator-api-key-2"},
+        )
+
+    @pytest.mark.asyncio
+    async def test_secrets_are_mirrored_missing_env_var(
+        self,
+        pipeline_with_secret: Pipeline,
+        pipeline_service: PipelineService,
+        caplog: pytest.LogCaptureFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Test that secrets are mirrored when mirror_secrets is True but environment variable is missing."""
+        # Remove one of the environment variables
+        monkeypatch.delenv("MY_CUSTOM_ENV_VAR_1", raising=False)
+
+        config = PipelineConfig(
+            name="test",
+            inputs=PipelineInputs(query=["llm.query"]),
+            outputs=PipelineOutputs(answers="llm.replies"),
+            mirror_secrets=True,
+        )
+
+        mock_api = AsyncMock()
+        service = PipelineService(mock_api, workspace_name="default")
+
+        await service._from_haystack_pipeline(pipeline_with_secret, config)
+
+        assert mock_api.post.call_count == 1
+        mock_api.post.assert_any_call(
+            endpoint="api/v2/secrets",
+            json={"name": "MY_CUSTOM_ENV_VAR_2", "secret": "my-generator-api-key-2"},
+        )
+
+        assert any("Secret 'MY_CUSTOM_ENV_VAR_1' not found in the environment." in record.message for record in caplog.records)
