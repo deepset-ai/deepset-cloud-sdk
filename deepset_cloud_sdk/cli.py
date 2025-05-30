@@ -1,7 +1,6 @@
-"""The CLI for the deepset Cloud SDK."""
+"""The CLI for the deepset AI Platform SDK."""
 
 import json
-import os
 from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
@@ -121,16 +120,30 @@ def download(  # pylint: disable=too-many-arguments
 
 @cli_app.command()
 def login() -> None:
-    """Log in to deepset Cloud. This command creates an .ENV file with your deepset Cloud API key and the default workspace used for all operations.
+    """Log in to deepset AI Platform.
 
-    Run this command before performing any tasks in deepset Cloud using the SDK or CLI, unless you already created the .ENV file.
+    Run `deepset-cloud login` before performing any tasks in deepset AI platform using the SDK or CLI,
+    unless you already created the .ENV file.
 
-    Example:
-    `deepset-cloud login`
+    This command guides you through creating a global .env file at ~/.deepset-cloud/.env with your
+    deepset AI Platform `API_KEY`, `API_URL` and `DEFAULT_WORKSPACE_NAME` used for all operations.
 
-    This prompts you to provide your deepset Cloud API key, workspace name, and environment.
+    The SDK uses a cascading configuration model with the following precedence:
+    1. Explicit parameters (passed via code or CLI)
+    2. Environment variables
+    3. Local .env file in project root
+    4. Global ~/.deepset-cloud/.env file (supplements local .env)
+    5. Built-in defaults
     """
-    typer.echo("Log in to deepset Cloud")
+    typer.echo("Log in to deepset AI Platform")
+
+    # Check for local .env file in the current directory
+    local_env = Path.cwd() / ".env"
+    if local_env.is_file():
+        typer.echo(f"\nNote: Found .env file in the current directory ({local_env}).")
+        typer.echo(
+            "This local configuration will take precedence over the global configuration you're about to create."
+        )
 
     environment = typer.prompt(
         "Choose environment",
@@ -144,16 +157,15 @@ def login() -> None:
         api_url = "http://api.us.deepset.ai/api/v1"
     else:
         api_url = typer.prompt("Enter custom API URL")
-    passed_api_key = typer.prompt("Your deepset Cloud API_KEY", hide_input=True)
+    passed_api_key = typer.prompt("Your deepset AI Platform API_KEY", hide_input=True)
     passed_default_workspace_name = typer.prompt("Your DEFAULT_WORKSPACE_NAME", default="default")
 
     env_content = f"API_KEY={passed_api_key}\nAPI_URL={api_url}\nDEFAULT_WORKSPACE_NAME={passed_default_workspace_name}"
 
-    os.makedirs(os.path.dirname(ENV_FILE_PATH), exist_ok=True)
-    with open(ENV_FILE_PATH, "w", encoding="utf-8") as env_file:
-        env_file.write(env_content)
+    ENV_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    ENV_FILE_PATH.write_text(env_content, encoding="utf-8")
 
-    typer.echo(f"{ENV_FILE_PATH} created successfully.")
+    typer.echo(f"Global configuration file created at {ENV_FILE_PATH}.")
 
 
 @cli_app.command()
@@ -163,13 +175,12 @@ def logout() -> None:
     Example:
     `deepset-cloud logout`
     """
-    typer.echo("Log out of deepset Cloud")
-    config_file_exists = os.path.exists(ENV_FILE_PATH)
-    if not config_file_exists:
-        typer.echo("You are not logged in. Nothing to do!")
+    typer.echo("Log out of deepset AI Platform.")
+    if not ENV_FILE_PATH.exists():
+        typer.echo("No global configuration file found. Nothing to do!")
         return
-    os.remove(ENV_FILE_PATH)
-    typer.echo(f"{ENV_FILE_PATH} removed successfully.")
+    ENV_FILE_PATH.unlink()
+    typer.echo(f"Global configuration file {ENV_FILE_PATH} removed successfully.")
 
 
 @cli_app.command()
