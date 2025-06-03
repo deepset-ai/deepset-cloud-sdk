@@ -6,6 +6,10 @@ on:
 env:
   HATCH_VERSION: "v1.14.0" # keep in sync with deploy.yml
 
+permissions:
+  pull-requests: write
+  contents: write
+
 jobs:
   format-black:
     name: Format black
