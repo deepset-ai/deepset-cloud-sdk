@@ -98,6 +98,9 @@ jobs:
       API_KEY: "not-a-real-api-key"
     steps:
       - uses: actions/checkout@v4
+        with:
+          # for coverage comment action
+          fetch-depth: 1000
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
@@ -106,7 +109,6 @@ jobs:
       - name: Run unit tests
         run: hatch run test:unit-with-cov
       - name: Coverage comment
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
         id: coverage_comment
         uses: py-cov-action/python-coverage-comment-action@0abd69a9baf90729d9b2d5b585fc790ec4e6f3dd
         with:
