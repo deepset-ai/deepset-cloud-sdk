@@ -35,7 +35,7 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
         # Initialize the SDK with configuration from environment variables (after running `deepset-cloud login`)
         sdk = DeepsetSDK()
 
-        # or initialize the SDK with custom configuration
+        # or initialize the SDK with explicit configuration
         sdk = DeepsetSDK(
             api_key="your-api-key",
             workspace_name="your-workspace",
@@ -139,7 +139,6 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
             If importing an index, the config argument is expected to be of type `IndexConfig`,
             if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
         """
-        # creates a sync wrapper around the async method since the APIs are async
         try:
             loop = asyncio.get_event_loop()
             should_close = False

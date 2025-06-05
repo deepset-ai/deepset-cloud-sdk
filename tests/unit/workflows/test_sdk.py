@@ -150,6 +150,45 @@ class TestDeepsetSDKImport:
         )
         mock_api_service_setup["service"].import_async.assert_called_once_with(mock_pipeline, index_config)
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("pipeline_type", [Pipeline, AsyncPipeline])
+    async def test_import_into_deepset_async_and_pipeline_config_success(
+        self,
+        pipeline_type: Pipeline | AsyncPipeline,
+        mock_api_service_setup: dict,
+        sdk_with_explicit_config: DeepsetSDK,
+        pipeline_config: PipelineConfig,
+    ) -> None:
+        """Test successful async import of pipeline with PipelineConfig."""
+        mock_pipeline = Mock(spec=pipeline_type)
+
+        await sdk_with_explicit_config.import_into_deepset_async(mock_pipeline, pipeline_config)
+
+        mock_api_service_setup["api_factory"].assert_called_once_with(sdk_with_explicit_config._api_config)
+        mock_api_service_setup["pipeline_service"].assert_called_once_with(
+            mock_api_service_setup["api"], "test-workspace"
+        )
+        mock_api_service_setup["service"].import_async.assert_called_once_with(mock_pipeline, pipeline_config)
+
+    @pytest.mark.parametrize("pipeline_type", [Pipeline, AsyncPipeline])
+    def test_import_into_deepset_and_index_config_success(
+        self,
+        pipeline_type: Pipeline | AsyncPipeline,
+        mock_api_service_setup: dict,
+        sdk_with_explicit_config: DeepsetSDK,
+        index_config: IndexConfig,
+    ) -> None:
+        """Test successful sync import of pipeline with IndexConfig."""
+        mock_pipeline = Mock(spec=pipeline_type)
+
+        sdk_with_explicit_config.import_into_deepset(mock_pipeline, index_config)
+
+        mock_api_service_setup["api_factory"].assert_called_once_with(sdk_with_explicit_config._api_config)
+        mock_api_service_setup["pipeline_service"].assert_called_once_with(
+            mock_api_service_setup["api"], "test-workspace"
+        )
+        mock_api_service_setup["service"].import_async.assert_called_once_with(mock_pipeline, index_config)
+
     @pytest.mark.parametrize("pipeline_type", [Pipeline, AsyncPipeline])
     def test_import_into_deepset_and_pipeline_config_success(
         self,
