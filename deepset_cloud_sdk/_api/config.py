@@ -100,9 +100,6 @@ class CommonConfig:
         assert (
             self.api_key != ""
         ), "API key is required. Either set the API_KEY environment variable or pass api_key parameter. Go to [API Keys](https://cloud.deepset.ai/settings/api-keys) in deepset AI Platform to get an API key."
-        assert (
-            self.api_url != ""
-        ), "API URL is required. Either set the API_URL environment variable or pass api_url parameter."
 
         if self.api_url.endswith("/"):
             self.api_url = self.api_url[:-1]
