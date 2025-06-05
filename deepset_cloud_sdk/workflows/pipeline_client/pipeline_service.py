@@ -78,6 +78,7 @@ class PipelineService:
         """
         logger.debug(f"Starting async importing for {config.name}")
 
+        # import locally to avoid Haystack dependency to be installed in the SDK
         try:
             from haystack import AsyncPipeline as HaystackAsyncPipeline
             from haystack import Pipeline as HaystackPipeline

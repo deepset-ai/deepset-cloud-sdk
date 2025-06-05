@@ -9,7 +9,6 @@ from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
 from haystack.components.routers import FileTypeRouter
 
-from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
     IndexInputs,
@@ -182,8 +181,12 @@ outputs:
     ) -> None:
         """Test importing a pipeline when haystack-ai is not installed."""
 
-        def mock_import(*args: Any, **kwargs: Any) -> None:
-            raise ImportError("Can't import Pipeline or AsyncPipeline.")
+        original_import = __builtins__["__import__"]
+
+        def mock_import(name: str, *args: Any, **kwargs: Any):
+            if name == "haystack" or name.startswith("haystack."):
+                raise ImportError("Can't import Pipeline or AsyncPipeline.")
+            return original_import(name, *args, **kwargs)
 
         monkeypatch.setattr("builtins.__import__", mock_import)
 
@@ -194,7 +197,8 @@ outputs:
         )
 
         with pytest.raises(
-            ImportError, match="Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed."
+            ImportError,
+            match="Can't import Pipeline or AsyncPipeline because haystack-ai is not installed. Run 'pip install haystack-ai'.",
         ):
             await pipeline_service.import_async(Mock(), config)
 
