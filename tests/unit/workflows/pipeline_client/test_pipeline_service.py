@@ -1,10 +1,11 @@
 """Tests for the pipeline service."""
+import builtins
 import textwrap
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from haystack import Pipeline
+from haystack import AsyncPipeline, Pipeline
 from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
 from haystack.components.routers import FileTypeRouter
@@ -55,6 +56,24 @@ class TestImportPipelineService:
         pipeline_index.connect("file_type_router.text/csv", "csv_converter.sources")
         pipeline_index.connect("text_converter.documents", "joiner.documents")
         pipeline_index.connect("csv_converter.documents", "joiner.documents")
+
+        return pipeline_index
+
+    @pytest.fixture
+    def async_index_pipeline(self) -> AsyncPipeline:
+        """Create a sample async index pipeline."""
+        file_type_router = FileTypeRouter(mime_types=["text/plain"])
+        text_converter = TextFileToDocument(encoding="utf-8")
+        joiner = DocumentJoiner(join_mode="concatenate", sort_by_score=False)
+
+        pipeline_index = AsyncPipeline()
+
+        pipeline_index.add_component("file_type_router", file_type_router)
+        pipeline_index.add_component("text_converter", text_converter)
+        pipeline_index.add_component("joiner", joiner)
+
+        pipeline_index.connect("file_type_router.text/plain", "text_converter.sources")
+        pipeline_index.connect("text_converter.documents", "joiner.documents")
 
         return pipeline_index
 
@@ -128,6 +147,63 @@ inputs:
         )
 
     @pytest.mark.asyncio
+    async def test_import_async_index(
+        self,
+        pipeline_service: PipelineService,
+        async_index_pipeline: AsyncPipeline,
+        mock_api: AsyncMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Test importing an async index pipeline includes async_enabled flag."""
+        config = IndexConfig(
+            name="test_async_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+        )
+
+        await pipeline_service.import_async(async_index_pipeline, config)
+
+        expected_pipeline_yaml = textwrap.dedent(
+            """components:
+  file_type_router:
+    init_parameters:
+      additional_mimetypes:
+      mime_types:
+      - text/plain
+    type: haystack.components.routers.file_type_router.FileTypeRouter
+  joiner:
+    init_parameters:
+      join_mode: concatenate
+      sort_by_score: false
+      top_k:
+      weights:
+    type: haystack.components.joiners.document_joiner.DocumentJoiner
+  text_converter:
+    init_parameters:
+      encoding: utf-8
+      store_full_path: false
+    type: haystack.components.converters.txt.TextFileToDocument
+connection_type_validation: true
+connections:
+- receiver: text_converter.sources
+  sender: file_type_router.text/plain
+- receiver: joiner.documents
+  sender: text_converter.documents
+max_runs_per_component: 100
+metadata: {}
+inputs:
+  files:
+  - file_type_router.sources
+async_enabled: true
+"""
+        )
+
+        mock_api.post.assert_called_once_with(
+            workspace_name="default",
+            endpoint="indexes",
+            json={"name": "test_async_index", "config_yaml": expected_pipeline_yaml},
+        )
+
+    @pytest.mark.asyncio
     async def test_import_index_pipeline_with_invalid_pipeline(self, pipeline_service: PipelineService) -> None:
         """Test importing unexpected pipeline object."""
         config = IndexConfig(name="test_index", inputs=IndexInputs(files=["my_component.files"]))
@@ -180,9 +256,6 @@ outputs:
         self, pipeline_service: PipelineService, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test importing a pipeline when haystack-ai is not installed."""
-
-        import builtins
-
         original_import = builtins.__import__
 
         def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
@@ -252,3 +325,50 @@ outputs:
             endpoint="indexes",
             json={"name": "test_index", "config_yaml": expected_pipeline_yaml},
         )
+
+
+class TestAddAsyncFlagIfNeeded:
+    """Test suite for the _add_async_flag_if_needed method."""
+
+    @pytest.fixture
+    def pipeline_service(self) -> PipelineService:
+        """Create a pipeline service instance with a mock API client."""
+        return PipelineService(Mock(), workspace_name="default")
+
+    def test_add_async_flag_if_needed_with_async_pipeline(self, pipeline_service: PipelineService) -> None:
+        """Test that async_enabled flag is added for AsyncPipeline."""
+        mock_async_pipeline = Mock(spec=AsyncPipeline)
+        pipeline_dict: dict[str, Any] = {"components": {}}
+
+        pipeline_service._add_async_flag_if_needed(mock_async_pipeline, pipeline_dict)
+
+        assert pipeline_dict["async_enabled"] is True
+
+    def test_add_async_flag_if_needed_with_regular_pipeline(self, pipeline_service: PipelineService) -> None:
+        """Test that async_enabled flag is not added for regular Pipeline."""
+        mock_pipeline = Mock(spec=Pipeline)
+        pipeline_dict: dict[str, Any] = {"components": {}}
+
+        pipeline_service._add_async_flag_if_needed(mock_pipeline, pipeline_dict)
+
+        assert "async_enabled" not in pipeline_dict
+
+    def test_add_async_flag_if_needed_with_import_error(
+        self, pipeline_service: PipelineService, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test that helper method handles import error gracefully."""
+        original_import = builtins.__import__
+
+        def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
+            if name == "haystack":
+                raise ImportError("Can't import AsyncPipeline.")
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", mock_import)
+
+        mock_pipeline = Mock(spec=AsyncPipeline)
+        pipeline_dict: dict[str, Any] = {"components": {}}
+
+        # does not raise
+        pipeline_service._add_async_flag_if_needed(mock_pipeline, pipeline_dict)
+        assert "async_enabled" not in pipeline_dict
