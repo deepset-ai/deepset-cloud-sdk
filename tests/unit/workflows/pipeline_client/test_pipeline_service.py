@@ -3,6 +3,7 @@ import textwrap
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
+import builtins
 import pytest
 from haystack import AsyncPipeline, Pipeline
 from haystack.components.converters import CSVToDocument, TextFileToDocument
@@ -255,9 +256,6 @@ outputs:
         self, pipeline_service: PipelineService, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test importing a pipeline when haystack-ai is not installed."""
-
-        import builtins
-
         original_import = builtins.__import__
 
         def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
@@ -359,8 +357,6 @@ class TestAddAsyncFlagIfNeeded:
         self, pipeline_service: PipelineService, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test that helper method handles import error gracefully."""
-        import builtins
-
         original_import = builtins.__import__
 
         def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
