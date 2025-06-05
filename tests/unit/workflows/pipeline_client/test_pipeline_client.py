@@ -1,4 +1,4 @@
-"""Tests for the DeepsetSDK class."""
+"""Tests for the PipelineClient class."""
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -6,7 +6,7 @@ from haystack import AsyncPipeline, Pipeline
 
 from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk.workflows import DeepsetSDK
+from deepset_cloud_sdk.workflows.pipeline_client import PipelineClient
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
     IndexInputs,
@@ -17,70 +17,78 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import PipelineService
 
 
-class TestDeepsetSDKInit:
-    """Test suite for the DeepsetSDK class."""
+class TestPipelineClientInit:
+    """Test suite for the PipelineClient class."""
 
     def test_init_with_env_vars_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test successful SDK initialization with environment variables."""
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.API_KEY", "env-api-key")
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.API_URL", "https://env-api-url.com")
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.DEFAULT_WORKSPACE_NAME", "test-workspace")
-        sdk = DeepsetSDK()
+        """Test successful client initialization with environment variables."""
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.API_KEY", "env-api-key")
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.API_URL", "https://env-api-url.com"
+        )
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.DEFAULT_WORKSPACE_NAME", "test-workspace"
+        )
+        pc = PipelineClient()
 
-        assert isinstance(sdk._api_config, CommonConfig)
-        assert sdk._api_config.api_key == "env-api-key"
-        assert sdk._api_config.api_url == "https://env-api-url.com"
-        assert sdk._workspace_name == "test-workspace"
+        assert isinstance(pc._api_config, CommonConfig)
+        assert pc._api_config.api_key == "env-api-key"
+        assert pc._api_config.api_url == "https://env-api-url.com"
+        assert pc._workspace_name == "test-workspace"
 
     def test_init_with_explicit_api_config_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test SDK initialization with explicit api configuration."""
-        sdk = DeepsetSDK(
+        """Test client initialization with explicit api configuration."""
+        pc = PipelineClient(
             api_key="test-api-key-explicit",
             workspace_name="test-workspace-explicit",
             api_url="https://test-api-url-explicit.com",
         )
 
-        assert isinstance(sdk._api_config, CommonConfig)
-        assert sdk._api_config.api_key == "test-api-key-explicit"
-        assert sdk._api_config.api_url == "https://test-api-url-explicit.com"
-        assert sdk._workspace_name == "test-workspace-explicit"
+        assert isinstance(pc._api_config, CommonConfig)
+        assert pc._api_config.api_key == "test-api-key-explicit"
+        assert pc._api_config.api_url == "https://test-api-url-explicit.com"
+        assert pc._workspace_name == "test-workspace-explicit"
 
     def test_init_with_mixed_config(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test SDK initialization with partial explicit configuration."""
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.API_URL", "https://env-api-url.com")
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.DEFAULT_WORKSPACE_NAME", "test-workspace")
+        """Test client initialization with partial explicit configuration."""
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.API_URL", "https://env-api-url.com"
+        )
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.DEFAULT_WORKSPACE_NAME", "test-workspace"
+        )
 
-        sdk = DeepsetSDK(
+        pc = PipelineClient(
             api_key="custom-api-key",
         )
 
-        assert isinstance(sdk._api_config, CommonConfig)
-        assert sdk._api_config.api_key == "custom-api-key"
-        assert sdk._api_config.api_url == "https://env-api-url.com"  # From environment
-        assert sdk._workspace_name == "test-workspace"  # from environment
+        assert isinstance(pc._api_config, CommonConfig)
+        assert pc._api_config.api_key == "custom-api-key"
+        assert pc._api_config.api_url == "https://env-api-url.com"  # From environment
+        assert pc._workspace_name == "test-workspace"  # from environment
 
     def test_init_with_missing_api_key_raises_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.API_KEY", "")
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.API_KEY", "")
 
         with pytest.raises(AssertionError):
-            DeepsetSDK(
+            PipelineClient(
                 api_url="https://api.com", workspace_name="test-workspace"
             )  # Empty API key should raise AssertionError
 
     def test_init_with_missing_api_url_raises_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.API_URL", "")
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.API_URL", "")
 
         with pytest.raises(AssertionError):
-            DeepsetSDK(api_key="hello")  # Empty API url should raise AssertionError
+            PipelineClient(api_key="hello")  # Empty API url should raise AssertionError
 
     def test_init_with_missing_workspace_raises_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.DEFAULT_WORKSPACE_NAME", "")
+        monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.DEFAULT_WORKSPACE_NAME", "")
 
         with pytest.raises(ValueError):
-            DeepsetSDK(api_key="hello", api_url="https://api.com")  # Empty workspace name should raise ValueError
+            PipelineClient(api_key="hello", api_url="https://api.com")  # Empty workspace name should raise ValueError
 
 
-class TestDeepsetSDKImport:
+class TestPipelineClientImport:
     """Test suite for importing Haystack pipelines into deepset."""
 
     @pytest.fixture
@@ -98,8 +106,12 @@ class TestDeepsetSDKImport:
         mock_api_factory = Mock(return_value=mock_api_context)
         mock_pipeline_service = Mock(return_value=mock_service)
 
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.DeepsetCloudAPI.factory", mock_api_factory)
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.sdk.PipelineService", mock_pipeline_service)
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.DeepsetCloudAPI.factory", mock_api_factory
+        )
+        monkeypatch.setattr(
+            "deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.PipelineService", mock_pipeline_service
+        )
 
         return {
             "api": mock_api,
@@ -109,9 +121,9 @@ class TestDeepsetSDKImport:
         }
 
     @pytest.fixture
-    def sdk_with_explicit_config(self) -> DeepsetSDK:
-        """Fixture to create SDK instance with explicit configuration."""
-        return DeepsetSDK(api_key="test-key", api_url="https://test.com", workspace_name="test-workspace")
+    def client_with_explicit_config(self) -> PipelineClient:
+        """Fixture to create client instance with explicit configuration."""
+        return PipelineClient(api_key="test-key", api_url="https://test.com", workspace_name="test-workspace")
 
     @pytest.fixture
     def index_config(self) -> IndexConfig:
@@ -136,15 +148,15 @@ class TestDeepsetSDKImport:
         self,
         pipeline_type: Pipeline | AsyncPipeline,
         mock_api_service_setup: dict,
-        sdk_with_explicit_config: DeepsetSDK,
+        client_with_explicit_config: PipelineClient,
         index_config: IndexConfig,
     ) -> None:
         """Test successful async import of pipeline with IndexConfig."""
         mock_pipeline = Mock(spec=pipeline_type)
 
-        await sdk_with_explicit_config.import_into_deepset_async(mock_pipeline, index_config)
+        await client_with_explicit_config.import_into_deepset_async(mock_pipeline, index_config)
 
-        mock_api_service_setup["api_factory"].assert_called_once_with(sdk_with_explicit_config._api_config)
+        mock_api_service_setup["api_factory"].assert_called_once_with(client_with_explicit_config._api_config)
         mock_api_service_setup["pipeline_service"].assert_called_once_with(
             mock_api_service_setup["api"], "test-workspace"
         )
@@ -156,15 +168,15 @@ class TestDeepsetSDKImport:
         self,
         pipeline_type: Pipeline | AsyncPipeline,
         mock_api_service_setup: dict,
-        sdk_with_explicit_config: DeepsetSDK,
+        client_with_explicit_config: PipelineClient,
         pipeline_config: PipelineConfig,
     ) -> None:
         """Test successful async import of pipeline with PipelineConfig."""
         mock_pipeline = Mock(spec=pipeline_type)
 
-        await sdk_with_explicit_config.import_into_deepset_async(mock_pipeline, pipeline_config)
+        await client_with_explicit_config.import_into_deepset_async(mock_pipeline, pipeline_config)
 
-        mock_api_service_setup["api_factory"].assert_called_once_with(sdk_with_explicit_config._api_config)
+        mock_api_service_setup["api_factory"].assert_called_once_with(client_with_explicit_config._api_config)
         mock_api_service_setup["pipeline_service"].assert_called_once_with(
             mock_api_service_setup["api"], "test-workspace"
         )
@@ -175,15 +187,15 @@ class TestDeepsetSDKImport:
         self,
         pipeline_type: Pipeline | AsyncPipeline,
         mock_api_service_setup: dict,
-        sdk_with_explicit_config: DeepsetSDK,
+        client_with_explicit_config: PipelineClient,
         index_config: IndexConfig,
     ) -> None:
         """Test successful sync import of pipeline with IndexConfig."""
         mock_pipeline = Mock(spec=pipeline_type)
 
-        sdk_with_explicit_config.import_into_deepset(mock_pipeline, index_config)
+        client_with_explicit_config.import_into_deepset(mock_pipeline, index_config)
 
-        mock_api_service_setup["api_factory"].assert_called_once_with(sdk_with_explicit_config._api_config)
+        mock_api_service_setup["api_factory"].assert_called_once_with(client_with_explicit_config._api_config)
         mock_api_service_setup["pipeline_service"].assert_called_once_with(
             mock_api_service_setup["api"], "test-workspace"
         )
@@ -194,15 +206,15 @@ class TestDeepsetSDKImport:
         self,
         pipeline_type: Pipeline | AsyncPipeline,
         mock_api_service_setup: dict,
-        sdk_with_explicit_config: DeepsetSDK,
+        client_with_explicit_config: PipelineClient,
         pipeline_config: PipelineConfig,
     ) -> None:
         """Test successful sync import of pipeline with PipelineConfig."""
         mock_pipeline = Mock(spec=pipeline_type)
 
-        sdk_with_explicit_config.import_into_deepset(mock_pipeline, pipeline_config)
+        client_with_explicit_config.import_into_deepset(mock_pipeline, pipeline_config)
 
-        mock_api_service_setup["api_factory"].assert_called_once_with(sdk_with_explicit_config._api_config)
+        mock_api_service_setup["api_factory"].assert_called_once_with(client_with_explicit_config._api_config)
         mock_api_service_setup["pipeline_service"].assert_called_once_with(
             mock_api_service_setup["api"], "test-workspace"
         )

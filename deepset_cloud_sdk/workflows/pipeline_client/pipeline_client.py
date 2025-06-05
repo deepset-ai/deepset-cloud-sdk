@@ -1,4 +1,4 @@
-"""Deepset AI platform SDK main class."""
+"""Pipeline client for importing pipelines and indexes to deepset AI Platform."""
 import asyncio
 
 import structlog
@@ -22,21 +22,21 @@ from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
 logger = structlog.get_logger(__name__)
 
 
-class DeepsetSDK:  # pylint: disable=too-few-public-methods
-    """Main class for Deepset AI Platform SDK functionality.
+class PipelineClient:  # pylint: disable=too-few-public-methods
+    """Client for importing Haystack pipelines and indexes to deepset AI platform.
 
-    This class provides a centralized way to initialize and manage SDK features.
+    This class provides functionality to import Haystack pipelines and indexes into the deepset AI platform.
 
-    Example for importing an Haystack pipeline or index to Deepset AI Platform:
+    Example for importing a Haystack pipeline or index to deepset AI platform:
         ```python
-        from deepset_cloud_sdk.workflows import DeepsetSDK
+        from deepset_cloud_sdk import PipelineClient, PipelineConfig, PipelineInputs, PipelineOutputs, IndexConfig, IndexInputs
         from haystack import Pipeline
 
-        # Initialize the SDK with configuration from environment variables (after running `deepset-cloud login`)
-        sdk = DeepsetSDK()
+        # Initialize the client with configuration from environment variables (after running `deepset-cloud login`)
+        client = PipelineClient()
 
-        # or initialize the SDK with explicit configuration
-        sdk = DeepsetSDK(
+        # or initialize the client with explicit configuration
+        client = PipelineClient(
             api_key="your-api-key",
             workspace_name="your-workspace",
             api_url="https://api.deepset.ai"
@@ -66,10 +66,10 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
         )
 
         # sync execution
-        sdk.import_into_deepset(pipeline, config)
+        client.import_into_deepset(pipeline, config)
 
         # async execution
-        await sdk.import_into_deepset_async(pipeline, config)
+        await client.import_into_deepset_async(pipeline, config)
         ```
     """
 
@@ -79,9 +79,9 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
         workspace_name: str | None = None,
         api_url: str | None = None,
     ) -> None:
-        """Initialize the Deepset SDK.
+        """Initialize the Pipeline Client.
 
-        The SDK can be configured in two ways:
+        The client can be configured in two ways:
 
         1. Using environment variables (recommended):
            - Run `deepset-cloud login` to set up the following environment variables:
