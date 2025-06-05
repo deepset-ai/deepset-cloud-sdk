@@ -22,7 +22,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
 logger = structlog.get_logger(__name__)
 
 
-class PipelineClient:  # pylint: disable=too-few-public-methods
+class PipelineClient:
     """Client for importing Haystack pipelines and indexes to deepset AI platform.
 
     This class provides functionality to import Haystack pipelines and indexes into the deepset AI platform.
