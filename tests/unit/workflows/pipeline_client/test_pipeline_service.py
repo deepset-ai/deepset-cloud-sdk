@@ -181,10 +181,12 @@ outputs:
     ) -> None:
         """Test importing a pipeline when haystack-ai is not installed."""
 
-        original_import = __builtins__["__import__"]
+        import builtins
 
-        def mock_import(name: str, *args: Any, **kwargs: Any):
-            if name == "haystack" or name.startswith("haystack."):
+        original_import = builtins.__import__
+
+        def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
+            if name == "haystack":
                 raise ImportError("Can't import Pipeline or AsyncPipeline.")
             return original_import(name, *args, **kwargs)
 
