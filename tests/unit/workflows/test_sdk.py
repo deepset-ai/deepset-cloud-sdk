@@ -109,12 +109,12 @@ class TestDeepsetSDKImport:
         }
 
     @pytest.fixture
-    def sdk_with_explicit_config(self):
+    def sdk_with_explicit_config(self) -> DeepsetSDK:
         """Fixture to create SDK instance with explicit configuration."""
         return DeepsetSDK(api_key="test-key", api_url="https://test.com", workspace_name="test-workspace")
 
     @pytest.fixture
-    def index_config(self):
+    def index_config(self) -> IndexConfig:
         """Fixture to create an IndexConfig."""
         return IndexConfig(
             name="test_index",
@@ -122,7 +122,7 @@ class TestDeepsetSDKImport:
         )
 
     @pytest.fixture
-    def pipeline_config(self):
+    def pipeline_config(self) -> PipelineConfig:
         """Fixture to create a PipelineConfig."""
         return PipelineConfig(
             name="test_pipeline",

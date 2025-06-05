@@ -58,7 +58,7 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
                 documents="ranker.documents",
             ),
         )
-    
+
         # if importing an index, use IndexConfig
         config = IndexConfig(
             name="my-index",
