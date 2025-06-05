@@ -76,11 +76,12 @@ class TestPipelineClientInit:
                 api_url="https://api.com", workspace_name="test-workspace"
             )  # Empty API key should raise AssertionError
 
-    def test_init_with_missing_api_url_raises_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_init_with_missing_api_url_uses_default_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.API_URL", "")
 
-        with pytest.raises(AssertionError):
-            PipelineClient(api_key="hello")  # Empty API url should raise AssertionError
+        pc = PipelineClient(api_key="hello", api_url="", workspace_name="test-workspace")
+
+        assert pc._api_config.api_url == "https://api.cloud.deepset.ai/api/v1"
 
     def test_init_with_missing_workspace_raises_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.DEFAULT_WORKSPACE_NAME", "")

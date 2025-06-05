@@ -42,6 +42,14 @@ class TestCommonConfig:
         with pytest.raises(AssertionError):
             CommonConfig(api_key="", api_url="https://fake.dc.api")
 
+    def test_common_config_uses_default_api_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Clear environment variables to ensure they don't interfere with the test
+        monkeypatch.delenv("API_URL", raising=False)
+
+        # api url is not explicitly provided nor via env
+        c = CommonConfig(api_key="something")
+        assert c.api_url == "https://api.cloud.deepset.ai/api/v1"
+
     def test_common_config_works_with_explicit_values(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_load_env = Mock(return_value=True)
         monkeypatch.setattr("deepset_cloud_sdk._api.config.load_environment", mock_load_env)
