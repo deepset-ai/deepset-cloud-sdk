@@ -150,11 +150,30 @@ class PipelineService:
         # Parse the pipeline YAML
         pipeline_dict = self._yaml.load(pipeline.dumps())
         self._add_inputs_and_outputs(pipeline_dict, config)
+        self._add_async_flag_if_needed(pipeline, pipeline_dict)
 
         # Convert back to string
         yaml_str = StringIO()
         self._yaml.dump(pipeline_dict, yaml_str)
         return yaml_str.getvalue()
+
+    def _add_async_flag_if_needed(self, pipeline: PipelineProtocol, pipeline_dict: dict) -> None:
+        """Add async_enabled flag to pipeline dict if pipeline is AsyncPipeline.
+
+        This enables running pipelines asynchronously in deepset.
+
+        :param pipeline: The Haystack pipeline to check.
+        :param pipeline_dict: The pipeline dictionary to modify.
+        """
+        try:
+            from haystack import AsyncPipeline as HaystackAsyncPipeline
+
+            if isinstance(pipeline, HaystackAsyncPipeline):
+                pipeline_dict["async_enabled"] = True
+        except ImportError:
+            # If haystack-ai is not available, we can't check the type
+            # This should not happen since we already checked in import_async
+            pass
 
     def _add_inputs_and_outputs(self, pipeline_dict: dict, config: IndexConfig | PipelineConfig) -> None:
         """Add inputs and outputs to the pipeline dictionary from config.
