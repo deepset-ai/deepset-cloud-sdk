@@ -56,8 +56,8 @@ def load_environment(show_warnings: bool = True) -> bool:
     return True
 
 
-# Load environment variables silently at import time (no warnings)
-# This is needed for CLI commands to have access to DEFAULT_WORKSPACE_NAME
+# Load environment variables silently at import time (no warnings) for cli commands.
+# Only raise warnings if variables are not explicitly provided in the code.
 load_environment(show_warnings=False)
 
 # connection to deepset AI Platform
@@ -83,19 +83,18 @@ class CommonConfig:
     5. Built-in defaults
     """
 
-    api_key: str = API_KEY
-    api_url: str = API_URL
+    api_key: str = ""
+    api_url: str = ""
     safe_mode: bool = False
 
     def __post_init__(self) -> None:
         """Validate config."""
-        # Only try loading from environment if we're using the global defaults
-        # (i.e., user didn't provide explicit parameters)
-        if self.api_key == API_KEY or self.api_url == API_URL:
+        # Only try loading from environment if user didn't provide explicit parameters)
+        if not self.api_key or not self.api_url:
             load_environment(show_warnings=True)
-            if self.api_key == API_KEY:
+            if not self.api_key:
                 self.api_key = os.getenv("API_KEY", "")
-            if self.api_url == API_URL:
+            if not self.api_url:
                 self.api_url = os.getenv("API_URL", "https://api.cloud.deepset.ai/api/v1")
 
         assert (
