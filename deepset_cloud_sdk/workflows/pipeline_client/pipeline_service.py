@@ -157,6 +157,17 @@ class PipelineService:
         self._yaml.dump(pipeline_dict, yaml_str)
         return yaml_str.getvalue()
 
+    def _add_inputs_and_outputs(self, pipeline_dict: dict, config: IndexConfig | PipelineConfig) -> None:
+        """Add inputs and outputs to the pipeline dictionary from config.
+
+        :param pipeline_dict: The pipeline dictionary to add inputs and outputs to.
+        :param config: Configuration for importing.
+        """
+        if config.inputs and (converted_inputs := config.inputs.to_yaml_dict()):
+            pipeline_dict["inputs"] = converted_inputs
+        if config.outputs and (converted_outputs := config.outputs.to_yaml_dict()):
+            pipeline_dict["outputs"] = converted_outputs
+
     def _add_async_flag_if_needed(self, pipeline: PipelineProtocol, pipeline_dict: dict) -> None:
         """Add async_enabled flag to pipeline dict if pipeline is AsyncPipeline.
 
@@ -174,14 +185,3 @@ class PipelineService:
             # If haystack-ai is not available, we can't check the type
             # This should not happen since we already checked in import_async
             pass
-
-    def _add_inputs_and_outputs(self, pipeline_dict: dict, config: IndexConfig | PipelineConfig) -> None:
-        """Add inputs and outputs to the pipeline dictionary from config.
-
-        :param pipeline_dict: The pipeline dictionary to add inputs and outputs to.
-        :param config: Configuration for importing.
-        """
-        if config.inputs and (converted_inputs := config.inputs.to_yaml_dict()):
-            pipeline_dict["inputs"] = converted_inputs
-        if config.outputs and (converted_outputs := config.outputs.to_yaml_dict()):
-            pipeline_dict["outputs"] = converted_outputs
