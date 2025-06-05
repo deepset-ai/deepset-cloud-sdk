@@ -141,6 +141,7 @@ class PipelineClient:
         """
         try:
             loop = asyncio.get_event_loop()
+            # do not close if event loop already exists, e.g. in Jupyter notebooks
             should_close = False
         except RuntimeError:
             loop = asyncio.new_event_loop()
