@@ -12,13 +12,14 @@ logger = structlog.get_logger(__name__)
 ENV_FILE_PATH = Path.home() / ".deepset-cloud" / ".env"
 
 
-def load_environment() -> bool:
+def load_environment(show_warnings: bool = True) -> bool:
     """Load environment variables using a cascading fallback model.
 
     1. Load local .env file in current directory if it exists
     2. Load from global ~/.deepset-cloud/.env to supplement local .env file
     3. Environment variables can override both local and global .env files
 
+    :param show_warnings: Whether to show warnings about missing files/variables
     :return: True if required environment variables were loaded successfully, False otherwise.
     """
     current_path_env = Path.cwd() / ".env"
@@ -33,7 +34,7 @@ def load_environment() -> bool:
         else:
             logger.info(f"Environment variables successfully loaded from global .env file at {ENV_FILE_PATH}.")
 
-    if not (local_loaded or global_loaded):
+    if not (local_loaded or global_loaded) and show_warnings:
         logger.warning(
             "No .env files found. Run `deepset-cloud login` to create a global configuration file. "
             "You can also create a custom local .env file in your project directory."
@@ -44,7 +45,7 @@ def load_environment() -> bool:
     required_vars = ["API_KEY", "API_URL", "DEFAULT_WORKSPACE_NAME"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
 
-    if missing_vars:
+    if missing_vars and show_warnings:
         logger.warning(
             f"Missing required environment variables: {', '.join(missing_vars)}. "
             "Run `deepset-cloud login` to set up your configuration or set these variables "
@@ -55,7 +56,9 @@ def load_environment() -> bool:
     return True
 
 
-loaded_env_vars = load_environment()
+# Load environment variables silently at import time (no warnings)
+# This is needed for CLI commands to have access to DEFAULT_WORKSPACE_NAME
+load_environment(show_warnings=False)
 
 # connection to deepset AI Platform
 API_URL: str = os.getenv("API_URL", "https://api.cloud.deepset.ai/api/v1")
@@ -86,10 +89,21 @@ class CommonConfig:
 
     def __post_init__(self) -> None:
         """Validate config."""
+        # Only try loading from environment if we're using the global defaults
+        # (i.e., user didn't provide explicit parameters)
+        if self.api_key == API_KEY or self.api_url == API_URL:
+            load_environment(show_warnings=True)
+            if self.api_key == API_KEY:
+                self.api_key = os.getenv("API_KEY", "")
+            if self.api_url == API_URL:
+                self.api_url = os.getenv("API_URL", "https://api.cloud.deepset.ai/api/v1")
+
         assert (
             self.api_key != ""
-        ), "You must set the API_KEY environment variable. Go to [API Keys](https://cloud.deepset.ai/settings/api-keys) in deepset AI Platform to get an API key."
-        assert self.api_url != "", "API_URL environment variable must be set."
+        ), "API key is required. Either set the API_KEY environment variable or pass api_key parameter. Go to [API Keys](https://cloud.deepset.ai/settings/api-keys) in deepset AI Platform to get an API key."
+        assert (
+            self.api_url != ""
+        ), "API URL is required. Either set the API_URL environment variable or pass api_url parameter."
 
         if self.api_url.endswith("/"):
             self.api_url = self.api_url[:-1]
