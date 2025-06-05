@@ -1,9 +1,9 @@
 """Tests for the pipeline service."""
+import builtins
 import textwrap
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
-import builtins
 import pytest
 from haystack import AsyncPipeline, Pipeline
 from haystack.components.converters import CSVToDocument, TextFileToDocument
