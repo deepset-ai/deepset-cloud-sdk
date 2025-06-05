@@ -15,8 +15,10 @@ from haystack.components.routers.file_type_router import FileTypeRouter
 from haystack.utils import Secret
 from httpx import Response
 
-from deepset_cloud_sdk.workflows import DeepsetSDK, IndexConfig, IndexInputs
+from deepset_cloud_sdk.workflows.pipeline_client import PipelineClient
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
+    IndexConfig,
+    IndexInputs,
     PipelineConfig,
     PipelineInputs,
     PipelineOutputs,
@@ -54,9 +56,10 @@ class TestImportIndexIntoDeepset:
             return_value=Response(status_code=201, json={"id": "test-index-id"})
         )
 
-        # Initialize SDK with explicit configuration
-        sdk = DeepsetSDK(api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace")
-        sdk.init()
+        # Initialize client with explicit configuration
+        client = PipelineClient(
+            api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace"
+        )
 
         index_config = IndexConfig(
             name="test-index",
@@ -65,7 +68,7 @@ class TestImportIndexIntoDeepset:
             ),
         )
 
-        sample_index.import_into_deepset(index_config)
+        client.import_into_deepset(sample_index, index_config)
 
         assert route.called
         request = route.calls.last.request
@@ -84,9 +87,10 @@ class TestImportIndexIntoDeepset:
             return_value=Response(status_code=201, json={"id": "test-index-id"})
         )
 
-        # Initialize SDK with explicit configuration
-        sdk = DeepsetSDK(api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace")
-        sdk.init()
+        # Initialize client with explicit configuration
+        client = PipelineClient(
+            api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace"
+        )
 
         index_config = IndexConfig(
             name="test-index-async",
@@ -95,7 +99,7 @@ class TestImportIndexIntoDeepset:
             ),
         )
 
-        await sample_index.import_into_deepset_async(index_config)
+        await client.import_into_deepset_async(sample_index, index_config)
 
         assert route.called
         request = route.calls.last.request
@@ -148,15 +152,16 @@ class TestImportPipelineIntoDeepset:
             return_value=Response(status_code=201, json={"id": "test-pipeline-id"})
         )
 
-        sdk = DeepsetSDK(api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace")
-        sdk.init()
+        client = PipelineClient(
+            api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace"
+        )
 
         pipeline_config = PipelineConfig(
             name="test-pipeline",
             inputs=PipelineInputs(query=["prompt_builder.prompt", "answer_builder.query"]),
             outputs=PipelineOutputs(answers="answer_builder.answers"),
         )
-        sample_pipeline.import_into_deepset(pipeline_config)
+        client.import_into_deepset(sample_pipeline, pipeline_config)
 
         assert route.called
         request = route.calls.last.request
@@ -175,15 +180,16 @@ class TestImportPipelineIntoDeepset:
             return_value=Response(status_code=200, json={"name": "test-pipeline-id"})
         )
 
-        sdk = DeepsetSDK(api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace")
-        sdk.init()
+        client = PipelineClient(
+            api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace"
+        )
 
         pipeline_config = PipelineConfig(
             name="test-pipeline",
             inputs=PipelineInputs(query=["prompt_builder.prompt", "answer_builder.query"]),
             outputs=PipelineOutputs(answers="answer_builder.answers"),
         )
-        await sample_pipeline.import_into_deepset_async(pipeline_config)
+        await client.import_into_deepset_async(sample_pipeline, pipeline_config)
 
         assert route.called
         request = route.calls.last.request

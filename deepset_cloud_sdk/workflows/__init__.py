@@ -8,7 +8,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
     PipelineOutputs,
 )
-from deepset_cloud_sdk.workflows.sdk import DeepsetSDK
+from deepset_cloud_sdk.workflows.pipeline_client.pipeline_client import PipelineClient
 
 __all__ = [
     "PipelineInputs",
@@ -17,5 +17,5 @@ __all__ = [
     "PipelineOutputs",
     "IndexConfig",
     "PipelineConfig",
-    "DeepsetSDK",
+    "PipelineClient",
 ]

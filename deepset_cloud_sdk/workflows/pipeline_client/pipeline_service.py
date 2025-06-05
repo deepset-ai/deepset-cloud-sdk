@@ -2,7 +2,6 @@
 # pylint: disable=unnecessary-ellipsis,import-outside-toplevel
 from __future__ import annotations
 
-import asyncio
 from http import HTTPStatus
 from io import StringIO
 from typing import Any, Optional, Protocol, runtime_checkable
@@ -38,85 +37,6 @@ class PipelineProtocol(Protocol):
         :param instance: Component instance to add.
         """
         ...
-
-
-def _enable_import_into_deepset(api_config: CommonConfig, workspace_name: str) -> None:
-    """Add import methods to the Haystack Pipeline and AsyncPipeline classes.
-
-    This function is called by deepset_sdk.init() to set up the SDK.
-    Users should not call this function directly.
-
-    :param api_config: CommonConfig instance to use for API configuration.
-    :param workspace_name: Workspace name to use.
-    """
-    try:
-        from haystack import AsyncPipeline as HaystackAsyncPipeline
-        from haystack import Pipeline as HaystackPipeline
-    except ImportError as err:
-        raise ImportError(
-            "Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed. Run 'pip install haystack-ai'."
-        ) from err
-
-    async def import_into_deepset_async(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
-        """Import an index or pipeline into deepset AI platform asynchronously.
-
-        An index processes files and stores them in a document store, making them available for
-        query pipelines to search.
-
-        :param config: Configuration for importing, use either `IndexConfig` or `PipelineConfig`.
-            If importing an index, the config argument is expected to be of type `IndexConfig`,
-            if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
-        """
-        async with DeepsetCloudAPI.factory(api_config) as api:
-            service = PipelineService(api, workspace_name)
-            await service.import_async(self, config)
-
-    def import_into_deepset(self: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
-        """Import index or pipeline into deepset AI platform synchronously.
-
-        An index processes files and stores them in a document store, making them available for
-        query pipelines to search.
-
-        :param config: Configuration for importing into deepset, use either `IndexConfig` or `PipelineConfig`.
-            If importing an index, the config argument is expected to be of type `IndexConfig`,
-            if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
-        """
-        # creates a sync wrapper around the async method since the APIs are async
-        try:
-            loop = asyncio.get_event_loop()
-            should_close = False
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            should_close = True
-
-        try:
-            return loop.run_until_complete(import_into_deepset_async(self, config))
-        finally:
-            if should_close:
-                loop.close()
-
-    def add_method_if_not_exists(cls: type, method_name: str, method: Any, class_name: str) -> None:
-        """Add a method to a class if it doesn't exist.
-
-        :param cls: Class to add the method to.
-        :param method_name: Name of the method to add.
-        :param method: Method to add.
-        :param class_name: Name of the class for logging.
-        """
-        if not hasattr(cls, method_name):
-            setattr(cls, method_name, method)
-            logger.debug(f"Successfully added {method_name} method to {class_name} class")
-        else:
-            logger.debug(f"{method_name} method already exists on {class_name} class")
-
-    # Add methods to both Pipeline classes
-    add_method_if_not_exists(HaystackPipeline, "import_into_deepset_async", import_into_deepset_async, "Pipeline")
-    add_method_if_not_exists(HaystackPipeline, "import_into_deepset", import_into_deepset, "Pipeline")
-    add_method_if_not_exists(
-        HaystackAsyncPipeline, "import_into_deepset_async", import_into_deepset_async, "AsyncPipeline"
-    )
-    add_method_if_not_exists(HaystackAsyncPipeline, "import_into_deepset", import_into_deepset, "AsyncPipeline")
 
 
 class PipelineService:
@@ -158,11 +78,14 @@ class PipelineService:
         """
         logger.debug(f"Starting async importing for {config.name}")
 
+        # import locally to avoid Haystack dependency to be installed in the SDK
         try:
             from haystack import AsyncPipeline as HaystackAsyncPipeline
             from haystack import Pipeline as HaystackPipeline
         except ImportError as err:
-            raise ImportError("Can't import Pipeline or AsyncPipeline, because haystack-ai is not installed.") from err
+            raise ImportError(
+                "Can't import Pipeline or AsyncPipeline because haystack-ai is not installed. Run 'pip install haystack-ai'."
+            ) from err
 
         if not isinstance(pipeline, (HaystackPipeline, HaystackAsyncPipeline)):
             raise TypeError(
