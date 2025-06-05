@@ -56,7 +56,6 @@ class TestImportIndexIntoDeepset:
 
         # Initialize SDK with explicit configuration
         sdk = DeepsetSDK(api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace")
-        sdk.init()
 
         index_config = IndexConfig(
             name="test-index",
@@ -65,7 +64,7 @@ class TestImportIndexIntoDeepset:
             ),
         )
 
-        sample_index.import_into_deepset(index_config)
+        sdk.import_into_deepset(sample_index, index_config)
 
         assert route.called
         request = route.calls.last.request
@@ -86,7 +85,6 @@ class TestImportIndexIntoDeepset:
 
         # Initialize SDK with explicit configuration
         sdk = DeepsetSDK(api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace")
-        sdk.init()
 
         index_config = IndexConfig(
             name="test-index-async",
@@ -95,7 +93,7 @@ class TestImportIndexIntoDeepset:
             ),
         )
 
-        await sample_index.import_into_deepset_async(index_config)
+        await sdk.import_into_deepset_async(sample_index, index_config)
 
         assert route.called
         request = route.calls.last.request
@@ -149,14 +147,13 @@ class TestImportPipelineIntoDeepset:
         )
 
         sdk = DeepsetSDK(api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace")
-        sdk.init()
 
         pipeline_config = PipelineConfig(
             name="test-pipeline",
             inputs=PipelineInputs(query=["prompt_builder.prompt", "answer_builder.query"]),
             outputs=PipelineOutputs(answers="answer_builder.answers"),
         )
-        sample_pipeline.import_into_deepset(pipeline_config)
+        sdk.import_into_deepset(sample_pipeline, pipeline_config)
 
         assert route.called
         request = route.calls.last.request
@@ -176,14 +173,13 @@ class TestImportPipelineIntoDeepset:
         )
 
         sdk = DeepsetSDK(api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace")
-        sdk.init()
 
         pipeline_config = PipelineConfig(
             name="test-pipeline",
             inputs=PipelineInputs(query=["prompt_builder.prompt", "answer_builder.query"]),
             outputs=PipelineOutputs(answers="answer_builder.answers"),
         )
-        await sample_pipeline.import_into_deepset_async(pipeline_config)
+        await sdk.import_into_deepset_async(sample_pipeline, pipeline_config)
 
         assert route.called
         request = route.calls.last.request

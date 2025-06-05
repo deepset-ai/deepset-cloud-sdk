@@ -1,4 +1,6 @@
 """Deepset AI platform SDK main class."""
+import asyncio
+
 import structlog
 
 from deepset_cloud_sdk._api.config import (
@@ -7,8 +9,14 @@ from deepset_cloud_sdk._api.config import (
     DEFAULT_WORKSPACE_NAME,
     CommonConfig,
 )
+from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
+from deepset_cloud_sdk.workflows.pipeline_client.models import (
+    IndexConfig,
+    PipelineConfig,
+)
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
-    _enable_import_into_deepset,
+    PipelineProtocol,
+    PipelineService,
 )
 
 logger = structlog.get_logger(__name__)
@@ -34,9 +42,6 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
             api_url="https://api.deepset.ai"
         )
 
-        # Initialize the SDK features
-        sdk.init()
-
         # Configure your pipeline
         pipeline = Pipeline()
 
@@ -61,10 +66,10 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
         )
 
         # sync execution
-        pipeline.import_into_deepset(config)
+        sdk.import_into_deepset(pipeline, config)
 
         # async execution
-        await pipeline.import_into_deepset_async(config)
+        await sdk.import_into_deepset_async(pipeline, config)
         ```
     """
 
@@ -92,8 +97,9 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
         :param workspace_name: The workspace to use. Falls back to `DEFAULT_WORKSPACE_NAME` environment variable.
         :param api_url: The URL of the deepset AI platform API. Falls back to `API_URL` environment variable.
         :raises ValueError: If no workspace name is provided and `DEFAULT_WORKSPACE_NAME` is not set.
+        :raises AssertionError: If no api key or api url are provided and `API_KEY` or `API_URL` are not set in the environment.
         """
-        self._config = CommonConfig(
+        self._api_config = CommonConfig(
             api_key=api_key or API_KEY,
             api_url=api_url or API_URL,
         )
@@ -103,18 +109,47 @@ class DeepsetSDK:  # pylint: disable=too-few-public-methods
                 "Workspace not configured. Provide a workspace name or set the `DEFAULT_WORKSPACE_NAME` environment variable."
             )
 
-    def init(self) -> None:
-        """Initialize the SDK features.
+    async def import_into_deepset_async(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
+        """Import a Haystack `Pipeline` or `AsyncPipeline` into deepset AI Platform asynchronously.
 
-        This method sets up the SDK for use with Haystack pipelines.
-        It enables the import functionality for Haystack Pipeline and AsyncPipeline classes.
+        The pipeline must be imported as either an index or a pipeline:
+        - An index: Processes files and stores them in a document store, making them available for
+          pipelines to search.
+        - A pipeline: For other use cases, for example, searching through documents stored by index pipelines.
 
-        Note:
-            This method should be called before using any SDK features that require initialization.
+        :param pipeline: The Haystack `Pipeline` or `AsyncPipeline` to import.
+        :param config: Configuration for importing, use either `IndexConfig` or `PipelineConfig`.
+            If importing an index, the config argument is expected to be of type `IndexConfig`,
+            if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
         """
+        async with DeepsetCloudAPI.factory(self._api_config) as api:
+            service = PipelineService(api, self._workspace_name)
+            await service.import_async(pipeline, config)
+
+    def import_into_deepset(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
+        """Import a Haystack `Pipeline` or `AsyncPipeline` into deepset AI Platform synchronously.
+
+        The pipeline must be imported as either an index or a pipeline:
+        - An index: Processes files and stores them in a document store, making them available for
+          pipelines to search.
+        - A pipeline: For other use cases, for example, searching through documents stored by index pipelines.
+
+        :param pipeline: The Haystack `Pipeline` or `AsyncPipeline` to import.
+        :param config: Configuration for importing into deepset, use either `IndexConfig` or `PipelineConfig`.
+            If importing an index, the config argument is expected to be of type `IndexConfig`,
+            if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
+        """
+        # creates a sync wrapper around the async method since the APIs are async
         try:
-            _enable_import_into_deepset(self._config, self._workspace_name)
-            logger.debug("SDK initialized successfully.")
-        except ImportError as err:
-            logger.error(f"Failed to initialize SDK: {str(err)}.")
-            raise
+            loop = asyncio.get_event_loop()
+            should_close = False
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            should_close = True
+
+        try:
+            return loop.run_until_complete(self.import_into_deepset_async(pipeline, config))
+        finally:
+            if should_close:
+                loop.close()
