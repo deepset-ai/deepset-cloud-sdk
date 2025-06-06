@@ -56,8 +56,9 @@ def load_environment(show_warnings: bool = True) -> bool:
     return True
 
 
-# Load environment variables silently at import time (no warnings) for cli commands.
-# Only raise warnings if variables are not explicitly provided in the code.
+# Load environment variables silently at import time to support CLI commands that depend on .env files.
+# Warnings are only shown later in CommonConfig when users don't provide explicit parameters
+# and the config values fall back to global defaults.
 load_environment(show_warnings=False)
 
 # connection to deepset AI Platform
