@@ -39,7 +39,7 @@ class TestCommonConfig:
         monkeypatch.delenv("DEFAULT_WORKSPACE_NAME", raising=False)
 
         # api key is not explicitly provided nor via env
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError):
             CommonConfig(api_key="", api_url="https://fake.dc.api")
 
     def test_common_config_uses_default_api_url(self, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -1,5 +1,4 @@
 """Tests for the PipelineClient class."""
-import asyncio
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -71,10 +70,10 @@ class TestPipelineClientInit:
     def test_init_with_missing_api_key_raises_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.API_KEY", "")
 
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError):
             PipelineClient(
                 api_url="https://api.com", workspace_name="test-workspace"
-            )  # Empty API key should raise AssertionError
+            )  # Empty API key should raise ValueError
 
     def test_init_with_missing_api_url_uses_default_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.API_URL", "")

@@ -97,9 +97,10 @@ class CommonConfig:
             if not self.api_url:
                 self.api_url = os.getenv("API_URL", "https://api.cloud.deepset.ai/api/v1")
 
-        assert (
-            self.api_key != ""
-        ), "API key is required. Either set the API_KEY environment variable or pass api_key parameter. Go to [API Keys](https://cloud.deepset.ai/settings/api-keys) in deepset AI Platform to get an API key."
+        if not self.api_key:
+            raise ValueError(
+                "API key is required. Either set the API_KEY environment variable or pass api_key parameter. Go to [API Keys](https://cloud.deepset.ai/settings/api-keys) in deepset AI Platform to get an API key."
+            )
 
         if self.api_url.endswith("/"):
             self.api_url = self.api_url[:-1]
