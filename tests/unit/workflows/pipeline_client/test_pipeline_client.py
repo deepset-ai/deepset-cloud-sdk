@@ -68,7 +68,7 @@ class TestPipelineClientInit:
         assert pc._workspace_name == "test-workspace"  # from environment
 
     def test_init_with_missing_api_key_raises_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr("deepset_cloud_sdk.workflows.pipeline_client.pipeline_client.API_KEY", "")
+        monkeypatch.delenv("API_KEY", raising=False)
 
         with pytest.raises(ValueError):
             PipelineClient(
