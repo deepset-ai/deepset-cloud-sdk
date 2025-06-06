@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from deepset_cloud_sdk._api.config import ENV_FILE_PATH, load_environment
+from deepset_cloud_sdk._api.config import load_environment
 
 
 class TestLoadEnvironment:
@@ -136,15 +136,65 @@ class TestLoadEnvironment:
         assert os.environ["API_URL"] == "pre_existing_url"
         assert os.environ["DEFAULT_WORKSPACE_NAME"] == "pre_existing_workspace"
 
-    def test_no_env_files(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-        """Test when no .env files exist."""
+    def test_no_env_files_with_warnings(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Test when no .env files exist and show_warnings=True."""
         monkeypatch.setattr("deepset_cloud_sdk._api.config.Path.cwd", Mock(return_value=tmp_path))
         monkeypatch.setattr(Path, "is_file", Mock(return_value=False))
         mocked_load_dotenv = Mock()
         monkeypatch.setattr("deepset_cloud_sdk._api.config.load_dotenv", mocked_load_dotenv)
 
         assert not load_environment()
+
+        # Mock the logger to verify it's called
+        mock_logger = Mock()
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.logger", mock_logger)
+
+        result = load_environment(show_warnings=True)
+
+        assert result is False
+        mock_logger.warning.assert_called_once()
+        warning_call = mock_logger.warning.call_args[0][0]
+        assert "No .env files found" in warning_call
+
+    def test_no_env_files_in_silent_mode(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Test that no warnings are logged when show_warnings=False."""
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.Path.cwd", Mock(return_value=tmp_path))
+        monkeypatch.setattr(Path, "is_file", Mock(return_value=False))
+        mocked_load_dotenv = Mock()
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.load_dotenv", mocked_load_dotenv)
+
+        # Mock the logger to verify it's not called
+        mock_logger = Mock()
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.logger", mock_logger)
+
+        result = load_environment(show_warnings=False)
+
+        assert result is True
+        mock_logger.warning.assert_not_called()
         assert mocked_load_dotenv.call_count == 0
+
+    def test_missing_vars_no_warning_in_silent_mode(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Test that missing variables warning is NOT logged when show_warnings=False."""
+        # Create a temporary local .env file with only API_KEY
+        local_env = tmp_path / ".env"
+        local_env.write_text("API_KEY=test_key")
+
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.Path.cwd", Mock(return_value=tmp_path))
+        monkeypatch.setattr(Path, "is_file", lambda self: self == local_env)
+
+        # Mock load_dotenv to actually load the variables into the environment
+        def mock_load_dotenv(path: Path, override: bool = True) -> bool:
+            os.environ["API_KEY"] = "test_key"
+            return True
+
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.load_dotenv", mock_load_dotenv)
+        mock_logger = Mock()
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.logger", mock_logger)
+
+        result = load_environment(show_warnings=False)
+
+        assert result is True
+        mock_logger.warning.assert_not_called()
 
     @pytest.mark.parametrize(
         "missing_var",
@@ -154,11 +204,10 @@ class TestLoadEnvironment:
             "API_URL=global_url\nDEFAULT_WORKSPACE_NAME=global_workspace",
         ],
     )
-    def test_missing_required_variables(
+    def test_missing_required_variables_with_warnings(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, missing_var: str
     ) -> None:
-        """Test when required environment variables are missing."""
-        # Create a temporary local .env file with only API_KEY
+        """Test when required environment variables are missing and show_warnings=True."""
         local_env = tmp_path / ".env"
         local_env.write_text(missing_var)
 
@@ -174,4 +223,12 @@ class TestLoadEnvironment:
 
         monkeypatch.setattr("deepset_cloud_sdk._api.config.load_dotenv", mock_load_dotenv)
 
-        assert not load_environment()
+        mock_logger = Mock()
+        monkeypatch.setattr("deepset_cloud_sdk._api.config.logger", mock_logger)
+
+        result = load_environment(show_warnings=True)
+
+        assert result is False
+        assert mock_logger.warning.call_count == 1
+        warning_call = mock_logger.warning.call_args[0][0]
+        assert "Missing required environment variables" in warning_call

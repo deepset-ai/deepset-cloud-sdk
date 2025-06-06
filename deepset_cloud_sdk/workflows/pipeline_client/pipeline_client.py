@@ -96,8 +96,7 @@ class PipelineClient:
         :param api_key: Your deepset AI platform API key. Falls back to `API_KEY` environment variable.
         :param workspace_name: The workspace to use. Falls back to `DEFAULT_WORKSPACE_NAME` environment variable.
         :param api_url: The URL of the deepset AI platform API. Falls back to `API_URL` environment variable.
-        :raises ValueError: If no workspace name is provided and `DEFAULT_WORKSPACE_NAME` is not set.
-        :raises AssertionError: If no api key or api url are provided and `API_KEY` or `API_URL` are not set in the environment.
+        :raises ValueError: If no api key or workspace name is provided and `API_KEY` or `DEFAULT_WORKSPACE_NAME` is not set in the environment.
         """
         self._api_config = CommonConfig(
             api_key=api_key or API_KEY,
