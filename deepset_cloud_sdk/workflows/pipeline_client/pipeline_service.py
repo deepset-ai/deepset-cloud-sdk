@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from http import HTTPStatus
 from io import StringIO
-from typing import Any, Optional, Protocol, runtime_checkable
+from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
 import structlog
+from pydantic import BaseModel
 from ruamel.yaml import YAML
 
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, CommonConfig
@@ -17,6 +18,28 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
 )
 
 logger = structlog.get_logger(__name__)
+
+
+class ErrorDetail(BaseModel):
+    """Represents a validation error detail with code and message."""
+    
+    code: str
+    message: str
+
+
+class DeepsetValidationError(Exception):
+    """Raised when pipeline or index validation fails."""
+    
+    def __init__(self, message: str, errors: List[ErrorDetail], status_code: int) -> None:
+        """Initialize DeepsetValidationError.
+        
+        :param message: Error message.
+        :param errors: List of validation error details.
+        :param code: HTTP status code from the validation response.
+        """
+        super().__init__(message)
+        self.errors = errors
+        self.status_code = status_code
 
 
 @runtime_checkable
@@ -75,6 +98,7 @@ class PipelineService:
         :raises TypeError: If the pipeline object isn't a Haystack Pipeline or AsyncPipeline.
         :raises ValueError: If no workspace is configured.
         :raises ImportError: If haystack-ai is not installed.
+        :raises DeepsetValidationError: If validation is enabled and the configuration is invalid.
         """
         logger.debug(f"Starting async importing for {config.name}")
 
@@ -100,20 +124,102 @@ class PipelineService:
                 "Run 'deepset-cloud login' and follow the instructions or configure the workspace name on the SDK instance."
             )
 
+        pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
+
+        await self._validate_pipeline_yaml_if_enabled(config, pipeline_yaml)
+
         if isinstance(config, IndexConfig):
             logger.debug(f"Importing index into workspace {self._workspace_name}")
-            await self._import_index(pipeline, config)
+            await self._import_index(config, pipeline_yaml)
         else:
             logger.debug(f"Importing pipeline into workspace {self._workspace_name}")
-            await self._import_pipeline(pipeline, config)
+            await self._import_pipeline(config, pipeline_yaml)
 
-    async def _import_index(self, pipeline: PipelineProtocol, config: IndexConfig) -> None:
+    async def _validate_pipeline_yaml_if_enabled(self, config: IndexConfig | PipelineConfig, pipeline_yaml: str) -> None:
+        """Validate pipeline yaml if validation is enabled.
+
+        :param config: Import configuration.
+        :param pipeline_yaml: Pipeline YAML string to validate.
+        :raises DeepsetValidationError: If validation is enabled and the pipeline YAML is invalid.
+        """
+        if config.enable_validation:
+            if isinstance(config, IndexConfig):
+                await self._validate_index(config.name, pipeline_yaml)
+            else:
+                await self._validate_pipeline(config.name, pipeline_yaml)
+
+    def _handle_validation_error(self, response) -> None:
+        """Handle validation error response by extracting errors and raising DeepsetValidationError.
+
+        :param response: HTTP response object.
+        :raises DeepsetValidationError: Always raises with formatted error details.
+        """
+        response_json = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+        
+        if "details" in response_json:
+            error_details = [ErrorDetail(code=detail["code"], message=detail["message"]) for detail in response_json["details"]]
+        elif "errors" in response_json and isinstance(response_json["errors"], list):
+            errors = response_json["errors"]
+            error_message = ", ".join(str(error) for error in errors)
+            error_details = [ErrorDetail(code=str(response.status_code), message=error_message)]
+        else:
+            error_details = [ErrorDetail(code="VALIDATION_FAILED", message=response.text)]
+        
+        error_messages = []
+        for error in error_details:
+            error_messages.append(f"[{error.code}] {error.message}")
+            logger.error(f"Validation error [{error.code}]: {error.message}")
+        
+        raise DeepsetValidationError(
+            "Validation failed: " + "; ".join(error_messages),
+            error_details,
+            response.status_code
+        )
+
+    async def _validate_index(self, name: str, indexing_yaml: str) -> None:
+        """Validate an index configuration.
+
+        :param name: Name of the index.
+        :param indexing_yaml: YAML configuration for the index.
+        :raises DeepsetValidationError: If validation fails.
+        """
+        logger.debug(f"Validating index {name}.")
+        response = await self._api.post(
+            workspace_name=self._workspace_name,
+            endpoint="pipeline_validations",
+            json={"name": name, "indexing_yaml": indexing_yaml},
+        )
+        
+        if response.status_code != HTTPStatus.NO_CONTENT:
+            self._handle_validation_error(response)
+        
+        logger.debug(f"Index validation successful for {name}.")
+
+    async def _validate_pipeline(self, name: str, query_yaml: str) -> None:
+        """Validate a pipeline configuration.
+
+        :param name: Name of the pipeline.
+        :param query_yaml: YAML configuration for the pipeline.
+        :raises DeepsetValidationError: If validation fails.
+        """
+        logger.debug(f"Validating pipeline {name}.")
+        response = await self._api.post(
+            workspace_name=self._workspace_name,
+            endpoint="pipeline_validations",
+            json={"name": name, "query_yaml": query_yaml},
+        )
+        
+        if response.status_code != HTTPStatus.NO_CONTENT:
+            self._handle_validation_error(response)
+        
+        logger.debug(f"Pipeline validation successful for {name}.")
+
+    async def _import_index(self, config: IndexConfig, pipeline_yaml: str) -> None:
         """Import an index into deepset AI Platform.
 
-        :param pipeline: The Haystack pipeline to import.
         :param config: Configuration for importing an index.
+        :param pipeline_yaml: Pre-generated pipeline YAML string.
         """
-        pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
             workspace_name=self._workspace_name,
             endpoint="indexes",
@@ -123,14 +229,13 @@ class PipelineService:
         if response.status_code == HTTPStatus.NO_CONTENT:
             logger.debug(f"Index {config.name} successfully created.")
 
-    async def _import_pipeline(self, pipeline: PipelineProtocol, config: PipelineConfig) -> None:
+    async def _import_pipeline(self, config: PipelineConfig, pipeline_yaml: str) -> None:
         """Import a pipeline into deepset AI Platform.
 
-        :param pipeline: The Haystack pipeline to import.
         :param config: Configuration for importing a pipeline.
+        :param pipeline_yaml: Pre-generated pipeline YAML string.
         """
         logger.debug(f"Importing pipeline {config.name}")
-        pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
         response = await self._api.post(
             workspace_name=self._workspace_name,
             endpoint="pipelines",
