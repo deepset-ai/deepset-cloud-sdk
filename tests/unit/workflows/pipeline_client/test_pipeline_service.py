@@ -1,5 +1,6 @@
 """Tests for the pipeline service."""
 import builtins
+from http import HTTPStatus
 import textwrap
 from typing import Any
 from unittest.mock import AsyncMock, Mock
@@ -9,6 +10,7 @@ from haystack import AsyncPipeline, Pipeline
 from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
 from haystack.components.routers import FileTypeRouter
+from httpx import Response
 
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
@@ -18,7 +20,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
     PipelineOutputs,
 )
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import PipelineService
+from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import DeepsetValidationError, ErrorDetail, PipelineService
 
 
 class TestImportPipelineService:
@@ -91,6 +93,7 @@ class TestImportPipelineService:
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
+            enable_validation=False,
         )
 
         # Import the pipeline
@@ -158,6 +161,7 @@ inputs:
         config = IndexConfig(
             name="test_async_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
+            enable_validation=False,
         )
 
         await pipeline_service.import_async(async_index_pipeline, config)
@@ -206,7 +210,7 @@ async_enabled: true
     @pytest.mark.asyncio
     async def test_import_index_pipeline_with_invalid_pipeline(self, pipeline_service: PipelineService) -> None:
         """Test importing unexpected pipeline object."""
-        config = IndexConfig(name="test_index", inputs=IndexInputs(files=["my_component.files"]))
+        config = IndexConfig(name="test_index", inputs=IndexInputs(files=["my_component.files"]), enable_validation=False)
 
         # Create an invalid pipeline (doesn't implement PipelineProtocol)
         invalid_pipeline = object()
@@ -230,6 +234,7 @@ async_enabled: true
             name="test_pipeline",
             inputs=PipelineInputs(query=["retriever.query"]),
             outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
+            enable_validation=False,
         )
 
         await service.import_async(mock_pipeline, config)
@@ -269,6 +274,7 @@ outputs:
             name="test_pipeline",
             inputs=PipelineInputs(query=["retriever.query"]),
             outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
+            enable_validation=False,
         )
 
         with pytest.raises(
@@ -299,6 +305,7 @@ outputs:
                 custom_output="custom_output_value",  # type: ignore
                 other_custom_output=["other_custom_output_value"],  # type: ignore
             ),
+            enable_validation=False,
         )
 
         await service.import_async(mock_pipeline, config)
@@ -361,14 +368,328 @@ class TestAddAsyncFlagIfNeeded:
 
         def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
             if name == "haystack":
-                raise ImportError("Can't import AsyncPipeline.")
+                raise ImportError("No module named 'haystack'")
             return original_import(name, *args, **kwargs)
 
-        monkeypatch.setattr("builtins.__import__", mock_import)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
 
-        mock_pipeline = Mock(spec=AsyncPipeline)
-        pipeline_dict: dict[str, Any] = {"components": {}}
-
-        # does not raise
-        pipeline_service._add_async_flag_if_needed(mock_pipeline, pipeline_dict)
+        pipeline_dict = {}
+        pipeline_service._add_async_flag_if_needed(Mock(), pipeline_dict)
         assert "async_enabled" not in pipeline_dict
+
+
+class TestValidatePipelineYaml:
+    """Test suite for the validating pipeline YAML."""
+
+    @pytest.fixture
+    def mock_api(self) -> AsyncMock:
+        """Create a mock API client."""
+        return AsyncMock()
+
+    @pytest.fixture
+    def pipeline_service(self, mock_api: AsyncMock) -> PipelineService:
+        """Create a pipeline service instance with a mock API client."""
+        return PipelineService(mock_api, workspace_name="default")
+
+    @pytest.fixture
+    def test_pipeline(self) -> Pipeline:
+        """Create a sample pipeline."""
+        file_type_router = FileTypeRouter(mime_types=["text/plain"])
+        text_converter = TextFileToDocument(encoding="utf-8")
+
+        pipeline = Pipeline()
+        pipeline.add_component("file_type_router", file_type_router)
+        pipeline.add_component("text_converter", text_converter)
+        pipeline.connect("file_type_router.text/plain", "text_converter.sources")
+
+        return pipeline
+
+    @pytest.mark.asyncio
+    async def test_import_index_with_validation_success(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test importing an index with successful validation."""
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT
+        validation_response.headers = {"content-type": "application/json"}
+        
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.OK
+
+        mock_api.post.side_effect = [validation_response, import_response]
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            enable_validation=True,
+        )
+
+        await pipeline_service.import_async(test_pipeline, config)
+
+        # Should call validation endpoint first, then import endpoint
+        assert mock_api.post.call_count == 2
+        
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+        assert "indexing_yaml" in validation_call.kwargs["json"]
+        assert validation_call.kwargs["json"]["name"] == "test_index"
+        
+        # Check import call
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "indexes"
+
+    @pytest.mark.asyncio
+    async def test_import_pipeline_with_validation_success(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test importing a pipeline with successful validation."""
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT
+        validation_response.headers = {"content-type": "application/json"}
+        
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.OK
+
+        mock_api.post.side_effect = [validation_response, import_response]
+
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["prompt_builder.query"]),
+            outputs=PipelineOutputs(answers="prompt_builder.prompt"),
+            enable_validation=True,
+        )
+
+        await pipeline_service.import_async(test_pipeline, config)
+
+        # Should call validation endpoint first, then import endpoint
+        assert mock_api.post.call_count == 2
+        
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+        assert "query_yaml" in validation_call.kwargs["json"]
+        assert validation_call.kwargs["json"]["name"] == "test_pipeline"
+        
+        # Check import call
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "pipelines"
+
+    @pytest.mark.asyncio
+    async def test_import_index_with_validation_failure(
+        self,
+        pipeline_service: PipelineService,
+        index_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test importing an index with validation failure."""
+        # Mock validation failure response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.BAD_REQUEST
+        validation_response.headers = {"content-type": "application/json"}
+        validation_response.json.return_value = {
+            "details": [
+                {"code": "INVALID_COMPONENT", "message": "Component 'invalid_component' not found"},
+                {"code": "MISSING_INPUT", "message": "Required input 'files' is missing"},
+            ]
+        }
+
+        mock_api.post.return_value = validation_response
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            enable_validation=True,
+        )
+
+        with pytest.raises(DeepsetValidationError) as exc_info:
+            await pipeline_service.import_async(index_pipeline, config)
+
+        error = exc_info.value
+        assert "Validation failed:" in str(error)
+        assert len(error.errors) == 2
+        assert error.errors[0].code == "INVALID_COMPONENT"
+        assert error.errors[1].code == "MISSING_INPUT"
+        assert error.status_code == HTTPStatus.BAD_REQUEST
+
+        # Should only call validation endpoint, not import endpoint
+        assert mock_api.post.call_count == 1
+        assert mock_api.post.call_args_list[0].kwargs["endpoint"] == "pipeline_validations"
+
+    @pytest.mark.asyncio
+    async def test_import_pipeline_with_validation_failure(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test importing a pipeline with validation failure."""
+        # Mock validation failure response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.BAD_REQUEST
+        validation_response.headers = {"content-type": "application/json"}
+        validation_response.json.return_value = {
+            "details": [
+                {"code": "INVALID_CONFIGURATION", "message": "Pipeline configuration is invalid"},
+            ]
+        }
+
+        mock_api.post.return_value = validation_response
+
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["prompt_builder.query"]),
+            outputs=PipelineOutputs(answers="nonexistent.replies"),
+            enable_validation=True,
+        )
+
+        with pytest.raises(DeepsetValidationError) as exc_info:
+            await pipeline_service.import_async(test_pipeline, config)
+
+        # Check that DeepsetValidationError contains the expected information
+        error = exc_info.value
+        assert "Validation failed:" in str(error)
+        assert len(error.errors) == 1
+        assert error.errors[0].code == "INVALID_CONFIGURATION"
+        assert error.status_code == HTTPStatus.BAD_REQUEST
+
+        # Should only call validation endpoint, not import endpoint
+        assert mock_api.post.call_count == 1
+        assert mock_api.post.call_args_list[0].kwargs["endpoint"] == "pipeline_validations"
+
+    @pytest.mark.asyncio
+    async def test_import_index_skip_validation(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test importing an index with validation disabled."""
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.OK
+
+        mock_api.post.return_value = import_response
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            enable_validation=False,
+        )
+
+        await pipeline_service.import_async(test_pipeline, config)
+
+        # Should only call import endpoint, not validation endpoint
+        assert mock_api.post.call_count == 1
+        assert mock_api.post.call_args_list[0].kwargs["endpoint"] == "indexes"
+
+    @pytest.mark.asyncio
+    async def test_import_pipeline_skip_validation(
+        self,
+        pipeline_service: PipelineService,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test importing a pipeline with validation disabled."""
+        # Create a simple pipeline
+        from haystack.components.builders import PromptBuilder
+        
+        pipeline = Pipeline()
+        pipeline.add_component("prompt_builder", PromptBuilder(template="Query: {{query}}"))
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = 204
+        import_response.raise_for_status.return_value = None
+
+        mock_api.post.return_value = import_response
+
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["prompt_builder.query"]),
+            outputs=PipelineOutputs(answers="prompt_builder.prompt"),
+            enable_validation=False,
+        )
+
+        await pipeline_service.import_async(pipeline, config)
+
+        # Should only call import endpoint, not validation endpoint
+        assert mock_api.post.call_count == 1
+        assert mock_api.post.call_args_list[0].kwargs["endpoint"] == "pipelines"
+
+    @pytest.mark.asyncio
+    async def test_validation_with_non_json_error_response(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test validation failure with non-JSON error response."""
+        # Mock validation failure response without JSON content
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+        validation_response.headers = {"content-type": "text/plain"}
+        validation_response.text = "Internal server error"
+
+        mock_api.post.return_value = validation_response
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            enable_validation=True,
+        )
+
+        with pytest.raises(DeepsetValidationError) as exc_info:
+            await pipeline_service.import_async(test_pipeline, config)
+
+        # Check that DeepsetValidationError contains fallback error information
+        error = exc_info.value
+        assert "Validation failed:" in str(error)
+        assert len(error.errors) == 1
+        assert error.errors[0].code == "VALIDATION_FAILED"
+        assert error.errors[0].message == "Internal server error"
+        assert error.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+
+    @pytest.mark.asyncio
+    async def test_validation_with_errors_field_fallback(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test validation failure with 'errors' field fallback (e.g., 500 errors)."""
+        # Mock validation failure response with 'errors' field instead of 'details'
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.FAILED_DEPENDENCY
+        validation_response.headers = {"content-type": "application/json"}
+        validation_response.json.return_value = {
+            "errors": ["Database connection failed", "Service unavailable"]
+        }
+
+        mock_api.post.return_value = validation_response
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            enable_validation=True,
+        )
+
+        with pytest.raises(DeepsetValidationError) as exc_info:
+            await pipeline_service.import_async(test_pipeline, config)
+
+        # Check that DeepsetValidationError contains the fallback error information from 'errors' field
+        error = exc_info.value
+        assert "Validation failed:" in str(error)
+        assert len(error.errors) == 1
+        assert error.errors[0].code == "424"
+        assert error.errors[0].message == "Database connection failed, Service unavailable"
+        assert error.status_code == HTTPStatus.FAILED_DEPENDENCY

@@ -7,6 +7,7 @@ import structlog
 
 from deepset_cloud_sdk.workflows.pipeline_client import PipelineClient
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
+    BaseConfig,
     IndexConfig,
     IndexInputs,
     IndexOutputs,
@@ -14,6 +15,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
     PipelineOutputs,
 )
+from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import DeepsetValidationError
 
 structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
@@ -22,6 +24,7 @@ structlog.configure(
 log = structlog.get_logger()
 
 __all__ = [
+    "BaseConfig",
     "PipelineClient",
     "PipelineConfig",
     "PipelineInputs",
@@ -29,4 +32,5 @@ __all__ = [
     "IndexConfig",
     "IndexInputs",
     "IndexOutputs",
+    "DeepsetValidationError",
 ]
