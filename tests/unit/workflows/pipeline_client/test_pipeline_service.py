@@ -497,7 +497,7 @@ class TestValidatePipelineYaml:
     async def test_import_index_with_validation_failure(
         self,
         pipeline_service: PipelineService,
-        index_pipeline: Pipeline,
+        test_pipeline: Pipeline,
         mock_api: AsyncMock,
     ) -> None:
         """Test importing an index with validation failure."""
@@ -521,7 +521,7 @@ class TestValidatePipelineYaml:
         )
 
         with pytest.raises(DeepsetValidationError) as exc_info:
-            await pipeline_service.import_async(index_pipeline, config)
+            await pipeline_service.import_async(test_pipeline, config)
 
         error = exc_info.value
         assert "Validation failed:" in str(error)
