@@ -11,6 +11,7 @@ from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
 from haystack.components.routers import FileTypeRouter
 from httpx import Response
+from structlog.testing import capture_logs
 
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
@@ -896,7 +897,6 @@ class TestValidatePipelineYaml:
         pipeline_service: PipelineService,
         test_pipeline: Pipeline,
         mock_api: AsyncMock,
-        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """Test that validation errors are logged as warnings when strict_validation=False (default)."""
         # Mock validation failure response
@@ -922,7 +922,8 @@ class TestValidatePipelineYaml:
         )
 
         # Import should succeed despite validation errors
-        await pipeline_service.import_async(test_pipeline, config)
+        with capture_logs() as cap_logs:
+            await pipeline_service.import_async(test_pipeline, config)
 
         # Should call both validation and import endpoints
         assert mock_api.post.call_count == 2
@@ -936,26 +937,32 @@ class TestValidatePipelineYaml:
         assert import_call.kwargs["endpoint"] == "indexes"
 
         # Check that validation errors were logged as warnings
-        warning_logs = [record for record in caplog.records if record.levelname == "WARNING"]
+        warning_logs = [log for log in cap_logs if log.get("log_level") == "warning"]
         assert len(warning_logs) >= 3  # Should have at least 3 warning messages
 
         # Check that the validation error details are in the warning logs
-        validation_warning = next((log for log in warning_logs if "Validation issues found" in log.message), None)
+        validation_warning = next(
+            (log for log in warning_logs if "Validation issues found" in log.get("event", "")), None
+        )
         assert validation_warning is not None
 
         # Check that there's a warning about setting strict_validation=True
         strict_warning = next(
-            (log for log in warning_logs if "Set strict_validation=True to fail on validation errors" in log.message),
+            (
+                log
+                for log in warning_logs
+                if "Set strict_validation=True to fail on validation errors" in log.get("event", "")
+            ),
             None,
         )
         assert strict_warning is not None
 
         # Check that individual error details are logged
         individual_error_warning = next(
-            (log for log in warning_logs if "Validation error [INVALID_COMPONENT]:" in log.message), None
+            (log for log in warning_logs if "Validation error [INVALID_COMPONENT]:" in log.get("event", "")), None
         )
         assert individual_error_warning is not None
-        assert "Component 'invalid_component' not found" in individual_error_warning.message
+        assert "Component 'invalid_component' not found" in individual_error_warning.get("event", "")
 
     @pytest.mark.asyncio
     async def test_multiple_validation_errors_logged_individually(
@@ -963,7 +970,6 @@ class TestValidatePipelineYaml:
         pipeline_service: PipelineService,
         test_pipeline: Pipeline,
         mock_api: AsyncMock,
-        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """Test that multiple validation errors are each logged individually when strict_validation=False."""
         # Mock validation failure response with multiple errors
@@ -991,13 +997,14 @@ class TestValidatePipelineYaml:
         )
 
         # Import should succeed despite validation errors
-        await pipeline_service.import_async(test_pipeline, config)
+        with capture_logs() as cap_logs:
+            await pipeline_service.import_async(test_pipeline, config)
 
         # Should call both validation and import endpoints
         assert mock_api.post.call_count == 2
 
         # Check that validation errors were logged as warnings
-        warning_logs = [record for record in caplog.records if record.levelname == "WARNING"]
+        warning_logs = [log for log in cap_logs if log.get("log_level") == "warning"]
         assert len(warning_logs) >= 5  # General warning + strict warning + 3 individual errors
 
         # Check that each individual validation error is logged
@@ -1008,6 +1015,8 @@ class TestValidatePipelineYaml:
         ]
 
         for error_code, error_message in individual_errors:
-            error_log = next((log for log in warning_logs if f"Validation error [{error_code}]:" in log.message), None)
+            error_log = next(
+                (log for log in warning_logs if f"Validation error [{error_code}]:" in log.get("event", "")), None
+            )
             assert error_log is not None, f"Expected to find log for error code {error_code}"
-            assert error_message in error_log.message, f"Expected error message '{error_message}' in log"
+            assert error_message in error_log.get("event", ""), f"Expected error message '{error_message}' in log"
