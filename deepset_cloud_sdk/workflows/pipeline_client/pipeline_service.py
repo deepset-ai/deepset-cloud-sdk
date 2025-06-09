@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from http import HTTPStatus
 from io import StringIO
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
+from typing import Any, List, Optional, Protocol, runtime_checkable
 
 import structlog
 from httpx import Response
