@@ -169,20 +169,9 @@ class TestImportIndexIntoDeepset:
         assert len(index_import_routes.validation.calls) == 1
         assert len(index_import_routes.import_.calls) == 1
 
-        # Check validation request details (for strict validation, we check the validation YAML)
-        validation_request = index_import_routes.validation.calls[0].request
-        assert validation_request.headers["Authorization"] == "Bearer test-api-key"
-        validation_body = json.loads(validation_request.content)
-        assert validation_body["name"] == "test-index-with-validation"
-        assert "indexing_yaml" in validation_body
-        assert validation_body["indexing_yaml"].startswith("components:\n  document_embedder:\n")
-
-        # Check import request
-        import_request = index_import_routes.import_.calls[0].request
-        assert import_request.headers["Authorization"] == "Bearer test-api-key"
-        import_body = json.loads(import_request.content)
-        assert import_body["name"] == "test-index-with-validation"
-        assert import_body["config_yaml"].startswith("components:\n  document_embedder:\n")
+        assert_both_endpoints_called_with_auth(
+            index_import_routes, "test-index-with-validation", "config_yaml", "components:\n  document_embedder:\n"
+        )
 
     @pytest.mark.integration
     @respx.mock
@@ -318,20 +307,12 @@ class TestImportPipelineIntoDeepset:
         assert len(pipeline_import_routes.validation.calls) == 1
         assert len(pipeline_import_routes.import_.calls) == 1
 
-        # Check validation request details (for strict validation, we check the validation YAML)
-        validation_request = pipeline_import_routes.validation.calls[0].request
-        assert validation_request.headers["Authorization"] == "Bearer test-api-key"
-        validation_body = json.loads(validation_request.content)
-        assert validation_body["name"] == "test-pipeline-async-with-validation"
-        assert "query_yaml" in validation_body
-        assert validation_body["query_yaml"].startswith("components:\n  answer_builder:\n    init_parameters:\n")
-
-        # Check import request
-        import_request = pipeline_import_routes.import_.calls[0].request
-        assert import_request.headers["Authorization"] == "Bearer test-api-key"
-        import_body = json.loads(import_request.content)
-        assert import_body["name"] == "test-pipeline-async-with-validation"
-        assert import_body["query_yaml"].startswith("components:\n  answer_builder:\n    init_parameters:\n")
+        assert_both_endpoints_called_with_auth(
+            pipeline_import_routes,
+            "test-pipeline-async-with-validation",
+            "query_yaml",
+            "components:\n  answer_builder:\n    init_parameters:\n",
+        )
 
     @pytest.mark.integration
     @respx.mock
@@ -365,6 +346,6 @@ class TestImportPipelineIntoDeepset:
 
         # Verify only validation endpoint was called, NOT import
         assert validation_route.called
-        assert not import_route.called  # This is the key assertion
+        assert not import_route.called
         assert len(validation_route.calls) == 1
         assert len(import_route.calls) == 0

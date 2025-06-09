@@ -99,7 +99,7 @@ class PipelineService:
         :raises TypeError: If the pipeline object isn't a Haystack Pipeline or AsyncPipeline.
         :raises ValueError: If no workspace is configured.
         :raises ImportError: If haystack-ai is not installed.
-        :raises DeepsetValidationError: If validation is enabled and the configuration is invalid.
+        :raises DeepsetValidationError: If validation is enabled and the pipeline or index is invalid.
         """
         logger.debug(f"Starting async importing for {config.name}")
 
@@ -140,7 +140,7 @@ class PipelineService:
         """Validate pipeline yaml and handle errors based on strict_validation setting.
 
         Always validates the pipeline YAML. If strict_validation is False (default),
-        logs warnings and continues. If strict_validation is True, raises errors.
+        logs warnings and continues. If strict_validation is True, raises error.
 
         :param config: Import configuration.
         :param pipeline_yaml: Pipeline YAML string to validate.
@@ -151,57 +151,15 @@ class PipelineService:
                 await self._validate_index(config.name, pipeline_yaml)
             else:
                 await self._validate_pipeline(config.name, pipeline_yaml)
-            logger.debug(f"Validation passed for {config.name}")
         except DeepsetValidationError as err:
             if config.strict_validation:
                 # Re-raise the error to fail the import
                 raise
             # Log warning and continue with import
-            logger.warning(f"Validation issues found for {config.name}.")
+            logger.warning(f"Validation issues found.")
             logger.warning("Import will continue. Set strict_validation=True to fail on validation errors.")
             for error_detail in err.errors:
                 logger.warning(f"Validation error [{error_detail.code}]: {error_detail.message}")
-
-    def _handle_validation_error(self, response: Response) -> None:
-        """Handle validation error response by extracting errors and raising DeepsetValidationError.
-
-        Supports multiple error response formats:
-        1. "details" field with code/message objects (preferred format)
-        2. "errors" field with objects containing "msg" and "type" fields
-        3. "errors" field with string values (fallback)
-        4. Non-JSON responses (fallback to raw text)
-
-        :param response: HTTP response object.
-        :raises DeepsetValidationError: Always raises with formatted error details.
-        """
-        response_json = (
-            response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
-        )
-
-        if "details" in response_json:
-            error_details = [
-                ErrorDetail(code=detail["code"], message=detail["message"]) for detail in response_json["details"]
-            ]
-        elif "errors" in response_json and isinstance(response_json["errors"], list):
-            errors = response_json["errors"]
-            if errors and isinstance(errors[0], dict) and "msg" in errors[0] and "type" in errors[0]:
-                # Handle object-based errors with 'msg' and 'type' fields
-                error_details = [ErrorDetail(code=error["type"], message=error["msg"]) for error in errors]
-            else:
-                # Handle string-based errors
-                error_message = ", ".join(str(error) for error in errors)
-                error_details = [ErrorDetail(code=str(response.status_code), message=error_message)]
-        else:
-            error_details = [ErrorDetail(code="VALIDATION_FAILED", message=response.text)]
-
-        error_messages = []
-        for error in error_details:
-            error_messages.append(f"[{error.code}] {error.message}")
-            logger.error(f"Validation error [{error.code}]: {error.message}")
-
-        raise DeepsetValidationError(
-            "Validation failed: " + "; ".join(error_messages), error_details, response.status_code
-        )
 
     async def _validate_index(self, name: str, indexing_yaml: str) -> None:
         """Validate an index configuration.
@@ -241,11 +199,51 @@ class PipelineService:
 
         logger.debug(f"Pipeline validation successful for {name}.")
 
+    def _handle_validation_error(self, response: Response) -> None:
+        """Handle validation error response by extracting errors and raising DeepsetValidationError.
+
+        Supports multiple error response formats:
+        1. "details" field with code/message objects (preferred format)
+        2. "errors" field with objects containing "msg" and "type" fields
+        3. "errors" field with string values (fallback)
+        4. Non-JSON responses (fallback to raw text)
+
+        :param response: HTTP response object.
+        :raises DeepsetValidationError: Always raises with formatted error details.
+        """
+        response_json = (
+            response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+        )
+
+        if "details" in response_json:
+            error_details = [
+                ErrorDetail(code=detail["code"], message=detail["message"]) for detail in response_json["details"]
+            ]
+        elif "errors" in response_json and isinstance(response_json["errors"], list):
+            errors = response_json["errors"]
+            if errors and isinstance(errors[0], dict) and "msg" in errors[0] and "type" in errors[0]:
+                # Handle object-based errors with 'msg' and 'type' fields
+                error_details = [ErrorDetail(code=error["type"], message=error["msg"]) for error in errors]
+            else:
+                # Handle string-based errors
+                error_message = ", ".join(str(error) for error in errors)
+                error_details = [ErrorDetail(code=str(response.status_code), message=error_message)]
+        else:
+            error_details = [ErrorDetail(code="VALIDATION_FAILED", message=response.text)]
+
+        error_messages = []
+        for error in error_details:
+            error_messages.append(f"[{error.code}] {error.message}")
+
+        raise DeepsetValidationError(
+            "Validation failed: " + "; ".join(error_messages), error_details, response.status_code
+        )
+
     async def _import_index(self, config: IndexConfig, pipeline_yaml: str) -> None:
         """Import an index into deepset AI Platform.
 
         :param config: Configuration for importing an index.
-        :param pipeline_yaml: Pre-generated pipeline YAML string.
+        :param pipeline_yaml: Pre-generated index YAML string.
         """
         response = await self._api.post(
             workspace_name=self._workspace_name,

@@ -17,6 +17,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
 )
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
     DeepsetValidationError,
+    ErrorDetail,
 )
 
 structlog.configure(
@@ -27,6 +28,7 @@ log = structlog.get_logger()
 
 __all__ = [
     "BaseConfig",
+    "ErrorDetail",
     "PipelineClient",
     "PipelineConfig",
     "PipelineInputs",
