@@ -24,9 +24,9 @@ class InputOutputBaseModel(BaseModel):
 
 class BaseConfig(BaseModel):
     """Base configuration model for pipeline and index imports.
-    
+
     Contains common fields shared between pipeline and index configurations.
-    
+
     :param name: Name of the pipeline or index to be imported.
     :param enable_validation: Whether to validate the configuration before importing. Defaults to True.
     """

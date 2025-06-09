@@ -1,6 +1,6 @@
 """Integration tests for importing Haystack pipelines into deepset AI Platform."""
-from http import HTTPStatus
 import json
+from http import HTTPStatus
 
 import pytest
 import respx
@@ -140,11 +140,11 @@ class TestImportIndexIntoDeepset:
         # Verify both endpoints were called
         assert validation_route.called
         assert import_route.called
-        
+
         # Verify validation was called first
         assert len(validation_route.calls) == 1
         assert len(import_route.calls) == 1
-        
+
         # Check validation request
         validation_request = validation_route.calls[0].request
         assert validation_request.headers["Authorization"] == "Bearer test-api-key"
@@ -152,7 +152,7 @@ class TestImportIndexIntoDeepset:
         assert validation_body["name"] == "test-index-with-validation"
         assert "indexing_yaml" in validation_body
         assert validation_body["indexing_yaml"].startswith("components:\n  document_embedder:\n")
-        
+
         # Check import request
         import_request = import_route.calls[0].request
         assert import_request.headers["Authorization"] == "Bearer test-api-key"
@@ -260,7 +260,7 @@ class TestImportPipelineIntoDeepset:
         validation_route = respx.post("https://test-api-url.com/workspaces/test-workspace/pipeline_validations").mock(
             return_value=Response(status_code=HTTPStatus.NO_CONTENT)
         )
-        
+
         import_route = respx.post("https://test-api-url.com/workspaces/test-workspace/pipelines").mock(
             return_value=Response(status_code=HTTPStatus.OK, json={"id": "test-pipeline-id"})
         )
@@ -280,11 +280,11 @@ class TestImportPipelineIntoDeepset:
         # Verify both endpoints were called
         assert validation_route.called
         assert import_route.called
-        
+
         # Verify validation was called first
         assert len(validation_route.calls) == 1
         assert len(import_route.calls) == 1
-        
+
         # Check validation request
         validation_request = validation_route.calls[0].request
         assert validation_request.headers["Authorization"] == "Bearer test-api-key"
@@ -292,7 +292,7 @@ class TestImportPipelineIntoDeepset:
         assert validation_body["name"] == "test-pipeline-async-with-validation"
         assert "query_yaml" in validation_body
         assert validation_body["query_yaml"].startswith("components:\n  answer_builder:\n    init_parameters:\n")
-        
+
         # Check import request
         import_request = import_route.calls[0].request
         assert import_request.headers["Authorization"] == "Bearer test-api-key"

@@ -7,6 +7,7 @@ from io import StringIO
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
 import structlog
+from httpx import Response
 from pydantic import BaseModel
 from ruamel.yaml import YAML
 
@@ -22,17 +23,17 @@ logger = structlog.get_logger(__name__)
 
 class ErrorDetail(BaseModel):
     """Represents a validation error detail with code and message."""
-    
+
     code: str
     message: str
 
 
 class DeepsetValidationError(Exception):
     """Raised when pipeline or index validation fails."""
-    
+
     def __init__(self, message: str, errors: List[ErrorDetail], status_code: int) -> None:
         """Initialize DeepsetValidationError.
-        
+
         :param message: Error message.
         :param errors: List of validation error details.
         :param code: HTTP status code from the validation response.
@@ -135,7 +136,9 @@ class PipelineService:
             logger.debug(f"Importing pipeline into workspace {self._workspace_name}")
             await self._import_pipeline(config, pipeline_yaml)
 
-    async def _validate_pipeline_yaml_if_enabled(self, config: IndexConfig | PipelineConfig, pipeline_yaml: str) -> None:
+    async def _validate_pipeline_yaml_if_enabled(
+        self, config: IndexConfig | PipelineConfig, pipeline_yaml: str
+    ) -> None:
         """Validate pipeline yaml if validation is enabled.
 
         :param config: Import configuration.
@@ -148,32 +151,34 @@ class PipelineService:
             else:
                 await self._validate_pipeline(config.name, pipeline_yaml)
 
-    def _handle_validation_error(self, response) -> None:
+    def _handle_validation_error(self, response: Response) -> None:
         """Handle validation error response by extracting errors and raising DeepsetValidationError.
 
         :param response: HTTP response object.
         :raises DeepsetValidationError: Always raises with formatted error details.
         """
-        response_json = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
-        
+        response_json = (
+            response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+        )
+
         if "details" in response_json:
-            error_details = [ErrorDetail(code=detail["code"], message=detail["message"]) for detail in response_json["details"]]
+            error_details = [
+                ErrorDetail(code=detail["code"], message=detail["message"]) for detail in response_json["details"]
+            ]
         elif "errors" in response_json and isinstance(response_json["errors"], list):
             errors = response_json["errors"]
             error_message = ", ".join(str(error) for error in errors)
             error_details = [ErrorDetail(code=str(response.status_code), message=error_message)]
         else:
             error_details = [ErrorDetail(code="VALIDATION_FAILED", message=response.text)]
-        
+
         error_messages = []
         for error in error_details:
             error_messages.append(f"[{error.code}] {error.message}")
             logger.error(f"Validation error [{error.code}]: {error.message}")
-        
+
         raise DeepsetValidationError(
-            "Validation failed: " + "; ".join(error_messages),
-            error_details,
-            response.status_code
+            "Validation failed: " + "; ".join(error_messages), error_details, response.status_code
         )
 
     async def _validate_index(self, name: str, indexing_yaml: str) -> None:
@@ -189,10 +194,10 @@ class PipelineService:
             endpoint="pipeline_validations",
             json={"name": name, "indexing_yaml": indexing_yaml},
         )
-        
+
         if response.status_code != HTTPStatus.NO_CONTENT:
             self._handle_validation_error(response)
-        
+
         logger.debug(f"Index validation successful for {name}.")
 
     async def _validate_pipeline(self, name: str, query_yaml: str) -> None:
@@ -208,10 +213,10 @@ class PipelineService:
             endpoint="pipeline_validations",
             json={"name": name, "query_yaml": query_yaml},
         )
-        
+
         if response.status_code != HTTPStatus.NO_CONTENT:
             self._handle_validation_error(response)
-        
+
         logger.debug(f"Pipeline validation successful for {name}.")
 
     async def _import_index(self, config: IndexConfig, pipeline_yaml: str) -> None:

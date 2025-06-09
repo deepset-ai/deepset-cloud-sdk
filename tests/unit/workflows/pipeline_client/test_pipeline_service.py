@@ -1,7 +1,7 @@
 """Tests for the pipeline service."""
 import builtins
-from http import HTTPStatus
 import textwrap
+from http import HTTPStatus
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
@@ -20,7 +20,11 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
     PipelineOutputs,
 )
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import DeepsetValidationError, ErrorDetail, PipelineService
+from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
+    DeepsetValidationError,
+    ErrorDetail,
+    PipelineService,
+)
 
 
 class TestImportPipelineService:
@@ -210,7 +214,9 @@ async_enabled: true
     @pytest.mark.asyncio
     async def test_import_index_pipeline_with_invalid_pipeline(self, pipeline_service: PipelineService) -> None:
         """Test importing unexpected pipeline object."""
-        config = IndexConfig(name="test_index", inputs=IndexInputs(files=["my_component.files"]), enable_validation=False)
+        config = IndexConfig(
+            name="test_index", inputs=IndexInputs(files=["my_component.files"]), enable_validation=False
+        )
 
         # Create an invalid pipeline (doesn't implement PipelineProtocol)
         invalid_pipeline = object()
@@ -368,13 +374,15 @@ class TestAddAsyncFlagIfNeeded:
 
         def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
             if name == "haystack":
-                raise ImportError("No module named 'haystack'")
+                raise ImportError("Can't import AsyncPipeline.")
             return original_import(name, *args, **kwargs)
 
+        mock_pipeline = Mock(spec=AsyncPipeline)
+        pipeline_dict: dict[str, Any] = {"components": {}}
         monkeypatch.setattr(builtins, "__import__", mock_import)
 
-        pipeline_dict = {}
-        pipeline_service._add_async_flag_if_needed(Mock(), pipeline_dict)
+        # does not raise
+        pipeline_service._add_async_flag_if_needed(mock_pipeline, pipeline_dict)
         assert "async_enabled" not in pipeline_dict
 
 
@@ -416,7 +424,7 @@ class TestValidatePipelineYaml:
         validation_response = Mock(spec=Response)
         validation_response.status_code = HTTPStatus.NO_CONTENT
         validation_response.headers = {"content-type": "application/json"}
-        
+
         # Mock successful import response
         import_response = Mock(spec=Response)
         import_response.status_code = HTTPStatus.OK
@@ -433,13 +441,13 @@ class TestValidatePipelineYaml:
 
         # Should call validation endpoint first, then import endpoint
         assert mock_api.post.call_count == 2
-        
+
         # Check validation call
         validation_call = mock_api.post.call_args_list[0]
         assert validation_call.kwargs["endpoint"] == "pipeline_validations"
         assert "indexing_yaml" in validation_call.kwargs["json"]
         assert validation_call.kwargs["json"]["name"] == "test_index"
-        
+
         # Check import call
         import_call = mock_api.post.call_args_list[1]
         assert import_call.kwargs["endpoint"] == "indexes"
@@ -456,7 +464,7 @@ class TestValidatePipelineYaml:
         validation_response = Mock(spec=Response)
         validation_response.status_code = HTTPStatus.NO_CONTENT
         validation_response.headers = {"content-type": "application/json"}
-        
+
         # Mock successful import response
         import_response = Mock(spec=Response)
         import_response.status_code = HTTPStatus.OK
@@ -474,13 +482,13 @@ class TestValidatePipelineYaml:
 
         # Should call validation endpoint first, then import endpoint
         assert mock_api.post.call_count == 2
-        
+
         # Check validation call
         validation_call = mock_api.post.call_args_list[0]
         assert validation_call.kwargs["endpoint"] == "pipeline_validations"
         assert "query_yaml" in validation_call.kwargs["json"]
         assert validation_call.kwargs["json"]["name"] == "test_pipeline"
-        
+
         # Check import call
         import_call = mock_api.post.call_args_list[1]
         assert import_call.kwargs["endpoint"] == "pipelines"
@@ -602,7 +610,7 @@ class TestValidatePipelineYaml:
         """Test importing a pipeline with validation disabled."""
         # Create a simple pipeline
         from haystack.components.builders import PromptBuilder
-        
+
         pipeline = Pipeline()
         pipeline.add_component("prompt_builder", PromptBuilder(template="Query: {{query}}"))
 
@@ -671,9 +679,7 @@ class TestValidatePipelineYaml:
         validation_response = Mock(spec=Response)
         validation_response.status_code = HTTPStatus.FAILED_DEPENDENCY
         validation_response.headers = {"content-type": "application/json"}
-        validation_response.json.return_value = {
-            "errors": ["Database connection failed", "Service unavailable"]
-        }
+        validation_response.json.return_value = {"errors": ["Database connection failed", "Service unavailable"]}
 
         mock_api.post.return_value = validation_response
 
