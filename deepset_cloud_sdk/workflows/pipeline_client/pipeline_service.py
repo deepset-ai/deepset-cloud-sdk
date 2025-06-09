@@ -127,7 +127,7 @@ class PipelineService:
 
         pipeline_yaml = self._from_haystack_pipeline(pipeline, config)
 
-        await self._validate_pipeline_yaml_if_enabled(config, pipeline_yaml)
+        await self._validate_pipeline_yaml(config, pipeline_yaml)
 
         if isinstance(config, IndexConfig):
             logger.debug(f"Importing index into workspace {self._workspace_name}")
@@ -136,23 +136,40 @@ class PipelineService:
             logger.debug(f"Importing pipeline into workspace {self._workspace_name}")
             await self._import_pipeline(config, pipeline_yaml)
 
-    async def _validate_pipeline_yaml_if_enabled(
-        self, config: IndexConfig | PipelineConfig, pipeline_yaml: str
-    ) -> None:
-        """Validate pipeline yaml if validation is enabled.
+    async def _validate_pipeline_yaml(self, config: IndexConfig | PipelineConfig, pipeline_yaml: str) -> None:
+        """Validate pipeline yaml and handle errors based on strict_validation setting.
+
+        Always validates the pipeline YAML. If strict_validation is False (default),
+        logs warnings and continues. If strict_validation is True, raises errors.
 
         :param config: Import configuration.
         :param pipeline_yaml: Pipeline YAML string to validate.
-        :raises DeepsetValidationError: If validation is enabled and the pipeline YAML is invalid.
+        :raises DeepsetValidationError: If strict_validation is True and the pipeline YAML is invalid.
         """
-        if config.enable_validation:
+        try:
             if isinstance(config, IndexConfig):
                 await self._validate_index(config.name, pipeline_yaml)
             else:
                 await self._validate_pipeline(config.name, pipeline_yaml)
+            logger.debug(f"Validation passed for {config.name}")
+        except DeepsetValidationError as err:
+            if config.strict_validation:
+                # Re-raise the error to fail the import
+                raise
+            # Log warning and continue with import
+            logger.warning(f"Validation issues found for {config.name}.")
+            logger.warning("Import will continue. Set strict_validation=True to fail on validation errors.")
+            for error_detail in err.errors:
+                logger.warning(f"Validation error [{error_detail.code}]: {error_detail.message}")
 
     def _handle_validation_error(self, response: Response) -> None:
         """Handle validation error response by extracting errors and raising DeepsetValidationError.
+
+        Supports multiple error response formats:
+        1. "details" field with code/message objects (preferred format)
+        2. "errors" field with objects containing "msg" and "type" fields
+        3. "errors" field with string values (fallback)
+        4. Non-JSON responses (fallback to raw text)
 
         :param response: HTTP response object.
         :raises DeepsetValidationError: Always raises with formatted error details.
@@ -167,8 +184,13 @@ class PipelineService:
             ]
         elif "errors" in response_json and isinstance(response_json["errors"], list):
             errors = response_json["errors"]
-            error_message = ", ".join(str(error) for error in errors)
-            error_details = [ErrorDetail(code=str(response.status_code.value), message=error_message)]
+            if errors and isinstance(errors[0], dict) and "msg" in errors[0] and "type" in errors[0]:
+                # Handle object-based errors with 'msg' and 'type' fields
+                error_details = [ErrorDetail(code=error["type"], message=error["msg"]) for error in errors]
+            else:
+                # Handle string-based errors
+                error_message = ", ".join(str(error) for error in errors)
+                error_details = [ErrorDetail(code=str(response.status_code), message=error_message)]
         else:
             error_details = [ErrorDetail(code="VALIDATION_FAILED", message=response.text)]
 

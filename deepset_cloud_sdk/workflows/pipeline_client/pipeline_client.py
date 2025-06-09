@@ -64,14 +64,14 @@ class PipelineClient:
                 answers="answers_builder.answers",
                 documents="ranker.documents",
             ),
-            enable_validation=True,  # Validate configuration before importing (default: True)
+            strict_validation=False,  # Fail on validation errors (default: False, warnings only)
         )
 
         # if importing an index, use IndexConfig
         config = IndexConfig(
             name="my-index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=True,  # Validate configuration before importing (default: True)
+            strict_validation=False,  # Fail on validation errors (default: False, warnings only)
         )
 
         # sync execution

@@ -34,7 +34,7 @@ class TestImportPipelineService:
     def mock_api(self) -> AsyncMock:
         """Create a mock API client."""
         mock = AsyncMock()
-        mock.post.return_value = Mock(status_code=201)
+        mock.post.return_value = Mock(status_code=HTTPStatus.CREATED.value)
         return mock
 
     @pytest.fixture
@@ -97,8 +97,18 @@ class TestImportPipelineService:
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=False,
+            strict_validation=False,
         )
+
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.CREATED.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
 
         # Import the pipeline
         await pipeline_service.import_async(index_pipeline, config)
@@ -147,11 +157,19 @@ inputs:
 """
         )
 
-        mock_api.post.assert_called_once_with(
-            workspace_name="default",
-            endpoint="indexes",
-            json={"name": "test_index", "config_yaml": expected_pipeline_yaml},
-        )
+        # Should call validation endpoint first, then import endpoint
+        assert mock_api.post.call_count == 2
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+        assert "indexing_yaml" in validation_call.kwargs["json"]
+        assert validation_call.kwargs["json"]["name"] == "test_index"
+
+        # Check import call
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "indexes"
+        assert import_call.kwargs["json"] == {"name": "test_index", "config_yaml": expected_pipeline_yaml}
 
     @pytest.mark.asyncio
     async def test_import_async_index(
@@ -165,8 +183,18 @@ inputs:
         config = IndexConfig(
             name="test_async_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=False,
+            strict_validation=False,
         )
+
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.CREATED.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
 
         await pipeline_service.import_async(async_index_pipeline, config)
 
@@ -205,17 +233,25 @@ async_enabled: true
 """
         )
 
-        mock_api.post.assert_called_once_with(
-            workspace_name="default",
-            endpoint="indexes",
-            json={"name": "test_async_index", "config_yaml": expected_pipeline_yaml},
-        )
+        # Should call validation endpoint first, then import endpoint
+        assert mock_api.post.call_count == 2
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+        assert "indexing_yaml" in validation_call.kwargs["json"]
+        assert validation_call.kwargs["json"]["name"] == "test_async_index"
+
+        # Check import call
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "indexes"
+        assert import_call.kwargs["json"] == {"name": "test_async_index", "config_yaml": expected_pipeline_yaml}
 
     @pytest.mark.asyncio
     async def test_import_index_pipeline_with_invalid_pipeline(self, pipeline_service: PipelineService) -> None:
         """Test importing unexpected pipeline object."""
         config = IndexConfig(
-            name="test_index", inputs=IndexInputs(files=["my_component.files"]), enable_validation=False
+            name="test_index", inputs=IndexInputs(files=["my_component.files"]), strict_validation=False
         )
 
         # Create an invalid pipeline (doesn't implement PipelineProtocol)
@@ -240,8 +276,18 @@ async_enabled: true
             name="test_pipeline",
             inputs=PipelineInputs(query=["retriever.query"]),
             outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
-            enable_validation=False,
+            strict_validation=False,
         )
+
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.CREATED.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
 
         await service.import_async(mock_pipeline, config)
         expected_pipeline_yaml = textwrap.dedent(
@@ -256,11 +302,19 @@ outputs:
   answers: answer_builder.answers
 """
         )
-        mock_api.post.assert_called_once_with(
-            workspace_name="default",
-            endpoint="pipelines",
-            json={"name": "test_pipeline", "query_yaml": expected_pipeline_yaml},
-        )
+        # Should call validation endpoint first, then import endpoint
+        assert mock_api.post.call_count == 2
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+        assert "query_yaml" in validation_call.kwargs["json"]
+        assert validation_call.kwargs["json"]["name"] == "test_pipeline"
+
+        # Check import call
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "pipelines"
+        assert import_call.kwargs["json"] == {"name": "test_pipeline", "query_yaml": expected_pipeline_yaml}
 
     @pytest.mark.asyncio
     async def test_import_pipeline_import_error(
@@ -280,7 +334,7 @@ outputs:
             name="test_pipeline",
             inputs=PipelineInputs(query=["retriever.query"]),
             outputs=PipelineOutputs(documents="meta_ranker.documents", answers="answer_builder.answers"),
-            enable_validation=False,
+            strict_validation=False,
         )
 
         with pytest.raises(
@@ -311,8 +365,18 @@ outputs:
                 custom_output="custom_output_value",  # type: ignore
                 other_custom_output=["other_custom_output_value"],  # type: ignore
             ),
-            enable_validation=False,
+            strict_validation=False,
         )
+
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.CREATED.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
 
         await service.import_async(mock_pipeline, config)
         expected_pipeline_yaml = textwrap.dedent(
@@ -333,11 +397,19 @@ outputs:
       """
         )
 
-        mock_api.post.assert_called_once_with(
-            workspace_name="my-workspace",
-            endpoint="indexes",
-            json={"name": "test_index", "config_yaml": expected_pipeline_yaml},
-        )
+        # Should call validation endpoint first, then import endpoint
+        assert mock_api.post.call_count == 2
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+        assert "indexing_yaml" in validation_call.kwargs["json"]
+        assert validation_call.kwargs["json"]["name"] == "test_index"
+
+        # Check import call
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "indexes"
+        assert import_call.kwargs["json"] == {"name": "test_index", "config_yaml": expected_pipeline_yaml}
 
 
 class TestAddAsyncFlagIfNeeded:
@@ -422,7 +494,7 @@ class TestValidatePipelineYaml:
         """Test importing an index with successful validation."""
         # Mock successful validation response
         validation_response = Mock(spec=Response)
-        validation_response.status_code = HTTPStatus.NO_CONTENT
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
         validation_response.headers = {"content-type": "application/json"}
 
         # Mock successful import response
@@ -434,7 +506,7 @@ class TestValidatePipelineYaml:
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=True,
+            strict_validation=True,
         )
 
         await pipeline_service.import_async(test_pipeline, config)
@@ -462,7 +534,7 @@ class TestValidatePipelineYaml:
         """Test importing a pipeline with successful validation."""
         # Mock successful validation response
         validation_response = Mock(spec=Response)
-        validation_response.status_code = HTTPStatus.NO_CONTENT
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
         validation_response.headers = {"content-type": "application/json"}
 
         # Mock successful import response
@@ -475,7 +547,7 @@ class TestValidatePipelineYaml:
             name="test_pipeline",
             inputs=PipelineInputs(query=["prompt_builder.query"]),
             outputs=PipelineOutputs(answers="prompt_builder.prompt"),
-            enable_validation=True,
+            strict_validation=True,
         )
 
         await pipeline_service.import_async(test_pipeline, config)
@@ -503,7 +575,7 @@ class TestValidatePipelineYaml:
         """Test importing an index with validation failure."""
         # Mock validation failure response
         validation_response = Mock(spec=Response)
-        validation_response.status_code = HTTPStatus.BAD_REQUEST
+        validation_response.status_code = HTTPStatus.BAD_REQUEST.value
         validation_response.headers = {"content-type": "application/json"}
         validation_response.json.return_value = {
             "details": [
@@ -517,7 +589,7 @@ class TestValidatePipelineYaml:
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=True,
+            strict_validation=True,
         )
 
         with pytest.raises(DeepsetValidationError) as exc_info:
@@ -544,7 +616,7 @@ class TestValidatePipelineYaml:
         """Test importing a pipeline with validation failure."""
         # Mock validation failure response
         validation_response = Mock(spec=Response)
-        validation_response.status_code = HTTPStatus.BAD_REQUEST
+        validation_response.status_code = HTTPStatus.BAD_REQUEST.value
         validation_response.headers = {"content-type": "application/json"}
         validation_response.json.return_value = {
             "details": [
@@ -558,7 +630,7 @@ class TestValidatePipelineYaml:
             name="test_pipeline",
             inputs=PipelineInputs(query=["prompt_builder.query"]),
             outputs=PipelineOutputs(answers="nonexistent.replies"),
-            enable_validation=True,
+            strict_validation=True,
         )
 
         with pytest.raises(DeepsetValidationError) as exc_info:
@@ -576,63 +648,85 @@ class TestValidatePipelineYaml:
         assert mock_api.post.call_args_list[0].kwargs["endpoint"] == "pipeline_validations"
 
     @pytest.mark.asyncio
-    async def test_import_index_skip_validation(
+    async def test_import_index_with_validation_warnings(
         self,
         pipeline_service: PipelineService,
         test_pipeline: Pipeline,
         mock_api: AsyncMock,
     ) -> None:
-        """Test importing an index with validation disabled."""
+        """Test importing an index with validation warnings (strict_validation=False)."""
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
         # Mock successful import response
         import_response = Mock(spec=Response)
-        import_response.status_code = HTTPStatus.OK
+        import_response.status_code = HTTPStatus.OK.value
 
-        mock_api.post.return_value = import_response
+        mock_api.post.side_effect = [validation_response, import_response]
 
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=False,
+            strict_validation=False,
         )
 
         await pipeline_service.import_async(test_pipeline, config)
 
-        # Should only call import endpoint, not validation endpoint
-        assert mock_api.post.call_count == 1
-        assert mock_api.post.call_args_list[0].kwargs["endpoint"] == "indexes"
+        # Should call validation endpoint first, then import endpoint
+        assert mock_api.post.call_count == 2
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+
+        # Check import call
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "indexes"
 
     @pytest.mark.asyncio
-    async def test_import_pipeline_skip_validation(
+    async def test_import_pipeline_with_validation_warnings(
         self,
         pipeline_service: PipelineService,
         mock_api: AsyncMock,
     ) -> None:
-        """Test importing a pipeline with validation disabled."""
+        """Test importing a pipeline with validation warnings (strict_validation=False)."""
         # Create a simple pipeline
         from haystack.components.builders import PromptBuilder
 
         pipeline = Pipeline()
         pipeline.add_component("prompt_builder", PromptBuilder(template="Query: {{query}}"))
 
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
         # Mock successful import response
         import_response = Mock(spec=Response)
-        import_response.status_code = 204
+        import_response.status_code = HTTPStatus.NO_CONTENT.value
         import_response.raise_for_status.return_value = None
 
-        mock_api.post.return_value = import_response
+        mock_api.post.side_effect = [validation_response, import_response]
 
         config = PipelineConfig(
             name="test_pipeline",
             inputs=PipelineInputs(query=["prompt_builder.query"]),
             outputs=PipelineOutputs(answers="prompt_builder.prompt"),
-            enable_validation=False,
+            strict_validation=False,
         )
 
         await pipeline_service.import_async(pipeline, config)
 
-        # Should only call import endpoint, not validation endpoint
-        assert mock_api.post.call_count == 1
-        assert mock_api.post.call_args_list[0].kwargs["endpoint"] == "pipelines"
+        # Should call validation endpoint first, then import endpoint
+        assert mock_api.post.call_count == 2
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+
+        # Check import call
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "pipelines"
 
     @pytest.mark.asyncio
     async def test_validation_with_non_json_error_response(
@@ -653,7 +747,7 @@ class TestValidatePipelineYaml:
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=True,
+            strict_validation=True,
         )
 
         with pytest.raises(DeepsetValidationError) as exc_info:
@@ -677,7 +771,7 @@ class TestValidatePipelineYaml:
         """Test validation failure with 'errors' field fallback."""
         # Mock validation failure response with 'errors' field instead of 'details'
         validation_response = Mock(spec=Response)
-        validation_response.status_code = HTTPStatus.FAILED_DEPENDENCY
+        validation_response.status_code = HTTPStatus.FAILED_DEPENDENCY.value
         validation_response.headers = {"content-type": "application/json"}
         validation_response.json.return_value = {"errors": ["Database connection failed", "Service unavailable"]}
 
@@ -686,7 +780,7 @@ class TestValidatePipelineYaml:
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=True,
+            strict_validation=True,
         )
 
         with pytest.raises(DeepsetValidationError) as exc_info:
@@ -698,4 +792,222 @@ class TestValidatePipelineYaml:
         assert len(error.errors) == 1
         assert error.errors[0].code == "424"
         assert error.errors[0].message == "Database connection failed, Service unavailable"
-        assert error.status_code == HTTPStatus.FAILED_DEPENDENCY
+        assert error.status_code == 424
+
+    @pytest.mark.asyncio
+    async def test_validation_with_errors_object(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test validation failure with 'errors' field containing objects with 'msg' and 'type' fields."""
+        # Mock validation failure response with 'errors' field containing objects
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.BAD_REQUEST.value
+        validation_response.headers = {"content-type": "application/json"}
+        validation_response.json.return_value = {
+            "errors": [
+                {
+                    "loc": ["body", "query_yaml"],
+                    "msg": "Pipeline index with name 'Standard-Index-English-3' not found in workspace.",
+                    "type": "index_validation_error",
+                },
+                {"loc": ["body", "name"], "msg": "Pipeline name is invalid", "type": "name_validation_error"},
+            ]
+        }
+
+        mock_api.post.return_value = validation_response
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=True,
+        )
+
+        with pytest.raises(DeepsetValidationError) as exc_info:
+            await pipeline_service.import_async(test_pipeline, config)
+
+        # Check that DeepsetValidationError contains the error information from object-based errors
+        error = exc_info.value
+        assert "Validation failed:" in str(error)
+        assert len(error.errors) == 2
+        assert error.errors[0].code == "index_validation_error"
+        assert error.errors[0].message == "Pipeline index with name 'Standard-Index-English-3' not found in workspace."
+        assert error.errors[1].code == "name_validation_error"
+        assert error.errors[1].message == "Pipeline name is invalid"
+        assert error.status_code == HTTPStatus.BAD_REQUEST.value
+
+        # Should only call validation endpoint, not import endpoint
+        assert mock_api.post.call_count == 1
+        assert mock_api.post.call_args_list[0].kwargs["endpoint"] == "pipeline_validations"
+
+    @pytest.mark.asyncio
+    async def test_validation_with_mixed_errors_fallback_to_string(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test validation failure with 'errors' field containing mixed types (some missing required fields)."""
+        # Mock validation failure response with 'errors' field containing incomplete objects
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.UNPROCESSABLE_ENTITY.value
+        validation_response.headers = {"content-type": "application/json"}
+        validation_response.json.return_value = {
+            "errors": [
+                {
+                    "loc": ["body", "query_yaml"],
+                    "msg": "Pipeline index not found",
+                    # Missing 'type' field - should fallback to string handling
+                },
+                "Simple string error",
+            ]
+        }
+
+        mock_api.post.return_value = validation_response
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=True,
+        )
+
+        with pytest.raises(DeepsetValidationError) as exc_info:
+            await pipeline_service.import_async(test_pipeline, config)
+
+        # Check that DeepsetValidationError falls back to string handling when objects are incomplete
+        error = exc_info.value
+        assert "Validation failed:" in str(error)
+        assert len(error.errors) == 1
+        assert error.errors[0].code == "422"  # Should use status code as string
+        # Should join all errors as strings
+        assert "Pipeline index not found" in error.errors[0].message
+        assert "Simple string error" in error.errors[0].message
+        assert error.status_code == HTTPStatus.UNPROCESSABLE_ENTITY.value
+
+        # Should only call validation endpoint, not import endpoint
+        assert mock_api.post.call_count == 1
+        assert mock_api.post.call_args_list[0].kwargs["endpoint"] == "pipeline_validations"
+
+    @pytest.mark.asyncio
+    async def test_validation_errors_logged_as_warnings_by_default(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Test that validation errors are logged as warnings when strict_validation=False (default)."""
+        # Mock validation failure response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.BAD_REQUEST.value
+        validation_response.headers = {"content-type": "application/json"}
+        validation_response.json.return_value = {
+            "details": [
+                {"code": "INVALID_COMPONENT", "message": "Component 'invalid_component' not found"},
+            ]
+        }
+
+        # Mock successful import response (import should continue despite validation errors)
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.OK.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,  # Default behavior - warnings only
+        )
+
+        # Import should succeed despite validation errors
+        await pipeline_service.import_async(test_pipeline, config)
+
+        # Should call both validation and import endpoints
+        assert mock_api.post.call_count == 2
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+
+        # Check import call (should proceed despite validation errors)
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "indexes"
+
+        # Check that validation errors were logged as warnings
+        warning_logs = [record for record in caplog.records if record.levelname == "WARNING"]
+        assert len(warning_logs) >= 3  # Should have at least 3 warning messages
+
+        # Check that the validation error details are in the warning logs
+        validation_warning = next((log for log in warning_logs if "Validation issues found" in log.message), None)
+        assert validation_warning is not None
+
+        # Check that there's a warning about setting strict_validation=True
+        strict_warning = next(
+            (log for log in warning_logs if "Set strict_validation=True to fail on validation errors" in log.message),
+            None,
+        )
+        assert strict_warning is not None
+
+        # Check that individual error details are logged
+        individual_error_warning = next(
+            (log for log in warning_logs if "Validation error [INVALID_COMPONENT]:" in log.message), None
+        )
+        assert individual_error_warning is not None
+        assert "Component 'invalid_component' not found" in individual_error_warning.message
+
+    @pytest.mark.asyncio
+    async def test_multiple_validation_errors_logged_individually(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Test that multiple validation errors are each logged individually when strict_validation=False."""
+        # Mock validation failure response with multiple errors
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.BAD_REQUEST.value
+        validation_response.headers = {"content-type": "application/json"}
+        validation_response.json.return_value = {
+            "details": [
+                {"code": "INVALID_COMPONENT", "message": "Component 'invalid_component' not found"},
+                {"code": "MISSING_INPUT", "message": "Required input 'files' is missing"},
+                {"code": "INVALID_CONFIGURATION", "message": "Pipeline configuration is invalid"},
+            ]
+        }
+
+        # Mock successful import response (import should continue despite validation errors)
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.OK.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,  # Default behavior - warnings only
+        )
+
+        # Import should succeed despite validation errors
+        await pipeline_service.import_async(test_pipeline, config)
+
+        # Should call both validation and import endpoints
+        assert mock_api.post.call_count == 2
+
+        # Check that validation errors were logged as warnings
+        warning_logs = [record for record in caplog.records if record.levelname == "WARNING"]
+        assert len(warning_logs) >= 5  # General warning + strict warning + 3 individual errors
+
+        # Check that each individual validation error is logged
+        individual_errors = [
+            ("INVALID_COMPONENT", "Component 'invalid_component' not found"),
+            ("MISSING_INPUT", "Required input 'files' is missing"),
+            ("INVALID_CONFIGURATION", "Pipeline configuration is invalid"),
+        ]
+
+        for error_code, error_message in individual_errors:
+            error_log = next((log for log in warning_logs if f"Validation error [{error_code}]:" in log.message), None)
+            assert error_log is not None, f"Expected to find log for error code {error_code}"
+            assert error_message in error_log.message, f"Expected error message '{error_message}' in log"

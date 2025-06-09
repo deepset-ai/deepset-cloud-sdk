@@ -28,15 +28,15 @@ class BaseConfig(BaseModel):
     Contains common fields shared between pipeline and index configurations.
 
     :param name: Name of the pipeline or index to be imported.
-    :param enable_validation: Whether to validate the configuration before importing. Defaults to True.
+    :param strict_validation: Whether to fail on validation errors. Defaults to False (warnings only).
     """
 
     model_config = {"extra": "forbid"}
 
     name: str = Field(..., description="The name of the pipeline or index to be imported", min_length=1)
-    enable_validation: bool = Field(
-        default=True,
-        description="Whether to validate the pipeline or index configuration before importing. Defaults to True.",
+    strict_validation: bool = Field(
+        default=False,
+        description="Whether to fail on validation errors. If False, validation warnings are logged but import continues. Defaults to False.",
     )
 
 

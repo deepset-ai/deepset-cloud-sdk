@@ -19,13 +19,13 @@ class TestBaseConfig:
         """Test creating BaseConfig with minimal required values."""
         config = BaseConfig(name="test_config")
         assert config.name == "test_config"
-        assert config.enable_validation is True  # Default value
+        assert config.strict_validation is False  # Default value
 
     def test_create_base_config_with_all_values(self) -> None:
         """Test creating BaseConfig with all values."""
-        config = BaseConfig(name="test_config", enable_validation=False)
+        config = BaseConfig(name="test_config", strict_validation=False)
         assert config.name == "test_config"
-        assert config.enable_validation is False
+        assert config.strict_validation is False
 
     def test_base_config_with_invalid_name(self) -> None:
         """Test creating BaseConfig with invalid name."""
@@ -37,15 +37,15 @@ class TestBaseConfig:
         with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
             BaseConfig(name="test_config", extra_field="test")  # type: ignore
 
-    def test_base_config_enable_validation_explicit_true(self) -> None:
-        """Test BaseConfig with explicit enable_validation=True."""
-        config = BaseConfig(name="test_config", enable_validation=True)
-        assert config.enable_validation is True
+    def test_base_config_strict_validation_explicit_true(self) -> None:
+        """Test BaseConfig with explicit strict_validation=True."""
+        config = BaseConfig(name="test_config", strict_validation=True)
+        assert config.strict_validation is True
 
-    def test_base_config_enable_validation_explicit_false(self) -> None:
-        """Test BaseConfig with explicit enable_validation=False."""
-        config = BaseConfig(name="test_config", enable_validation=False)
-        assert config.enable_validation is False
+    def test_base_config_strict_validation_explicit_false(self) -> None:
+        """Test BaseConfig with explicit strict_validation=False."""
+        config = BaseConfig(name="test_config", strict_validation=False)
+        assert config.strict_validation is False
 
     def test_inheritance_from_base_config(self) -> None:
         """Test that IndexConfig and PipelineConfig properly inherit from BaseConfig."""
@@ -62,15 +62,15 @@ class TestBaseConfig:
 
         # Test that they inherit the common fields
         assert hasattr(index_config, "name")
-        assert hasattr(index_config, "enable_validation")
+        assert hasattr(index_config, "strict_validation")
         assert hasattr(pipeline_config, "name")
-        assert hasattr(pipeline_config, "enable_validation")
+        assert hasattr(pipeline_config, "strict_validation")
 
         # Test that the inherited fields work correctly
         assert index_config.name == "test_index"
-        assert index_config.enable_validation is True  # Default value
+        assert index_config.strict_validation is False  # Default value
         assert pipeline_config.name == "test_pipeline"
-        assert pipeline_config.enable_validation is True  # Default value
+        assert pipeline_config.strict_validation is False  # Default value
 
 
 class TestPipelineInputs:
@@ -260,7 +260,7 @@ class TestPipelineConfig:
         assert config.name == "test_pipeline"
         assert isinstance(config.inputs, PipelineInputs)
         assert isinstance(config.outputs, PipelineOutputs)
-        assert config.enable_validation is True  # Default value
+        assert config.strict_validation is False  # Default value
 
     def test_create_pipeline_config_with_all_values(self) -> None:
         """Test creating PipelineConfig with all values."""
@@ -268,12 +268,12 @@ class TestPipelineConfig:
             name="test_pipeline",
             inputs=PipelineInputs(query=["retriever.query"], filters=["retriever.filters"]),
             outputs=PipelineOutputs(documents="retriever.documents", answers="reader.answers"),
-            enable_validation=False,
+            strict_validation=False,
         )
         assert config.name == "test_pipeline"
         assert config.inputs.query == ["retriever.query"]
         assert config.outputs.documents == "retriever.documents"
-        assert config.enable_validation is False
+        assert config.strict_validation is False
 
     def test_pipeline_config_with_invalid_name(self) -> None:
         """Test creating PipelineConfig with invalid name."""
@@ -289,34 +289,34 @@ class TestPipelineConfig:
         with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
             PipelineConfig(name="test_pipeline", extra_field="test", inputs=PipelineInputs(query=["prompt_builder.query"]), outputs=PipelineOutputs(answers="answers_builder.answers"))  # type: ignore
 
-    def test_pipeline_config_enable_validation_default_value(self) -> None:
-        """Test that PipelineConfig enable_validation field defaults to True."""
+    def test_pipeline_config_strict_validation_default_value(self) -> None:
+        """Test that PipelineConfig strict_validation field defaults to False."""
         config = PipelineConfig(
             name="test_pipeline",
             inputs=PipelineInputs(query=["prompt_builder.query"]),
             outputs=PipelineOutputs(answers="answers_builder.answers"),
         )
-        assert config.enable_validation is True
+        assert config.strict_validation is False
 
-    def test_pipeline_config_enable_validation_explicit_true(self) -> None:
-        """Test PipelineConfig with explicit enable_validation=True."""
+    def test_pipeline_config_strict_validation_explicit_true(self) -> None:
+        """Test PipelineConfig with explicit strict_validation=True."""
         config = PipelineConfig(
             name="test_pipeline",
             inputs=PipelineInputs(query=["prompt_builder.query"]),
             outputs=PipelineOutputs(answers="answers_builder.answers"),
-            enable_validation=True,
+            strict_validation=True,
         )
-        assert config.enable_validation is True
+        assert config.strict_validation is True
 
-    def test_pipeline_config_enable_validation_explicit_false(self) -> None:
-        """Test PipelineConfig with explicit enable_validation=False."""
+    def test_pipeline_config_strict_validation_explicit_false(self) -> None:
+        """Test PipelineConfig with explicit strict_validation=False."""
         config = PipelineConfig(
             name="test_pipeline",
             inputs=PipelineInputs(query=["prompt_builder.query"]),
             outputs=PipelineOutputs(answers="answers_builder.answers"),
-            enable_validation=False,
+            strict_validation=False,
         )
-        assert config.enable_validation is False
+        assert config.strict_validation is False
 
 
 class TestIndexConfig:
@@ -328,7 +328,7 @@ class TestIndexConfig:
         assert config.name == "test_index"
         assert isinstance(config.inputs, IndexInputs)
         assert isinstance(config.outputs, IndexOutputs)
-        assert config.enable_validation is True  # Default value
+        assert config.strict_validation is False  # Default value
 
     def test_create_index_config_with_all_values(self) -> None:
         """Test creating IndexConfig with all values."""
@@ -336,12 +336,12 @@ class TestIndexConfig:
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
             outputs=IndexOutputs(),
-            enable_validation=False,
+            strict_validation=False,
         )
         assert config.name == "test_index"
         assert config.inputs.files == ["file_type_router.sources"]
         assert isinstance(config.outputs, IndexOutputs)
-        assert config.enable_validation is False
+        assert config.strict_validation is False
 
     def test_index_config_with_invalid_name(self) -> None:
         """Test creating IndexConfig with invalid name."""
@@ -353,25 +353,25 @@ class TestIndexConfig:
         with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
             IndexConfig(name="test_index", inputs=IndexInputs(files=["file_type_router.sources"]), extra_field="test")  # type: ignore
 
-    def test_index_config_enable_validation_default_value(self) -> None:
-        """Test that IndexConfig enable_validation field defaults to True."""
+    def test_index_config_strict_validation_default_value(self) -> None:
+        """Test that IndexConfig strict_validation field defaults to False."""
         config = IndexConfig(name="test_index", inputs=IndexInputs(files=["file_type_router.sources"]))
-        assert config.enable_validation is True
+        assert config.strict_validation is False
 
-    def test_index_config_enable_validation_explicit_true(self) -> None:
-        """Test IndexConfig with explicit enable_validation=True."""
+    def test_index_config_strict_validation_explicit_true(self) -> None:
+        """Test IndexConfig with explicit strict_validation=True."""
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=True,
+            strict_validation=True,
         )
-        assert config.enable_validation is True
+        assert config.strict_validation is True
 
-    def test_index_config_enable_validation_explicit_false(self) -> None:
-        """Test IndexConfig with explicit enable_validation=False."""
+    def test_index_config_strict_validation_explicit_false(self) -> None:
+        """Test IndexConfig with explicit strict_validation=False."""
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
-            enable_validation=False,
+            strict_validation=False,
         )
-        assert config.enable_validation is False
+        assert config.strict_validation is False
