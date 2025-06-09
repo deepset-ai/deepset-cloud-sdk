@@ -56,16 +56,16 @@ class TestBaseConfig:
             inputs=PipelineInputs(query=["retriever.query"]),
             outputs=PipelineOutputs(answers="answer_builder.answers"),
         )
-        
+
         assert isinstance(index_config, BaseConfig)
         assert isinstance(pipeline_config, BaseConfig)
-        
+
         # Test that they inherit the common fields
-        assert hasattr(index_config, 'name')
-        assert hasattr(index_config, 'enable_validation')
-        assert hasattr(pipeline_config, 'name')
-        assert hasattr(pipeline_config, 'enable_validation')
-        
+        assert hasattr(index_config, "name")
+        assert hasattr(index_config, "enable_validation")
+        assert hasattr(pipeline_config, "name")
+        assert hasattr(pipeline_config, "enable_validation")
+
         # Test that the inherited fields work correctly
         assert index_config.name == "test_index"
         assert index_config.enable_validation is True  # Default value
@@ -333,8 +333,8 @@ class TestIndexConfig:
     def test_create_index_config_with_all_values(self) -> None:
         """Test creating IndexConfig with all values."""
         config = IndexConfig(
-            name="test_index", 
-            inputs=IndexInputs(files=["file_type_router.sources"]), 
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
             outputs=IndexOutputs(),
             enable_validation=False,
         )
@@ -361,7 +361,7 @@ class TestIndexConfig:
     def test_index_config_enable_validation_explicit_true(self) -> None:
         """Test IndexConfig with explicit enable_validation=True."""
         config = IndexConfig(
-            name="test_index", 
+            name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
             enable_validation=True,
         )
@@ -370,7 +370,7 @@ class TestIndexConfig:
     def test_index_config_enable_validation_explicit_false(self) -> None:
         """Test IndexConfig with explicit enable_validation=False."""
         config = IndexConfig(
-            name="test_index", 
+            name="test_index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
             enable_validation=False,
         )

@@ -15,7 +15,9 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
     PipelineOutputs,
 )
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import DeepsetValidationError
+from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
+    DeepsetValidationError,
+)
 
 structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),

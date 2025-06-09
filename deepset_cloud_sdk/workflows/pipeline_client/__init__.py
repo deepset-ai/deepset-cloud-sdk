@@ -10,7 +10,10 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineOutputs,
 )
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_client import PipelineClient
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import DeepsetValidationError, ErrorDetail
+from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
+    DeepsetValidationError,
+    ErrorDetail,
+)
 
 __all__ = [
     "BaseConfig",
