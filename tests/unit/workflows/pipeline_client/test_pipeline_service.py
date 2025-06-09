@@ -674,7 +674,7 @@ class TestValidatePipelineYaml:
         test_pipeline: Pipeline,
         mock_api: AsyncMock,
     ) -> None:
-        """Test validation failure with 'errors' field fallback (e.g., 500 errors)."""
+        """Test validation failure with 'errors' field fallback."""
         # Mock validation failure response with 'errors' field instead of 'details'
         validation_response = Mock(spec=Response)
         validation_response.status_code = HTTPStatus.FAILED_DEPENDENCY

@@ -168,7 +168,7 @@ class PipelineService:
         elif "errors" in response_json and isinstance(response_json["errors"], list):
             errors = response_json["errors"]
             error_message = ", ".join(str(error) for error in errors)
-            error_details = [ErrorDetail(code=str(response.status_code), message=error_message)]
+            error_details = [ErrorDetail(code=str(response.status_code.value), message=error_message)]
         else:
             error_details = [ErrorDetail(code="VALIDATION_FAILED", message=response.text)]
 
