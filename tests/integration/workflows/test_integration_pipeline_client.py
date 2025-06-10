@@ -356,7 +356,6 @@ class TestImportPipelineIntoDeepset:
         assert len(import_route.calls) == 0
 
 
-@pytest.mark.asyncio
 class TestRealIntegrationIndex:
     """Real integration tests that call the actual DeepsetCloudAPI."""
 
@@ -431,7 +430,6 @@ class TestRealIntegrationIndex:
                     assert delete_response.status_code in (HTTPStatus.NO_CONTENT, HTTPStatus.NOT_FOUND)
 
 
-@pytest.mark.asyncio
 class TestRealIntegrationPipeline:
     """Real integration tests for pipelines that call the actual DeepsetCloudAPI."""
 
