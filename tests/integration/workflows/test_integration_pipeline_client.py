@@ -378,7 +378,7 @@ class TestRealIntegrationIndex:
         return index
 
     @pytest.mark.integration
-    async def test_create_and_delete_index_integration(
+    def test_create_and_delete_index_integration(
         self, integration_config: CommonConfig, workspace_name: str, sample_index_for_integration: Pipeline
     ) -> None:
         """Test creating and deleting an index using real API calls."""
