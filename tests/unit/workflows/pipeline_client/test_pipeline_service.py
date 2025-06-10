@@ -1112,6 +1112,10 @@ class TestValidatePipelineYaml:
         validation_call = mock_api.post.call_args_list[0]
         assert validation_call.kwargs["endpoint"] == "pipeline_validations"
 
+        # Check import call (should proceed despite validation errors)
+        import_call = mock_api.post.call_args_list[1]
+        assert import_call.kwargs["endpoint"] == "indexes"
+
         # Check that validation errors were logged as warnings
         warning_logs = [log for log in cap_logs if log.get("log_level") == "warning"]
         assert len(warning_logs) >= 3  # Should have at least 3 warning messages
