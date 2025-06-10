@@ -245,14 +245,23 @@ class PipelineService:
         :param config: Configuration for importing an index.
         :param pipeline_yaml: Pre-generated index YAML string.
         """
-        response = await self._api.post(
-            workspace_name=self._workspace_name,
-            endpoint="indexes",
-            json={"name": config.name, "config_yaml": pipeline_yaml},
-        )
+        if config.overwrite:
+            logger.debug(f"Overwriting index {config.name}")
+            response = await self._api.put(
+                workspace_name=self._workspace_name,
+                endpoint=f"pipelines/{config.name}/yaml",
+                data={"index_yaml": pipeline_yaml},
+            )
+        else:
+            response = await self._api.post(
+                workspace_name=self._workspace_name,
+                endpoint="indexes",
+                json={"name": config.name, "config_yaml": pipeline_yaml},
+            )
         response.raise_for_status()
         if response.status_code == HTTPStatus.NO_CONTENT:
-            logger.debug(f"Index {config.name} successfully created.")
+            action = "overwritten" if config.overwrite else "created"
+            logger.debug(f"Index {config.name} successfully {action}.")
 
     async def _import_pipeline(self, config: PipelineConfig, pipeline_yaml: str) -> None:
         """Import a pipeline into deepset AI Platform.
@@ -261,14 +270,23 @@ class PipelineService:
         :param pipeline_yaml: Pre-generated pipeline YAML string.
         """
         logger.debug(f"Importing pipeline {config.name}")
-        response = await self._api.post(
-            workspace_name=self._workspace_name,
-            endpoint="pipelines",
-            json={"name": config.name, "query_yaml": pipeline_yaml},
-        )
+        if config.overwrite:
+            logger.debug(f"Overwriting pipeline {config.name}")
+            response = await self._api.put(
+                workspace_name=self._workspace_name,
+                endpoint=f"pipelines/{config.name}/yaml",
+                data={"query_yaml": pipeline_yaml},
+            )
+        else:
+            response = await self._api.post(
+                workspace_name=self._workspace_name,
+                endpoint="pipelines",
+                json={"name": config.name, "query_yaml": pipeline_yaml},
+            )
         response.raise_for_status()
         if response.status_code == HTTPStatus.NO_CONTENT:
-            logger.debug(f"Pipeline {config.name} successfully created.")
+            action = "overwritten" if config.overwrite else "created"
+            logger.debug(f"Pipeline {config.name} successfully {action}.")
 
     def _from_haystack_pipeline(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
         """Create a YAML configuration from the pipeline.

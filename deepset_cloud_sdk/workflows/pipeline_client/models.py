@@ -29,6 +29,7 @@ class BaseConfig(BaseModel):
 
     :param name: Name of the pipeline or index to be imported.
     :param strict_validation: Whether to fail on validation errors. Defaults to False (warnings only).
+    :param overwrite: Whether to overwrite existing pipelines or indexes with the same name. Defaults to False.
     """
 
     model_config = {"extra": "forbid"}
@@ -37,6 +38,10 @@ class BaseConfig(BaseModel):
     strict_validation: bool = Field(
         default=False,
         description="Whether to fail on validation errors. If False, validation warnings are logged but import continues. Defaults to False.",
+    )
+    overwrite: bool = Field(
+        default=False,
+        description="Whether to overwrite existing pipelines or indexes with the same name. Defaults to False.",
     )
 
 

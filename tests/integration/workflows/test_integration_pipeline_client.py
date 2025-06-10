@@ -209,6 +209,93 @@ class TestImportIndexIntoDeepset:
         assert len(validation_route.calls) == 1
         assert len(import_route.calls) == 0
 
+    @pytest.mark.integration
+    @respx.mock
+    def test_import_index_with_overwrite_true(
+        self, sample_index: Pipeline, test_client: PipelineClient
+    ) -> None:
+        """Test overwriting an index using PUT endpoint when overwrite=True."""
+        # Mock validation success
+        validation_route = respx.post("https://test-api-url.com/workspaces/test-workspace/pipeline_validations").mock(
+            return_value=Response(status_code=HTTPStatus.NO_CONTENT)
+        )
+
+        # Mock overwrite success
+        overwrite_route = respx.put("https://test-api-url.com/workspaces/test-workspace/pipelines/test-index-overwrite/yaml").mock(
+            return_value=Response(status_code=HTTPStatus.NO_CONTENT)
+        )
+
+        index_config = IndexConfig(
+            name="test-index-overwrite",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        test_client.import_into_deepset(sample_index, index_config)
+
+        # Verify both endpoints were called
+        assert validation_route.called
+        assert overwrite_route.called
+
+        # Check validation request
+        validation_request = validation_route.calls[0].request
+        assert validation_request.headers["Authorization"] == "Bearer test-api-key"
+        validation_body = json.loads(validation_request.content)
+        assert validation_body["name"] == "test-index-overwrite"
+        assert "indexing_yaml" in validation_body
+
+        # Check overwrite request
+        overwrite_request = overwrite_route.calls[0].request
+        assert overwrite_request.headers["Authorization"] == "Bearer test-api-key"
+        overwrite_body = json.loads(overwrite_request.content)
+        assert "index_yaml" in overwrite_body
+        assert overwrite_body["index_yaml"].startswith("components:\n  document_embedder:\n")
+
+    @pytest.mark.asyncio
+    @pytest.mark.integration
+    @respx.mock
+    async def test_import_index_with_overwrite_true_async(
+        self, sample_index: Pipeline, test_client: PipelineClient
+    ) -> None:
+        """Test asynchronously overwriting an index using PUT endpoint when overwrite=True."""
+        # Mock validation success
+        validation_route = respx.post("https://test-api-url.com/workspaces/test-workspace/pipeline_validations").mock(
+            return_value=Response(status_code=HTTPStatus.NO_CONTENT)
+        )
+
+        # Mock overwrite success
+        overwrite_route = respx.put("https://test-api-url.com/workspaces/test-workspace/pipelines/test-index-overwrite-async/yaml").mock(
+            return_value=Response(status_code=HTTPStatus.NO_CONTENT)
+        )
+
+        index_config = IndexConfig(
+            name="test-index-overwrite-async",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        await test_client.import_into_deepset_async(sample_index, index_config)
+
+        # Verify both endpoints were called
+        assert validation_route.called
+        assert overwrite_route.called
+
+        # Check validation request
+        validation_request = validation_route.calls[0].request
+        assert validation_request.headers["Authorization"] == "Bearer test-api-key"
+        validation_body = json.loads(validation_request.content)
+        assert validation_body["name"] == "test-index-overwrite-async"
+        assert "indexing_yaml" in validation_body
+
+        # Check overwrite request
+        overwrite_request = overwrite_route.calls[0].request
+        assert overwrite_request.headers["Authorization"] == "Bearer test-api-key"
+        overwrite_body = json.loads(overwrite_request.content)
+        assert "index_yaml" in overwrite_body
+        assert overwrite_body["index_yaml"].startswith("components:\n  document_embedder:\n")
+
 
 @pytest.mark.parametrize("pipeline_class", [Pipeline, AsyncPipeline])
 class TestImportPipelineIntoDeepset:

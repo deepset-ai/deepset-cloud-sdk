@@ -412,6 +412,110 @@ outputs:
         assert import_call.kwargs["endpoint"] == "indexes"
         assert import_call.kwargs["json"] == {"name": "test_index", "config_yaml": expected_pipeline_yaml}
 
+    @pytest.mark.asyncio
+    async def test_import_index_with_overwrite_true(
+        self,
+        pipeline_service: PipelineService,
+        index_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test importing an index with overwrite=True uses PUT endpoint."""
+        config = IndexConfig(
+            name="test_index_overwrite",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful overwrite response
+        overwrite_response = Mock(spec=Response)
+        overwrite_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        mock_api.post.return_value = validation_response
+        mock_api.put.return_value = overwrite_response
+
+        await pipeline_service.import_async(index_pipeline, config)
+
+        # Should call validation endpoint first, then overwrite endpoint
+        assert mock_api.post.call_count == 1
+        assert mock_api.put.call_count == 1
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+        assert "indexing_yaml" in validation_call.kwargs["json"]
+        assert validation_call.kwargs["json"]["name"] == "test_index_overwrite"
+
+        # Check overwrite call
+        overwrite_call = mock_api.put.call_args_list[0]
+        assert overwrite_call.kwargs["endpoint"] == "pipelines/test_index_overwrite/yaml"
+        assert "index_yaml" in overwrite_call.kwargs["data"]
+
+    @pytest.mark.asyncio
+    async def test_import_pipeline_with_overwrite_true(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test importing a pipeline with overwrite=True uses PUT endpoint."""
+        mock_api = AsyncMock()
+        service = PipelineService(mock_api, workspace_name="default")
+        mock_pipeline = Mock(spec=Pipeline)
+        mock_pipeline.dumps.return_value = textwrap.dedent(
+            """components:
+  retriever:
+    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
+"""
+        )
+        config = PipelineConfig(
+            name="test_pipeline_overwrite",
+            inputs=PipelineInputs(query=["retriever.query"]),
+            outputs=PipelineOutputs(documents="meta_ranker.documents"),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful overwrite response
+        overwrite_response = Mock(spec=Response)
+        overwrite_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        mock_api.post.return_value = validation_response
+        mock_api.put.return_value = overwrite_response
+
+        await service.import_async(mock_pipeline, config)
+
+        expected_pipeline_yaml = textwrap.dedent(
+            """components:
+  retriever:
+    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
+inputs:
+  query:
+  - retriever.query
+outputs:
+  documents: meta_ranker.documents
+"""
+        )
+
+        # Should call validation endpoint first, then overwrite endpoint
+        assert mock_api.post.call_count == 1
+        assert mock_api.put.call_count == 1
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+        assert "query_yaml" in validation_call.kwargs["json"]
+        assert validation_call.kwargs["json"]["name"] == "test_pipeline_overwrite"
+
+        # Check overwrite call
+        overwrite_call = mock_api.put.call_args_list[0]
+        assert overwrite_call.kwargs["endpoint"] == "pipelines/test_pipeline_overwrite/yaml"
+        assert "query_yaml" in overwrite_call.kwargs["data"]
+        assert overwrite_call.kwargs["data"] == {"query_yaml": expected_pipeline_yaml}
+
 
 class TestAddAsyncFlagIfNeeded:
     """Test suite for the _add_async_flag_if_needed method."""
@@ -931,10 +1035,6 @@ class TestValidatePipelineYaml:
         # Check validation call
         validation_call = mock_api.post.call_args_list[0]
         assert validation_call.kwargs["endpoint"] == "pipeline_validations"
-
-        # Check import call (should proceed despite validation errors)
-        import_call = mock_api.post.call_args_list[1]
-        assert import_call.kwargs["endpoint"] == "indexes"
 
         # Check that validation errors were logged as warnings
         warning_logs = [log for log in cap_logs if log.get("log_level") == "warning"]
