@@ -149,8 +149,8 @@ class PipelineService:
         try:
             if isinstance(config, IndexConfig):
                 await self._validate_index(config.name, pipeline_yaml)
-            else:
-                await self._validate_pipeline(config.name, pipeline_yaml)
+                return
+            await self._validate_pipeline(config.name, pipeline_yaml)
         except DeepsetValidationError as err:
             if config.strict_validation:
                 # Re-raise the error to fail the import
