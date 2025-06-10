@@ -23,13 +23,13 @@ class WorkspaceNotDefinedError(Exception):
 
 
 class DeepsetCloudAPI:
-    """deepset Cloud API client.
+    """deepset AI Platform API client.
 
-    This class takes care of all API calls to deepset Cloud and handles authentication and errors.
+    This class takes care of all API calls to deepset AI Platform and handles authentication and errors.
     """
 
     def __init__(self, config: CommonConfig, client: httpx.AsyncClient) -> None:
-        """Create a deepset Cloud API client.
+        """Create a deepset AI Platform API client.
 
         Add a config for authentication and a HTTPX client for
         sending requests.
@@ -82,7 +82,7 @@ class DeepsetCloudAPI:
     async def get(
         self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
     ) -> Response:
-        """Make a GET request to the deepset Cloud API.
+        """Make a GET request to the deepset AI Platform API.
 
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
@@ -112,7 +112,7 @@ class DeepsetCloudAPI:
             timeout=timeout_s,
         )
         logger.debug(
-            "Called deepset Cloud API.",
+            "Called deepset AI Platform API.",
             method="GET",
             workspace=workspace_name,
             endpoint=endpoint,
@@ -131,7 +131,7 @@ class DeepsetCloudAPI:
         data: Optional[Dict[str, Any]] = None,
         timeout_s: int = 20,
     ) -> Response:
-        """Make a POST request to the deepset Cloud API.
+        """Make a POST request to the deepset AI Platform API.
 
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
@@ -145,14 +145,14 @@ class DeepsetCloudAPI:
         response = await self.client.post(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
-            json=json or {},
-            data=data or {},
+            json=json if json is not None else None,
+            data=data if data is not None else None,
             files=files,
             headers=self.headers,
             timeout=timeout_s,
         )
         logger.debug(
-            "Called deepset Cloud API",
+            "Called deepset AI Platform API",
             method="POST",
             workspace=workspace_name,
             endpoint=endpoint,
@@ -166,7 +166,7 @@ class DeepsetCloudAPI:
         self, workspace_name: str, endpoint: str, params: Optional[Dict[str, Any]] = None, timeout_s: int = 20
     ) -> Response:
         """
-        Make a DELETE request to the deepset Cloud API.
+        Make a DELETE request to the deepset AI Platform API.
 
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
@@ -181,7 +181,7 @@ class DeepsetCloudAPI:
             timeout=timeout_s,
         )
         logger.debug(
-            "Called deepset Cloud API",
+            "Called deepset AI Platform API",
             method="DELETE",
             workspace=workspace_name,
             endpoint=endpoint,
@@ -198,7 +198,7 @@ class DeepsetCloudAPI:
         data: Optional[Dict[str, Any]] = None,
         timeout_s: int = 20,
     ) -> Response:
-        """Make a PUT request to the deepset Cloud API.
+        """Make a PUT request to the deepset AI Platform API.
 
         :param workspace_name: Name of the workspace to use.
         :param endpoint: Endpoint to call.
@@ -235,7 +235,7 @@ class DeepsetCloudAPI:
             timeout=timeout_s,
         )
         logger.debug(
-            "Called deepset Cloud API",
+            "Called deepset AI Platform API",
             method="PUT",
             workspace=workspace_name,
             endpoint=endpoint,
@@ -244,9 +244,47 @@ class DeepsetCloudAPI:
         )
         return response
 
+    async def patch(
+        self,
+        workspace_name: str,
+        endpoint: str,
+        params: Optional[Dict[str, Any]] = None,
+        json: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+        timeout_s: int = 20,
+    ) -> Response:
+        """Make a PATCH request to the deepset AI Platform API.
+
+        :param workspace_name: Name of the workspace to use.
+        :param endpoint: Endpoint to call.
+        :param params: Query parameters to pass.
+        :param json: JSON data to pass.
+        :param data: Data to pass.
+        :param timeout_s: Timeout in seconds.
+        :return: Response object.
+        """
+        response = await self.client.patch(
+            f"{self.base_url(workspace_name)}/{endpoint}",
+            params=params or {},
+            json=json if json is not None else None,
+            data=data if data is not None else None,
+            headers=self.headers,
+            timeout=timeout_s,
+        )
+        logger.debug(
+            "Called deepset AI Platform API",
+            method="PATCH",
+            workspace=workspace_name,
+            endpoint=endpoint,
+            json=json or {},
+            data=data or {},
+            status=response.status_code,
+        )
+        return response
+
 
 def get_deepset_cloud_api(config: CommonConfig, client: httpx.AsyncClient) -> DeepsetCloudAPI:  # noqa
-    """deepset Cloud API factory. Return an instance of DeepsetCloudAPI.
+    """deepset AI Platform API factory. Return an instance of DeepsetCloudAPI.
 
     :param config: CommonConfig object.
     :param client: httpx.AsyncClient object.

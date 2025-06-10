@@ -59,7 +59,6 @@ class TestBaseConfig:
         config = BaseConfig(name="test_config", overwrite=False)
         assert config.overwrite is False
 
-
     def test_inheritance_from_base_config(self) -> None:
         """Test that IndexConfig and PipelineConfig properly inherit from BaseConfig."""
         # Test that they are instances of BaseConfig

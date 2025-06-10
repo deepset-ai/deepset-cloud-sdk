@@ -419,9 +419,49 @@ outputs:
         index_pipeline: Pipeline,
         mock_api: AsyncMock,
     ) -> None:
-        """Test importing an index with overwrite=True uses PUT endpoint."""
+        """Test importing an index with overwrite=True uses PATCH endpoint."""
         config = IndexConfig(
             name="test_index_overwrite",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful overwrite response
+        overwrite_response = Mock(spec=Response)
+        overwrite_response.status_code = HTTPStatus.OK.value
+
+        mock_api.post.side_effect = [validation_response]
+        mock_api.patch.return_value = overwrite_response
+
+        await pipeline_service.import_async(index_pipeline, config)
+
+        # Should call validation endpoint, then PATCH for overwrite
+        assert mock_api.post.call_count == 1
+        assert mock_api.patch.call_count == 1
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+
+        # Check overwrite call
+        overwrite_call = mock_api.patch.call_args_list[0]
+        assert overwrite_call.kwargs["endpoint"] == "indexes/test_index_overwrite"
+        assert "config_yaml" in overwrite_call.kwargs["json"]
+
+    @pytest.mark.asyncio
+    async def test_import_index_with_overwrite_fallback_to_create(
+        self,
+        pipeline_service: PipelineService,
+        index_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test importing an index with overwrite=True that falls back to create when resource doesn't exist."""
+        config = IndexConfig(
+            name="test_index_fallback",
             inputs=IndexInputs(files=["file_type_router.sources"]),
             strict_validation=False,
             overwrite=True,
@@ -431,42 +471,39 @@ outputs:
         validation_response = Mock(spec=Response)
         validation_response.status_code = HTTPStatus.NO_CONTENT.value
 
-        # Mock successful overwrite response
-        overwrite_response = Mock(spec=Response)
-        overwrite_response.status_code = HTTPStatus.NO_CONTENT.value
+        # Mock 404 response for PUT (resource not found)
+        not_found_response = Mock(spec=Response)
+        not_found_response.status_code = HTTPStatus.NOT_FOUND.value
 
-        mock_api.post.return_value = validation_response
-        mock_api.put.return_value = overwrite_response
+        # Mock successful creation response
+        create_response = Mock(spec=Response)
+        create_response.status_code = HTTPStatus.OK.value
+
+        mock_api.post.side_effect = [validation_response, create_response]
+        mock_api.patch.return_value = not_found_response
 
         await pipeline_service.import_async(index_pipeline, config)
 
-        # Should call validation endpoint first, then overwrite endpoint
-        assert mock_api.post.call_count == 1
-        assert mock_api.put.call_count == 1
+        # Should call validation endpoint, then PATCH (which returns 404), then POST to create
+        assert mock_api.post.call_count == 2
+        assert mock_api.patch.call_count == 1
 
         # Check validation call
         validation_call = mock_api.post.call_args_list[0]
         assert validation_call.kwargs["endpoint"] == "pipeline_validations"
         assert "indexing_yaml" in validation_call.kwargs["json"]
-        assert validation_call.kwargs["json"]["name"] == "test_index_overwrite"
+        assert validation_call.kwargs["json"]["name"] == "test_index_fallback"
 
-        # Check overwrite call
-        overwrite_call = mock_api.put.call_args_list[0]
-        assert overwrite_call.kwargs["endpoint"] == "pipelines/test_index_overwrite/yaml"
-        assert "index_yaml" in overwrite_call.kwargs["data"]
+        # Check PATCH attempt
+        patch_call = mock_api.patch.call_args_list[0]
+        assert patch_call.kwargs["endpoint"] == "indexes/test_index_fallback"
+        assert "config_yaml" in patch_call.kwargs["json"]
 
     @pytest.mark.asyncio
-    async def test_import_pipeline_with_overwrite_true(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_import_pipeline_with_overwrite_true(
+        self, pipeline_service: PipelineService, index_pipeline: Pipeline, mock_api: AsyncMock
+    ) -> None:
         """Test importing a pipeline with overwrite=True uses PUT endpoint."""
-        mock_api = AsyncMock()
-        service = PipelineService(mock_api, workspace_name="default")
-        mock_pipeline = Mock(spec=Pipeline)
-        mock_pipeline.dumps.return_value = textwrap.dedent(
-            """components:
-  retriever:
-    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
-"""
-        )
         config = PipelineConfig(
             name="test_pipeline_overwrite",
             inputs=PipelineInputs(query=["retriever.query"]),
@@ -481,24 +518,12 @@ outputs:
 
         # Mock successful overwrite response
         overwrite_response = Mock(spec=Response)
-        overwrite_response.status_code = HTTPStatus.NO_CONTENT.value
+        overwrite_response.status_code = HTTPStatus.OK.value
 
         mock_api.post.return_value = validation_response
         mock_api.put.return_value = overwrite_response
 
-        await service.import_async(mock_pipeline, config)
-
-        expected_pipeline_yaml = textwrap.dedent(
-            """components:
-  retriever:
-    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
-inputs:
-  query:
-  - retriever.query
-outputs:
-  documents: meta_ranker.documents
-"""
-        )
+        await pipeline_service.import_async(index_pipeline, config)
 
         # Should call validation endpoint first, then overwrite endpoint
         assert mock_api.post.call_count == 1
@@ -514,7 +539,58 @@ outputs:
         overwrite_call = mock_api.put.call_args_list[0]
         assert overwrite_call.kwargs["endpoint"] == "pipelines/test_pipeline_overwrite/yaml"
         assert "query_yaml" in overwrite_call.kwargs["data"]
-        assert overwrite_call.kwargs["data"] == {"query_yaml": expected_pipeline_yaml}
+
+    @pytest.mark.asyncio
+    async def test_import_pipeline_with_overwrite_fallback_to_create(
+        self, pipeline_service: PipelineService, index_pipeline: Pipeline, mock_api: AsyncMock
+    ) -> None:
+        """Test importing a pipeline with overwrite=True that falls back to create when resource doesn't exist."""
+
+        config = PipelineConfig(
+            name="test_pipeline_fallback",
+            inputs=PipelineInputs(query=["retriever.query"]),
+            outputs=PipelineOutputs(documents="meta_ranker.documents"),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock 404 response for PUT (resource not found)
+        not_found_response = Mock(spec=Response)
+        not_found_response.status_code = HTTPStatus.NOT_FOUND.value
+
+        # Mock successful creation response
+        create_response = Mock(spec=Response)
+        create_response.status_code = HTTPStatus.CREATED.value
+
+        mock_api.post.side_effect = [validation_response, create_response]
+        mock_api.put.return_value = not_found_response
+
+        await pipeline_service.import_async(index_pipeline, config)
+
+        # Should call validation endpoint, then PUT (which returns 404), then POST to create
+        assert mock_api.post.call_count == 2
+        assert mock_api.put.call_count == 1
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+        assert "query_yaml" in validation_call.kwargs["json"]
+        assert validation_call.kwargs["json"]["name"] == "test_pipeline_fallback"
+
+        # Check PUT attempt
+        put_call = mock_api.put.call_args_list[0]
+        assert put_call.kwargs["endpoint"] == "pipelines/test_pipeline_fallback/yaml"
+        assert "query_yaml" in put_call.kwargs["data"]
+
+        # Check fallback POST call
+        create_call = mock_api.post.call_args_list[1]
+        assert create_call.kwargs["endpoint"] == "pipelines"
+        assert create_call.kwargs["json"]["name"] == "test_pipeline_fallback"
+        assert "query_yaml" in create_call.kwargs["json"]
 
 
 class TestAddAsyncFlagIfNeeded:

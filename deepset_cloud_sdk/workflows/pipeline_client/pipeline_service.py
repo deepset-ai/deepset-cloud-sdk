@@ -244,49 +244,30 @@ class PipelineService:
 
         :param config: Configuration for importing an index.
         :param pipeline_yaml: Pre-generated index YAML string.
+        :raises HTTPStatusError: If the index import fails.
         """
         if config.overwrite:
-            logger.debug(f"Overwriting index {config.name}")
-            response = await self._api.put(
-                workspace_name=self._workspace_name,
-                endpoint=f"pipelines/{config.name}/yaml",
-                data={"index_yaml": pipeline_yaml},
-            )
+            response = await self._overwrite_index(name=config.name, pipeline_yaml=pipeline_yaml)
         else:
-            response = await self._api.post(
-                workspace_name=self._workspace_name,
-                endpoint="indexes",
-                json={"name": config.name, "config_yaml": pipeline_yaml},
-            )
+            response = await self._create_index(name=config.name, pipeline_yaml=pipeline_yaml)
+
         response.raise_for_status()
-        if response.status_code == HTTPStatus.NO_CONTENT:
-            action = "overwritten" if config.overwrite else "created"
-            logger.debug(f"Index {config.name} successfully {action}.")
+        logger.debug(f"Index successfully imported.")
 
     async def _import_pipeline(self, config: PipelineConfig, pipeline_yaml: str) -> None:
         """Import a pipeline into deepset AI Platform.
 
         :param config: Configuration for importing a pipeline.
         :param pipeline_yaml: Pre-generated pipeline YAML string.
+        :raises HTTPStatusError: If the pipeline import fails.
         """
-        logger.debug(f"Importing pipeline {config.name}")
         if config.overwrite:
-            logger.debug(f"Overwriting pipeline {config.name}")
-            response = await self._api.put(
-                workspace_name=self._workspace_name,
-                endpoint=f"pipelines/{config.name}/yaml",
-                data={"query_yaml": pipeline_yaml},
-            )
+            response = await self._overwrite_pipeline(name=config.name, pipeline_yaml=pipeline_yaml)
         else:
-            response = await self._api.post(
-                workspace_name=self._workspace_name,
-                endpoint="pipelines",
-                json={"name": config.name, "query_yaml": pipeline_yaml},
-            )
+            response = await self._create_pipeline(name=config.name, pipeline_yaml=pipeline_yaml)
+
         response.raise_for_status()
-        if response.status_code == HTTPStatus.NO_CONTENT:
-            action = "overwritten" if config.overwrite else "created"
-            logger.debug(f"Pipeline {config.name} successfully {action}.")
+        logger.debug(f"Pipeline successfully imported.")
 
     def _from_haystack_pipeline(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
         """Create a YAML configuration from the pipeline.
@@ -333,3 +314,69 @@ class PipelineService:
             # If haystack-ai is not available, we can't check the type
             # This should not happen since we already checked in import_async
             pass
+
+    async def _overwrite_index(self, name: str, pipeline_yaml: str) -> Response:
+        """Overwrite an index in deepset AI Platform.
+
+        If the index doesn't exist, it will be created instead.
+
+        :param name: Name of the index.
+        :param pipeline_yaml: Generated index YAML string.
+        """
+        response = await self._api.patch(
+            workspace_name=self._workspace_name,
+            endpoint=f"indexes/{name}",
+            json={"config_yaml": pipeline_yaml},
+        )
+
+        # If index doesn't exist (404), create it instead
+        if response.status_code == HTTPStatus.NOT_FOUND:
+            logger.debug(f"Index {name} not found, creating new index.")
+            response = await self._create_index(name=name, pipeline_yaml=pipeline_yaml)
+
+        return response
+
+    async def _create_index(self, name: str, pipeline_yaml: str) -> Response:
+        """Create an index in deepset AI Platform.
+
+        :param name: Name of the index.
+        :param pipeline_yaml: Generated index YAML string.
+        :return: HTTP response from the API.
+        """
+        return await self._api.post(
+            workspace_name=self._workspace_name,
+            endpoint="indexes",
+            json={"name": name, "config_yaml": pipeline_yaml},
+        )
+
+    async def _overwrite_pipeline(self, name: str, pipeline_yaml: str) -> Response:
+        """Overwrite a pipeline in deepset AI Platform.
+
+        :param name: Name of the pipeline.
+        :param pipeline_yaml: Generated pipeline YAML string.
+        """
+        response = await self._api.put(
+            workspace_name=self._workspace_name,
+            endpoint=f"pipelines/{name}/yaml",
+            data={"query_yaml": pipeline_yaml},
+        )
+
+        # If pipeline doesn't exist (404), create it instead
+        if response.status_code == HTTPStatus.NOT_FOUND:
+            logger.debug(f"Pipeline {name} not found, creating new pipeline.")
+            response = await self._create_pipeline(name=name, pipeline_yaml=pipeline_yaml)
+
+        return response
+
+    async def _create_pipeline(self, name: str, pipeline_yaml: str) -> Response:
+        """Create a pipeline in deepset AI Platform.
+
+        :param name: Name of the pipeline.
+        :param pipeline_yaml: Generated pipeline YAML string.
+        :return: HTTP response from the API.
+        """
+        return await self._api.post(
+            workspace_name=self._workspace_name,
+            endpoint="pipelines",
+            json={"name": name, "query_yaml": pipeline_yaml},
+        )
