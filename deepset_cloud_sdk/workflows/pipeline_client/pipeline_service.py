@@ -156,7 +156,7 @@ class PipelineService:
                 # Re-raise the error to fail the import
                 raise
             # Log warning and continue with import
-            logger.warning(f"Validation issues found.")
+            logger.warning("Validation issues found.")
             logger.warning("Import will continue. Set strict_validation=True to fail on validation errors.")
             for error_detail in err.errors:
                 logger.warning(f"Validation error [{error_detail.code}]: {error_detail.message}")

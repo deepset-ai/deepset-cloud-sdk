@@ -1,10 +1,11 @@
 """Integration tests for importing Haystack pipelines into deepset AI Platform."""
 import json
+import uuid
 from datetime import timedelta
 from http import HTTPStatus
 from typing import NamedTuple
-import uuid
 
+import httpx
 import pytest
 import respx
 import tenacity
@@ -19,9 +20,8 @@ from haystack.components.generators.openai import OpenAIGenerator
 from haystack.components.routers.file_type_router import FileTypeRouter
 from haystack.utils import Secret
 from httpx import Response
-import httpx
-from deepset_cloud_sdk._api.config import CommonConfig
 
+from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk.workflows.pipeline_client import PipelineClient
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
     IndexConfig,
@@ -356,10 +356,10 @@ class TestImportPipelineIntoDeepset:
         assert len(import_route.calls) == 0
 
 
-@pytest.mark.asyncio 
+@pytest.mark.asyncio
 class TestRealIntegrationIndex:
     """Real integration tests that call the actual DeepsetCloudAPI."""
-    
+
     @pytest.fixture
     def sample_index_for_integration(self) -> Pipeline:
         """Create a simple index for real integration testing."""
@@ -372,7 +372,7 @@ class TestRealIntegrationIndex:
 
         # Add components
         index.add_component("file_type_router", file_type_router)
-        index.add_component("text_converter", text_converter) 
+        index.add_component("text_converter", text_converter)
         index.add_component("document_embedder", document_embedder)
 
         # Connect components
@@ -383,29 +383,24 @@ class TestRealIntegrationIndex:
 
     @pytest.mark.integration
     async def test_create_and_delete_index_integration(
-        self, 
-        integration_config: CommonConfig, 
-        workspace_name: str,
-        sample_index_for_integration: Pipeline
+        self, integration_config: CommonConfig, workspace_name: str, sample_index_for_integration: Pipeline
     ) -> None:
         """Test creating and deleting an index using real API calls."""
         index_name = f"test-integration-index-{uuid.uuid4().hex[:8]}"
-        
+
         client = PipelineClient(
-            api_key=integration_config.api_key,
-            api_url=integration_config.api_url,
-            workspace_name=workspace_name
+            api_key=integration_config.api_key, api_url=integration_config.api_url, workspace_name=workspace_name
         )
-        
+
         try:
             index_config = IndexConfig(
                 name=index_name,
                 inputs=IndexInputs(files=["file_type_router.sources"]),
                 strict_validation=False,  # Skip validation for integration test
             )
-            
+
             client.import_into_deepset(sample_index_for_integration, index_config)
-            
+
             # Retry verification to handle eventual consistency
             for attempt in tenacity.Retrying(
                 stop=tenacity.stop_after_delay(120),
@@ -420,7 +415,7 @@ class TestRealIntegrationIndex:
                     assert response.status_code == HTTPStatus.OK, f"Failed to create index {index_name}"
                     index_data = response.json()
                     assert index_data["name"] == index_name
-            
+
         finally:
             # Clean up: delete the index with retry
             for attempt in tenacity.Retrying(
@@ -439,8 +434,8 @@ class TestRealIntegrationIndex:
 @pytest.mark.asyncio
 class TestRealIntegrationPipeline:
     """Real integration tests for pipelines that call the actual DeepsetCloudAPI."""
-    
-    @pytest.fixture  
+
+    @pytest.fixture
     def sample_pipeline_for_integration(self, monkeypatch: pytest.MonkeyPatch) -> Pipeline:
         """Create a sample pipeline for real integration testing."""
         monkeypatch.setenv("OPENAI_API_KEY", "test-openai-api-key")
@@ -472,22 +467,17 @@ class TestRealIntegrationPipeline:
 
     @pytest.mark.integration
     async def test_create_and_delete_pipeline_integration(
-        self,
-        integration_config: CommonConfig,
-        workspace_name: str, 
-        sample_pipeline_for_integration: Pipeline
+        self, integration_config: CommonConfig, workspace_name: str, sample_pipeline_for_integration: Pipeline
     ) -> None:
         """Test creating and deleting a pipeline using real API calls."""
         # Create unique pipeline name
         pipeline_name = f"test-integration-pipeline-{uuid.uuid4().hex[:8]}"
-        
+
         # Create real client
         client = PipelineClient(
-            api_key=integration_config.api_key,
-            api_url=integration_config.api_url,
-            workspace_name=workspace_name
+            api_key=integration_config.api_key, api_url=integration_config.api_url, workspace_name=workspace_name
         )
-        
+
         try:
             # Create pipeline config
             pipeline_config = PipelineConfig(
@@ -498,7 +488,7 @@ class TestRealIntegrationPipeline:
             )
 
             client.import_into_deepset(sample_pipeline_for_integration, pipeline_config)
-            
+
             # Retry verification to handle eventual consistency
             for attempt in tenacity.Retrying(
                 stop=tenacity.stop_after_delay(120),
@@ -513,7 +503,7 @@ class TestRealIntegrationPipeline:
                     assert response.status_code == HTTPStatus.OK, f"Failed to create pipeline {pipeline_name}"
                     pipeline_data = response.json()
                     assert pipeline_data["name"] == pipeline_name
-            
+
         finally:
             # Clean up: delete the pipeline with retry
             for attempt in tenacity.Retrying(
