@@ -117,7 +117,6 @@ class TestImportIndexIntoDeepset:
 
         return index
 
-    @pytest.mark.integration
     @respx.mock
     def test_import_index_into_deepset(
         self, sample_index: Pipeline, test_client: PipelineClient, index_import_routes: MockRoutes
@@ -136,7 +135,6 @@ class TestImportIndexIntoDeepset:
         )
 
     @pytest.mark.asyncio
-    @pytest.mark.integration
     @respx.mock
     async def test_import_index_into_deepset_async(
         self, sample_index: Pipeline, test_client: PipelineClient, index_import_routes: MockRoutes
@@ -154,7 +152,6 @@ class TestImportIndexIntoDeepset:
             index_import_routes, "test-index-async", "config_yaml", "components:\n  document_embedder:\n"
         )
 
-    @pytest.mark.integration
     @respx.mock
     def test_import_index_into_deepset_with_validation(
         self, sample_index: Pipeline, test_client: PipelineClient, index_import_routes: MockRoutes
@@ -178,7 +175,6 @@ class TestImportIndexIntoDeepset:
             index_import_routes, "test-index-with-validation", "config_yaml", "components:\n  document_embedder:\n"
         )
 
-    @pytest.mark.integration
     @respx.mock
     def test_import_index_validation_failure_blocks_import(
         self, sample_index: Pipeline, test_client: PipelineClient
@@ -248,7 +244,6 @@ class TestImportPipelineIntoDeepset:
 
         return pipeline
 
-    @pytest.mark.integration
     @respx.mock
     def test_import_pipeline_into_deepset(
         self, sample_pipeline: Pipeline, test_client: PipelineClient, pipeline_import_routes: MockRoutes
@@ -270,7 +265,6 @@ class TestImportPipelineIntoDeepset:
         )
 
     @pytest.mark.asyncio
-    @pytest.mark.integration
     @respx.mock
     async def test_import_pipeline_into_deepset_async(
         self, sample_pipeline: Pipeline, test_client: PipelineClient, pipeline_import_routes: MockRoutes
@@ -292,7 +286,6 @@ class TestImportPipelineIntoDeepset:
         )
 
     @pytest.mark.asyncio
-    @pytest.mark.integration
     @respx.mock
     async def test_import_pipeline_into_deepset_async_with_validation(
         self, sample_pipeline: Pipeline, test_client: PipelineClient, pipeline_import_routes: MockRoutes
@@ -319,7 +312,6 @@ class TestImportPipelineIntoDeepset:
             "components:\n  answer_builder:\n    init_parameters:\n",
         )
 
-    @pytest.mark.integration
     @respx.mock
     def test_import_pipeline_validation_failure_blocks_import(
         self, sample_pipeline: Pipeline, test_client: PipelineClient
@@ -377,7 +369,6 @@ class TestRealIntegrationIndex:
 
         return index
 
-    @pytest.mark.integration
     def test_create_and_delete_index_integration(
         self, integration_config: CommonConfig, workspace_name: str, sample_index_for_integration: Pipeline
     ) -> None:
@@ -457,7 +448,6 @@ class TestRealIntegrationPipeline:
 
         return pipeline
 
-    @pytest.mark.integration
     async def test_create_and_delete_pipeline_integration(
         self, integration_config: CommonConfig, workspace_name: str, sample_pipeline_for_integration: Pipeline
     ) -> None:
