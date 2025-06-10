@@ -29,7 +29,14 @@ class PipelineClient:
 
     Example for importing a Haystack pipeline or index to deepset AI platform:
         ```python
-        from deepset_cloud_sdk import PipelineClient, PipelineConfig, PipelineInputs, PipelineOutputs, IndexConfig, IndexInputs
+        from deepset_cloud_sdk import (
+            PipelineClient,
+            PipelineConfig,
+            PipelineInputs,
+            PipelineOutputs,
+            IndexConfig,
+            IndexInputs,
+        )
         from haystack import Pipeline
 
         # Initialize the client with configuration from environment variables (after running `deepset-cloud login`)
@@ -57,12 +64,14 @@ class PipelineClient:
                 answers="answers_builder.answers",
                 documents="ranker.documents",
             ),
+            strict_validation=False,  # Fail on validation errors (default: False, warnings only)
         )
 
         # if importing an index, use IndexConfig
         config = IndexConfig(
             name="my-index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,  # Fail on validation errors (default: False, warnings only)
         )
 
         # sync execution

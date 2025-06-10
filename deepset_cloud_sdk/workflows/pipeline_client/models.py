@@ -22,6 +22,24 @@ class InputOutputBaseModel(BaseModel):
         return {k: v for k, v in fields.items() if v}
 
 
+class BaseConfig(BaseModel):
+    """Base configuration model for pipeline and index imports.
+
+    Contains common fields shared between pipeline and index configurations.
+
+    :param name: Name of the pipeline or index to be imported.
+    :param strict_validation: Whether to fail on validation errors. Defaults to False (warnings only).
+    """
+
+    model_config = {"extra": "forbid"}
+
+    name: str = Field(..., description="The name of the pipeline or index to be imported", min_length=1)
+    strict_validation: bool = Field(
+        default=False,
+        description="Whether to fail on validation errors. If False, validation warnings are logged but import continues. Defaults to False.",
+    )
+
+
 class PipelineInputs(InputOutputBaseModel):
     """Pipeline input configuration.
 
@@ -94,17 +112,13 @@ class IndexOutputs(InputOutputBaseModel):
     model_config = {"extra": "allow"}  # Allow additional fields in outputs
 
 
-class PipelineConfig(BaseModel):
+class PipelineConfig(BaseConfig):
     """Configuration required to import the pipeline into deepset AI Platform.
 
-    :param name: Name of the pipeline to be imported
     :param inputs: Pipeline input configuration. Use `PipelineInputs` model to define the inputs.
     :param outputs: Pipeline output configuration. Use `PipelineOutputs` model to define the outputs.
     """
 
-    model_config = {"extra": "forbid"}
-
-    name: str = Field(..., description="The name of the pipeline to be imported", min_length=1)
     inputs: PipelineInputs = Field(
         default_factory=PipelineInputs,
         description=("Pipeline input configuration. Use `PipelineInputs` model to define the inputs."),
@@ -135,17 +149,13 @@ class IndexInputs(InputOutputBaseModel):
     )
 
 
-class IndexConfig(BaseModel):
+class IndexConfig(BaseConfig):
     """Index configuration for importing an index to deepset AI platform.
 
-    :param name: Name of the index to be imported.
     :param inputs: Index input configuration. Use `IndexInputs` model to define the inputs.
     :param outputs: Index output configuration. Optional. Use `IndexOutputs` model to define the outputs.
     """
 
-    model_config = {"extra": "forbid"}
-
-    name: str = Field(..., description="Name of the index to be imported.", min_length=1)
     inputs: IndexInputs = Field(
         default_factory=IndexInputs,
         description=("Input configuration for the index. Use `IndexInputs` model to define the inputs."),
