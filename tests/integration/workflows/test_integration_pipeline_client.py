@@ -366,15 +366,12 @@ class TestRealIntegrationIndex:
         text_converter = TextFileToDocument(encoding="utf-8")
         document_embedder = SentenceTransformersDocumentEmbedder(normalize_embeddings=True, model="intfloat/e5-base-v2")
 
-        # Create and configure pipeline
         index = Pipeline()
 
-        # Add components
         index.add_component("file_type_router", file_type_router)
         index.add_component("text_converter", text_converter)
         index.add_component("document_embedder", document_embedder)
 
-        # Connect components
         index.connect("file_type_router.text/plain", "text_converter.sources")
         index.connect("text_converter.documents", "document_embedder.documents")
 
@@ -400,7 +397,6 @@ class TestRealIntegrationIndex:
 
             client.import_into_deepset(sample_index_for_integration, index_config)
 
-            # Retry verification to handle eventual consistency
             for attempt in tenacity.Retrying(
                 stop=tenacity.stop_after_delay(120),
                 wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
@@ -416,7 +412,7 @@ class TestRealIntegrationIndex:
                     assert index_data["name"] == index_name
 
         finally:
-            # Clean up: delete the index with retry
+            # Clean up: delete the index
             for attempt in tenacity.Retrying(
                 stop=tenacity.stop_after_delay(60),
                 wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
@@ -430,6 +426,7 @@ class TestRealIntegrationIndex:
                     assert delete_response.status_code in (HTTPStatus.NO_CONTENT, HTTPStatus.NOT_FOUND)
 
 
+@pytest.mark.asyncio
 class TestRealIntegrationPipeline:
     """Real integration tests for pipelines that call the actual DeepsetCloudAPI."""
 
@@ -438,26 +435,23 @@ class TestRealIntegrationPipeline:
         """Create a sample pipeline for real integration testing."""
         monkeypatch.setenv("OPENAI_API_KEY", "test-openai-api-key")
 
-        # Initialize components
         prompt_builder = PromptBuilder(
             template="""You are a technical expert.
                 You summary should be no longer than five sentences.
                 Passage: {{ question }}
                 Your summary: """,
+            required_variables=["*"],
         )
 
         llm = OpenAIGenerator(api_key=Secret.from_env_var("OPENAI_API_KEY", strict=False), model="gpt-4")
         answer_builder = AnswerBuilder()
 
-        # Create and configure pipeline
         pipeline = Pipeline()
 
-        # Add components
         pipeline.add_component("prompt_builder", prompt_builder)
         pipeline.add_component("llm", llm)
         pipeline.add_component("answer_builder", answer_builder)
 
-        # Connect components
         pipeline.connect("prompt_builder.prompt", "llm.prompt")
         pipeline.connect("llm.replies", "answer_builder.replies")
 
@@ -468,16 +462,13 @@ class TestRealIntegrationPipeline:
         self, integration_config: CommonConfig, workspace_name: str, sample_pipeline_for_integration: Pipeline
     ) -> None:
         """Test creating and deleting a pipeline using real API calls."""
-        # Create unique pipeline name
         pipeline_name = f"test-integration-pipeline-{uuid.uuid4().hex[:8]}"
 
-        # Create real client
         client = PipelineClient(
             api_key=integration_config.api_key, api_url=integration_config.api_url, workspace_name=workspace_name
         )
 
         try:
-            # Create pipeline config
             pipeline_config = PipelineConfig(
                 name=pipeline_name,
                 inputs=PipelineInputs(query=["prompt_builder.prompt", "answer_builder.query"]),
@@ -485,9 +476,8 @@ class TestRealIntegrationPipeline:
                 strict_validation=False,  # Skip validation for integration test
             )
 
-            client.import_into_deepset(sample_pipeline_for_integration, pipeline_config)
+            await client.import_into_deepset_async(sample_pipeline_for_integration, pipeline_config)
 
-            # Retry verification to handle eventual consistency
             for attempt in tenacity.Retrying(
                 stop=tenacity.stop_after_delay(120),
                 wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
@@ -503,7 +493,7 @@ class TestRealIntegrationPipeline:
                     assert pipeline_data["name"] == pipeline_name
 
         finally:
-            # Clean up: delete the pipeline with retry
+            # Clean up: delete the pipeline
             for attempt in tenacity.Retrying(
                 stop=tenacity.stop_after_delay(60),
                 wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
