@@ -65,7 +65,7 @@ class PipelineInputs(InputOutputBaseModel):
             "List of components and parameters that will receive the `query` input when they are executed. "
             "Use the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.query'."
         ),
-        min_items=1,
+        min_length=1,
     )
     filters: List[str] = Field(
         default_factory=list,
