@@ -273,6 +273,7 @@ class TestPipelineConfig:
         assert isinstance(config.inputs, PipelineInputs)
         assert isinstance(config.outputs, PipelineOutputs)
         assert config.strict_validation is False  # Default value
+        assert config.overwrite is False  # Default value
 
     def test_create_pipeline_config_with_all_values(self) -> None:
         """Test creating PipelineConfig with all values."""
@@ -281,11 +282,13 @@ class TestPipelineConfig:
             inputs=PipelineInputs(query=["retriever.query"], filters=["retriever.filters"]),
             outputs=PipelineOutputs(documents="retriever.documents", answers="reader.answers"),
             strict_validation=False,
+            overwrite=True,
         )
         assert config.name == "test_pipeline"
         assert config.inputs.query == ["retriever.query"]
         assert config.outputs.documents == "retriever.documents"
         assert config.strict_validation is False
+        assert config.overwrite is True
 
     def test_pipeline_config_with_invalid_name(self) -> None:
         """Test creating PipelineConfig with invalid name."""
@@ -330,50 +333,6 @@ class TestPipelineConfig:
         )
         assert config.strict_validation is False
 
-    def test_pipeline_config_overwrite_default_value(self) -> None:
-        """Test that PipelineConfig overwrite field defaults to False."""
-        config = PipelineConfig(
-            name="test_pipeline",
-            inputs=PipelineInputs(query=["prompt_builder.query"]),
-            outputs=PipelineOutputs(answers="answers_builder.answers"),
-        )
-        assert config.overwrite is False
-
-    def test_pipeline_config_overwrite_explicit_true(self) -> None:
-        """Test PipelineConfig with explicit overwrite=True."""
-        config = PipelineConfig(
-            name="test_pipeline",
-            inputs=PipelineInputs(query=["prompt_builder.query"]),
-            outputs=PipelineOutputs(answers="answers_builder.answers"),
-            overwrite=True,
-        )
-        assert config.overwrite is True
-
-    def test_pipeline_config_overwrite_explicit_false(self) -> None:
-        """Test PipelineConfig with explicit overwrite=False."""
-        config = PipelineConfig(
-            name="test_pipeline",
-            inputs=PipelineInputs(query=["prompt_builder.query"]),
-            outputs=PipelineOutputs(answers="answers_builder.answers"),
-            overwrite=False,
-        )
-        assert config.overwrite is False
-
-    def test_pipeline_config_with_all_values_including_overwrite(self) -> None:
-        """Test PipelineConfig with all values including overwrite."""
-        config = PipelineConfig(
-            name="test_pipeline",
-            inputs=PipelineInputs(query=["retriever.query"], filters=["retriever.filters"]),
-            outputs=PipelineOutputs(documents="retriever.documents", answers="reader.answers"),
-            strict_validation=True,
-            overwrite=True,
-        )
-        assert config.name == "test_pipeline"
-        assert config.inputs.query == ["retriever.query"]
-        assert config.outputs.documents == "retriever.documents"
-        assert config.strict_validation is True
-        assert config.overwrite is True
-
 
 class TestIndexConfig:
     """Test suite for the IndexConfig model."""
@@ -385,6 +344,7 @@ class TestIndexConfig:
         assert isinstance(config.inputs, IndexInputs)
         assert isinstance(config.outputs, IndexOutputs)
         assert config.strict_validation is False  # Default value
+        assert config.overwrite is False  # Default value
 
     def test_create_index_config_with_all_values(self) -> None:
         """Test creating IndexConfig with all values."""
@@ -393,11 +353,13 @@ class TestIndexConfig:
             inputs=IndexInputs(files=["file_type_router.sources"]),
             outputs=IndexOutputs(),
             strict_validation=False,
+            overwrite=True,
         )
         assert config.name == "test_index"
         assert config.inputs.files == ["file_type_router.sources"]
         assert isinstance(config.outputs, IndexOutputs)
         assert config.strict_validation is False
+        assert config.overwrite is True
 
     def test_index_config_with_invalid_name(self) -> None:
         """Test creating IndexConfig with invalid name."""
@@ -431,44 +393,3 @@ class TestIndexConfig:
             strict_validation=False,
         )
         assert config.strict_validation is False
-
-    def test_index_config_overwrite_default_value(self) -> None:
-        """Test that IndexConfig overwrite field defaults to False."""
-        config = IndexConfig(
-            name="test_index",
-            inputs=IndexInputs(files=["file_type_router.sources"]),
-        )
-        assert config.overwrite is False
-
-    def test_index_config_overwrite_explicit_true(self) -> None:
-        """Test IndexConfig with explicit overwrite=True."""
-        config = IndexConfig(
-            name="test_index",
-            inputs=IndexInputs(files=["file_type_router.sources"]),
-            overwrite=True,
-        )
-        assert config.overwrite is True
-
-    def test_index_config_overwrite_explicit_false(self) -> None:
-        """Test IndexConfig with explicit overwrite=False."""
-        config = IndexConfig(
-            name="test_index",
-            inputs=IndexInputs(files=["file_type_router.sources"]),
-            overwrite=False,
-        )
-        assert config.overwrite is False
-
-    def test_index_config_with_all_values_including_overwrite(self) -> None:
-        """Test IndexConfig with all values including overwrite."""
-        config = IndexConfig(
-            name="test_index",
-            inputs=IndexInputs(files=["file_type_router.sources"]),
-            outputs=IndexOutputs(),
-            strict_validation=True,
-            overwrite=True,
-        )
-        assert config.name == "test_index"
-        assert config.inputs.files == ["file_type_router.sources"]
-        assert isinstance(config.outputs, IndexOutputs)
-        assert config.strict_validation is True
-        assert config.overwrite is True
