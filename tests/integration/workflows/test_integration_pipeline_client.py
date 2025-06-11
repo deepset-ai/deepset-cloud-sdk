@@ -12,7 +12,6 @@ import tenacity
 from haystack import AsyncPipeline, Pipeline
 from haystack.components.builders.answer_builder import AnswerBuilder
 from haystack.components.builders.prompt_builder import PromptBuilder
-from haystack.components.converters.docx import DOCXToDocument
 from haystack.components.converters.txt import TextFileToDocument
 from haystack.components.embedders.sentence_transformers_document_embedder import (
     SentenceTransformersDocumentEmbedder,
@@ -275,6 +274,58 @@ class TestImportIndexIntoDeepset:
         assert not import_route.called  # This is the key assertion
         assert len(validation_route.calls) == 1
         assert len(import_route.calls) == 0
+
+    @respx.mock
+    def test_import_index_with_overwrite_fallback_to_create(
+        self, sample_index: Pipeline, test_client: PipelineClient
+    ) -> None:
+        """Test overwriting an index that doesn't exist, falling back to creation."""
+        # Mock validation success
+        validation_route = respx.post("https://test-api-url.com/workspaces/test-workspace/pipeline_validations").mock(
+            return_value=Response(status_code=HTTPStatus.NO_CONTENT)
+        )
+
+        # Mock 404 response for PATCH (resource not found)
+        overwrite_route = respx.patch(
+            "https://test-api-url.com/workspaces/test-workspace/indexes/test-index-fallback"
+        ).mock(return_value=Response(status_code=HTTPStatus.NOT_FOUND))
+
+        # Mock successful creation
+        create_route = respx.post("https://test-api-url.com/workspaces/test-workspace/indexes").mock(
+            return_value=Response(status_code=HTTPStatus.OK, json={"id": "test-index-id"})
+        )
+        index_config = IndexConfig(
+            name="test-index-fallback",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        test_client.import_into_deepset(sample_index, index_config)
+
+        # Verify all three endpoints were called in sequence
+        assert validation_route.called
+        assert overwrite_route.called
+        assert create_route.called
+
+        # Check validation request
+        validation_request = validation_route.calls[0].request
+        assert validation_request.headers["Authorization"] == "Bearer test-api-key"
+        validation_body = json.loads(validation_request.content)
+        assert validation_body["name"] == "test-index-fallback"
+
+        # Check PATCH attempt
+        overwrite_request = overwrite_route.calls[0].request
+        assert overwrite_request.headers["Authorization"] == "Bearer test-api-key"
+        overwrite_body = json.loads(overwrite_request.content)
+        assert "config_yaml" in overwrite_body
+
+        # Check fallback creation
+        create_request = create_route.calls[0].request
+        assert create_request.headers["Authorization"] == "Bearer test-api-key"
+        create_body = json.loads(create_request.content)
+        assert create_body["name"] == "test-index-fallback"
+        assert "config_yaml" in create_body
 
 
 @pytest.mark.parametrize("pipeline_class", [Pipeline, AsyncPipeline])
@@ -544,12 +595,12 @@ class TestRealIntegrationIndex:
                 overwrite=True,
             )
             new_index = Pipeline()
-            docx_converter = DOCXToDocument(link_format="markdown")
-            new_index.add_component("docx_converter", docx_converter)
+            answer_builder = AnswerBuilder()
+            new_index.add_component("answer_builder", answer_builder)
 
             client.import_into_deepset(new_index, index_config)
             response_data = assert_index_exists(integration_config, workspace_name, index_name)
-            assert "docx_converter" in response_data["config_yaml"], f"Failed to overwrite index {index_name}"
+            assert "answer_builder" in response_data["config_yaml"], f"Failed to overwrite index {index_name}"
         finally:
             remove_index(integration_config, workspace_name, index_name)
 
