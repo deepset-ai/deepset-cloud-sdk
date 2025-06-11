@@ -1,7 +1,25 @@
 """Models for the pipeline service."""
+from enum import Enum
 from typing import List
 
 from pydantic import BaseModel, Field, model_validator
+
+
+class PipelineOutputType(str, Enum):
+    """Enum for pipeline output types.
+
+    Different types help the Playground in deepset AI Platform adjust it's behavior to better support
+    your pipeline's output:
+    - generative: For pipelines where an LLM generates new text as a response
+    - chat: For conversational pipelines
+    - extractive: For pipelines that extract answers directly from documents
+    - document: For pipelines that return full documents or multiple documents as results
+    """
+
+    GENERATIVE = "generative"
+    CHAT = "chat"
+    EXTRACTIVE = "extractive"
+    DOCUMENT = "document"
 
 
 class InputOutputBaseModel(BaseModel):
@@ -123,6 +141,8 @@ class PipelineConfig(BaseConfig):
 
     :param inputs: Pipeline input configuration. Use `PipelineInputs` model to define the inputs.
     :param outputs: Pipeline output configuration. Use `PipelineOutputs` model to define the outputs.
+    :param pipeline_output_type: Optional pipeline output type to help the Playground in deepset AI Platform
+        adjust its behavior. If not set, the platform will auto-detect the type.
     """
 
     inputs: PipelineInputs = Field(
@@ -132,6 +152,15 @@ class PipelineConfig(BaseConfig):
     outputs: PipelineOutputs = Field(
         default_factory=PipelineOutputs,
         description=("Pipeline output configuration. Use `PipelineOutputs` model to define the outputs."),
+    )
+    pipeline_output_type: PipelineOutputType | None = Field(
+        default=None,
+        description=(
+            "Optional pipeline output type to help the Playground in deepset AI Platform adjust its behavior. "
+            "Choose from: 'generative' (LLM generates new text), 'chat' (conversational), "
+            "'extractive' (extracts answers from documents), or 'document' (returns full documents). "
+            "If not set, the platform will auto-detect the type."
+        ),
     )
 
 

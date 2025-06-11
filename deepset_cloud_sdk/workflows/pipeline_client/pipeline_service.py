@@ -280,6 +280,7 @@ class PipelineService:
         pipeline_dict = self._yaml.load(pipeline.dumps())
         self._add_inputs_and_outputs(pipeline_dict, config)
         self._add_async_flag_if_needed(pipeline, pipeline_dict)
+        self._add_pipeline_output_type_if_set(pipeline_dict, config)
 
         # Convert back to string
         yaml_str = StringIO()
@@ -314,6 +315,17 @@ class PipelineService:
             # If haystack-ai is not available, we can't check the type
             # This should not happen since we already checked in import_async
             pass
+
+    def _add_pipeline_output_type_if_set(self, pipeline_dict: dict, config: IndexConfig | PipelineConfig) -> None:
+        """Add pipeline_output_type to the pipeline dict if set in PipelineConfig.
+
+        This helps the Playground in deepset AI Platform adjust its behavior to better support the pipeline's output.
+
+        :param pipeline_dict: The pipeline dictionary to modify.
+        :param config: Configuration for importing. Only adds the field if config is PipelineConfig and pipeline_output_type is set.
+        """
+        if isinstance(config, PipelineConfig) and config.pipeline_output_type is not None:
+            pipeline_dict["pipeline_output_type"] = config.pipeline_output_type.value
 
     async def _overwrite_index(self, name: str, pipeline_yaml: str) -> Response:
         """Overwrite an index in deepset AI Platform.
