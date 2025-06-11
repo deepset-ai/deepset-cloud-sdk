@@ -266,8 +266,8 @@ class DeepsetCloudAPI:
         response = await self.client.patch(
             f"{self.base_url(workspace_name)}/{endpoint}",
             params=params or {},
-            json=json if json is not None else None,
-            data=data if data is not None else None,
+            json=json,
+            data=data,
             headers=self.headers,
             timeout=timeout_s,
         )
