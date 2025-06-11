@@ -65,6 +65,7 @@ class PipelineClient:
                 documents="ranker.documents",
             ),
             strict_validation=False,  # Fail on validation errors (default: False, warnings only)
+            overwrite=False,  # Overwrite existing pipelines with the same name. If True, creates if it doesn't exist (default: False)
         )
 
         # if importing an index, use IndexConfig
@@ -72,6 +73,7 @@ class PipelineClient:
             name="my-index",
             inputs=IndexInputs(files=["file_type_router.sources"]),
             strict_validation=False,  # Fail on validation errors (default: False, warnings only)
+            overwrite=False,  # Overwrite existing indexes with the same name. If True, creates if it doesn't exist (default: False)
         )
 
         # sync execution

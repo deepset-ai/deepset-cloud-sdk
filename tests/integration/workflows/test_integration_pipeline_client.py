@@ -94,6 +94,72 @@ def assert_both_endpoints_called_with_auth(
     assert import_body[yaml_key].startswith(expected_yaml_start)
 
 
+def assert_index_exists(integration_config: CommonConfig, workspace_name: str, index_name: str) -> dict:
+    """Assert that an index exists in deepset AI Platform."""
+    for attempt in tenacity.Retrying(
+        stop=tenacity.stop_after_delay(120),
+        wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
+        reraise=True,
+    ):
+        with attempt:
+            response = httpx.get(
+                f"{integration_config.api_url}/workspaces/{workspace_name}/indexes/{index_name}",
+                headers={"Authorization": f"Bearer {integration_config.api_key}"},
+            )
+            assert response.status_code == HTTPStatus.OK, f"Failed to get index {index_name}"
+            index_data: dict = response.json()
+            assert index_data["name"] == index_name
+
+    return index_data
+
+
+def assert_pipeline_exists(integration_config: CommonConfig, workspace_name: str, pipeline_name: str) -> None:
+    """Assert that a pipeline exists in deepset AI Platform."""
+    for attempt in tenacity.Retrying(
+        stop=tenacity.stop_after_delay(120),
+        wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
+        reraise=True,
+    ):
+        with attempt:
+            response = httpx.get(
+                f"{integration_config.api_url}/workspaces/{workspace_name}/pipelines/{pipeline_name}",
+                headers={"Authorization": f"Bearer {integration_config.api_key}"},
+            )
+            assert response.status_code == HTTPStatus.OK, f"Failed to get pipeline {pipeline_name}."
+            pipeline_data = response.json()
+            assert pipeline_data["name"] == pipeline_name
+
+
+def remove_index(integration_config: CommonConfig, workspace_name: str, index_name: str) -> None:
+    """Remove an index from deepset AI Platform."""
+    for attempt in tenacity.Retrying(
+        stop=tenacity.stop_after_delay(60),
+        wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
+        reraise=True,
+    ):
+        with attempt:
+            delete_response = httpx.delete(
+                f"{integration_config.api_url}/workspaces/{workspace_name}/indexes/{index_name}",
+                headers={"Authorization": f"Bearer {integration_config.api_key}"},
+            )
+            assert delete_response.status_code in (HTTPStatus.NO_CONTENT, HTTPStatus.NOT_FOUND)
+
+
+def remove_pipeline(integration_config: CommonConfig, workspace_name: str, pipeline_name: str) -> None:
+    """Remove a pipeline from deepset AI Platform."""
+    for attempt in tenacity.Retrying(
+        stop=tenacity.stop_after_delay(60),
+        wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
+        reraise=True,
+    ):
+        with attempt:
+            delete_response = httpx.delete(
+                f"{integration_config.api_url}/workspaces/{workspace_name}/pipelines/{pipeline_name}",
+                headers={"Authorization": f"Bearer {integration_config.api_key}"},
+            )
+            assert delete_response.status_code in (HTTPStatus.OK, HTTPStatus.NOT_FOUND)
+
+
 @pytest.mark.parametrize("pipeline_class", [Pipeline, AsyncPipeline])
 class TestImportIndexIntoDeepset:
     @pytest.fixture
@@ -208,6 +274,58 @@ class TestImportIndexIntoDeepset:
         assert not import_route.called  # This is the key assertion
         assert len(validation_route.calls) == 1
         assert len(import_route.calls) == 0
+
+    @respx.mock
+    def test_import_index_with_overwrite_fallback_to_create(
+        self, sample_index: Pipeline, test_client: PipelineClient
+    ) -> None:
+        """Test overwriting an index that doesn't exist, falling back to creation."""
+        # Mock validation success
+        validation_route = respx.post("https://test-api-url.com/workspaces/test-workspace/pipeline_validations").mock(
+            return_value=Response(status_code=HTTPStatus.NO_CONTENT)
+        )
+
+        # Mock 404 response for PATCH (resource not found)
+        overwrite_route = respx.patch(
+            "https://test-api-url.com/workspaces/test-workspace/indexes/test-index-fallback"
+        ).mock(return_value=Response(status_code=HTTPStatus.NOT_FOUND))
+
+        # Mock successful creation
+        create_route = respx.post("https://test-api-url.com/workspaces/test-workspace/indexes").mock(
+            return_value=Response(status_code=HTTPStatus.OK, json={"id": "test-index-id"})
+        )
+        index_config = IndexConfig(
+            name="test-index-fallback",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        test_client.import_into_deepset(sample_index, index_config)
+
+        # Verify all three endpoints were called in sequence
+        assert validation_route.called
+        assert overwrite_route.called
+        assert create_route.called
+
+        # Check validation request
+        validation_request = validation_route.calls[0].request
+        assert validation_request.headers["Authorization"] == "Bearer test-api-key"
+        validation_body = json.loads(validation_request.content)
+        assert validation_body["name"] == "test-index-fallback"
+
+        # Check PATCH attempt
+        overwrite_request = overwrite_route.calls[0].request
+        assert overwrite_request.headers["Authorization"] == "Bearer test-api-key"
+        overwrite_body = json.loads(overwrite_request.content)
+        assert "config_yaml" in overwrite_body
+
+        # Check fallback creation
+        create_request = create_route.calls[0].request
+        assert create_request.headers["Authorization"] == "Bearer test-api-key"
+        create_body = json.loads(create_request.content)
+        assert create_body["name"] == "test-index-fallback"
+        assert "config_yaml" in create_body
 
 
 @pytest.mark.parametrize("pipeline_class", [Pipeline, AsyncPipeline])
@@ -347,6 +465,61 @@ class TestImportPipelineIntoDeepset:
         assert len(validation_route.calls) == 1
         assert len(import_route.calls) == 0
 
+    @pytest.mark.asyncio
+    @respx.mock
+    async def test_import_pipeline_with_overwrite_fallback_to_create_async(
+        self, sample_pipeline: Pipeline, test_client: PipelineClient
+    ) -> None:
+        """Test overwriting a pipeline that doesn't exist, falling back to creation."""
+        # Mock validation success
+        validation_route = respx.post("https://test-api-url.com/workspaces/test-workspace/pipeline_validations").mock(
+            return_value=Response(status_code=HTTPStatus.NO_CONTENT)
+        )
+
+        # Mock 404 response for PUT (resource not found)
+        overwrite_route = respx.put(
+            "https://test-api-url.com/workspaces/test-workspace/pipelines/test-pipeline-fallback/yaml"
+        ).mock(return_value=Response(status_code=HTTPStatus.NOT_FOUND))
+
+        # Mock successful creation
+        create_route = respx.post("https://test-api-url.com/workspaces/test-workspace/pipelines").mock(
+            return_value=Response(status_code=HTTPStatus.OK, json={"id": "test-pipeline-id"})
+        )
+
+        pipeline_config = PipelineConfig(
+            name="test-pipeline-fallback",
+            inputs=PipelineInputs(query=["prompt_builder.prompt", "answer_builder.query"]),
+            outputs=PipelineOutputs(answers="answer_builder.answers"),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        await test_client.import_into_deepset_async(sample_pipeline, pipeline_config)
+
+        # Verify all three endpoints were called in sequence
+        assert validation_route.called
+        assert overwrite_route.called
+        assert create_route.called
+
+        # Check validation request
+        validation_request = validation_route.calls[0].request
+        assert validation_request.headers["Authorization"] == "Bearer test-api-key"
+        validation_body = json.loads(validation_request.content)
+        assert validation_body["name"] == "test-pipeline-fallback"
+
+        # Check PUT attempt
+        overwrite_request = overwrite_route.calls[0].request
+        assert overwrite_request.headers["Authorization"] == "Bearer test-api-key"
+        overwrite_body = json.loads(overwrite_request.content)
+        assert "query_yaml" in overwrite_body
+
+        # Check fallback creation
+        create_request = create_route.calls[0].request
+        assert create_request.headers["Authorization"] == "Bearer test-api-key"
+        create_body = json.loads(create_request.content)
+        assert create_body["name"] == "test-pipeline-fallback"
+        assert "query_yaml" in create_body
+
 
 class TestRealIntegrationIndex:
     """Real integration tests that call the actual DeepsetCloudAPI."""
@@ -388,33 +561,48 @@ class TestRealIntegrationIndex:
 
             client.import_into_deepset(sample_index_for_integration, index_config)
 
-            for attempt in tenacity.Retrying(
-                stop=tenacity.stop_after_delay(120),
-                wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
-                reraise=True,
-            ):
-                with attempt:
-                    response = httpx.get(
-                        f"{integration_config.api_url}/workspaces/{workspace_name}/indexes/{index_name}",
-                        headers={"Authorization": f"Bearer {integration_config.api_key}"},
-                    )
-                    assert response.status_code == HTTPStatus.OK, f"Failed to create index {index_name}"
-                    index_data = response.json()
-                    assert index_data["name"] == index_name
-
+            assert_index_exists(integration_config, workspace_name, index_name)
         finally:
-            # Clean up: delete the index
-            for attempt in tenacity.Retrying(
-                stop=tenacity.stop_after_delay(60),
-                wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
-                reraise=True,
-            ):
-                with attempt:
-                    delete_response = httpx.delete(
-                        f"{integration_config.api_url}/workspaces/{workspace_name}/indexes/{index_name}",
-                        headers={"Authorization": f"Bearer {integration_config.api_key}"},
-                    )
-                    assert delete_response.status_code in (HTTPStatus.NO_CONTENT, HTTPStatus.NOT_FOUND)
+            remove_index(integration_config, workspace_name, index_name)
+
+    def test_overwrite_existing_index_integration(
+        self, integration_config: CommonConfig, workspace_name: str, sample_index_for_integration: Pipeline
+    ) -> None:
+        """Test that importing an existing index with overwrite=True overwrites it."""
+        index_name = f"test-integration-index-{uuid.uuid4().hex[:8]}"
+
+        client = PipelineClient(
+            api_key=integration_config.api_key, api_url=integration_config.api_url, workspace_name=workspace_name
+        )
+
+        try:
+            # create index
+            index_config = IndexConfig(
+                name=index_name,
+                inputs=IndexInputs(files=["file_type_router.sources"]),
+                strict_validation=False,  # Skip validation for integration test
+            )
+
+            client.import_into_deepset(sample_index_for_integration, index_config)
+
+            assert_index_exists(integration_config, workspace_name, index_name)
+
+            # Overwrite the index
+            index_config = IndexConfig(
+                name=index_name,
+                inputs=IndexInputs(files=["some_component.sources"]),
+                strict_validation=False,  # Skip validation for integration test
+                overwrite=True,
+            )
+            new_index = Pipeline()
+            answer_builder = AnswerBuilder()
+            new_index.add_component("answer_builder", answer_builder)
+
+            client.import_into_deepset(new_index, index_config)
+            response_data = assert_index_exists(integration_config, workspace_name, index_name)
+            assert "answer_builder" in response_data["config_yaml"], f"Failed to overwrite index {index_name}"
+        finally:
+            remove_index(integration_config, workspace_name, index_name)
 
 
 @pytest.mark.asyncio
@@ -451,7 +639,7 @@ class TestRealIntegrationPipeline:
     async def test_create_and_delete_pipeline_integration(
         self, integration_config: CommonConfig, workspace_name: str, sample_pipeline_for_integration: Pipeline
     ) -> None:
-        """Test creating and deleting a pipeline using real API calls."""
+        """Test import a pipeline using real API calls."""
         pipeline_name = f"test-integration-pipeline-{uuid.uuid4().hex[:8]}"
 
         client = PipelineClient(
@@ -468,30 +656,31 @@ class TestRealIntegrationPipeline:
 
             await client.import_into_deepset_async(sample_pipeline_for_integration, pipeline_config)
 
-            for attempt in tenacity.Retrying(
-                stop=tenacity.stop_after_delay(120),
-                wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
-                reraise=True,
-            ):
-                with attempt:
-                    response = httpx.get(
-                        f"{integration_config.api_url}/workspaces/{workspace_name}/pipelines/{pipeline_name}",
-                        headers={"Authorization": f"Bearer {integration_config.api_key}"},
-                    )
-                    assert response.status_code == HTTPStatus.OK, f"Failed to create pipeline {pipeline_name}"
-                    pipeline_data = response.json()
-                    assert pipeline_data["name"] == pipeline_name
-
+            assert_pipeline_exists(integration_config, workspace_name, pipeline_name)
         finally:
-            # Clean up: delete the pipeline
-            for attempt in tenacity.Retrying(
-                stop=tenacity.stop_after_delay(60),
-                wait=tenacity.wait_fixed(wait=timedelta(seconds=1)),
-                reraise=True,
-            ):
-                with attempt:
-                    delete_response = httpx.delete(
-                        f"{integration_config.api_url}/workspaces/{workspace_name}/pipelines/{pipeline_name}",
-                        headers={"Authorization": f"Bearer {integration_config.api_key}"},
-                    )
-                    assert delete_response.status_code in (HTTPStatus.OK, HTTPStatus.NOT_FOUND)
+            remove_pipeline(integration_config, workspace_name, pipeline_name)
+
+    async def test_overwrite_non_existing_pipeline_integration(
+        self, integration_config: CommonConfig, workspace_name: str, sample_pipeline_for_integration: Pipeline
+    ) -> None:
+        """Test that importing a non-existent pipeline with overwrite=True falls back to creating it."""
+        pipeline_name = f"test-integration-pipeline-{uuid.uuid4().hex[:8]}"
+
+        client = PipelineClient(
+            api_key=integration_config.api_key, api_url=integration_config.api_url, workspace_name=workspace_name
+        )
+
+        try:
+            pipeline_config = PipelineConfig(
+                name=pipeline_name,
+                inputs=PipelineInputs(query=["prompt_builder.prompt", "answer_builder.query"]),
+                outputs=PipelineOutputs(answers="answer_builder.answers"),
+                strict_validation=False,  # Skip validation for integration test
+                overwrite=True,
+            )
+
+            await client.import_into_deepset_async(sample_pipeline_for_integration, pipeline_config)
+
+            assert_pipeline_exists(integration_config, workspace_name, pipeline_name)
+        finally:
+            remove_pipeline(integration_config, workspace_name, pipeline_name)

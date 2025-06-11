@@ -29,6 +29,8 @@ class BaseConfig(BaseModel):
 
     :param name: Name of the pipeline or index to be imported.
     :param strict_validation: Whether to fail on validation errors. Defaults to False (warnings only).
+    :param overwrite: Whether to overwrite existing pipelines or indexes with the same name.
+        If True and the resource doesn't exist, it will be created instead. Defaults to False.
     """
 
     model_config = {"extra": "forbid"}
@@ -37,6 +39,10 @@ class BaseConfig(BaseModel):
     strict_validation: bool = Field(
         default=False,
         description="Whether to fail on validation errors. If False, validation warnings are logged but import continues. Defaults to False.",
+    )
+    overwrite: bool = Field(
+        default=False,
+        description="Whether to overwrite existing pipelines or indexes with the same name. Defaults to False.",
     )
 
 
@@ -59,7 +65,7 @@ class PipelineInputs(InputOutputBaseModel):
             "List of components and parameters that will receive the `query` input when they are executed. "
             "Use the format: '<component-name>.<run-method-parameter-name>', for example: 'retriever.query'."
         ),
-        min_items=1,
+        min_length=1,
     )
     filters: List[str] = Field(
         default_factory=list,

@@ -265,3 +265,56 @@ class TestCRUDForDeepsetCloudAPI:
             },
             timeout=123,
         )
+
+    async def test_patch(
+        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+    ) -> None:
+        mocked_client.patch.return_value = httpx.Response(status_code=codes.OK, json={"test": "test"})
+
+        result = await deepset_cloud_api.patch(
+            "default",
+            "endpoint",
+            params={"param_key": "param_value"},
+            json={"data_key": "data_value"},
+            timeout_s=123,
+        )
+        assert result.status_code == codes.OK
+        assert result.json() == {"test": "test"}
+        mocked_client.patch.assert_called_once_with(
+            "https://fake.dc.api/api/v1/workspaces/default/endpoint",
+            params={"param_key": "param_value"},
+            json={"data_key": "data_value"},
+            data=None,
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Bearer {unit_config.api_key}",
+                "X-Client-Source": "deepset-cloud-sdk",
+            },
+            timeout=123,
+        )
+
+    async def test_patch_with_data_parameter(
+        self, deepset_cloud_api: DeepsetCloudAPI, unit_config: CommonConfig, mocked_client: Mock
+    ) -> None:
+        mocked_client.patch.return_value = httpx.Response(status_code=codes.NO_CONTENT)
+
+        result = await deepset_cloud_api.patch(
+            "default",
+            "endpoint",
+            params={"param_key": "param_value"},
+            data={"data_key": "data_value"},
+            timeout_s=123,
+        )
+        assert result.status_code == codes.NO_CONTENT
+        mocked_client.patch.assert_called_once_with(
+            "https://fake.dc.api/api/v1/workspaces/default/endpoint",
+            params={"param_key": "param_value"},
+            json=None,
+            data={"data_key": "data_value"},
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Bearer {unit_config.api_key}",
+                "X-Client-Source": "deepset-cloud-sdk",
+            },
+            timeout=123,
+        )
