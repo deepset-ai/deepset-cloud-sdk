@@ -252,7 +252,7 @@ class PipelineService:
             response = await self._create_index(name=config.name, pipeline_yaml=pipeline_yaml)
 
         response.raise_for_status()
-        logger.debug(f"Index successfully imported.")
+        logger.debug("Index successfully imported.")
 
     async def _import_pipeline(self, config: PipelineConfig, pipeline_yaml: str) -> None:
         """Import a pipeline into deepset AI Platform.
@@ -267,7 +267,7 @@ class PipelineService:
             response = await self._create_pipeline(name=config.name, pipeline_yaml=pipeline_yaml)
 
         response.raise_for_status()
-        logger.debug(f"Pipeline successfully imported.")
+        logger.debug("Pipeline successfully imported.")
 
     def _from_haystack_pipeline(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> str:
         """Create a YAML configuration from the pipeline.

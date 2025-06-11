@@ -29,7 +29,8 @@ class BaseConfig(BaseModel):
 
     :param name: Name of the pipeline or index to be imported.
     :param strict_validation: Whether to fail on validation errors. Defaults to False (warnings only).
-    :param overwrite: Whether to overwrite existing pipelines or indexes with the same name. If True and the resource doesn't exist, it will be created instead. Defaults to False.
+    :param overwrite: Whether to overwrite existing pipelines or indexes with the same name. 
+        If True and the resource doesn't exist, it will be created instead. Defaults to False.
     """
 
     model_config = {"extra": "forbid"}
