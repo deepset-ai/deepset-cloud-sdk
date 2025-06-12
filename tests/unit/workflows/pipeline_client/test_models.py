@@ -9,6 +9,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineConfig,
     PipelineInputs,
     PipelineOutputs,
+    PipelineOutputType,
 )
 
 
@@ -259,6 +260,17 @@ class TestIndexOutputs:
         assert yaml_dict == {}
 
 
+class TestPipelineOutputType:
+    """Test suite for the PipelineOutputType enum."""
+
+    def test_pipeline_output_type_values(self) -> None:
+        """Test that PipelineOutputType has the correct values."""
+        assert PipelineOutputType.GENERATIVE == "generative"
+        assert PipelineOutputType.CHAT == "chat"
+        assert PipelineOutputType.EXTRACTIVE == "extractive"
+        assert PipelineOutputType.DOCUMENT == "document"
+
+
 class TestPipelineConfig:
     """Test suite for the PipelineConfig model."""
 
@@ -274,6 +286,7 @@ class TestPipelineConfig:
         assert isinstance(config.outputs, PipelineOutputs)
         assert config.strict_validation is False  # Default value
         assert config.overwrite is False  # Default value
+        assert config.pipeline_output_type is None  # Default value
 
     def test_create_pipeline_config_with_all_values(self) -> None:
         """Test creating PipelineConfig with all values."""
@@ -283,12 +296,14 @@ class TestPipelineConfig:
             outputs=PipelineOutputs(documents="retriever.documents", answers="reader.answers"),
             strict_validation=False,
             overwrite=True,
+            pipeline_output_type=PipelineOutputType.GENERATIVE,
         )
         assert config.name == "test_pipeline"
         assert config.inputs.query == ["retriever.query"]
         assert config.outputs.documents == "retriever.documents"
         assert config.strict_validation is False
         assert config.overwrite is True
+        assert config.pipeline_output_type == PipelineOutputType.GENERATIVE
 
     def test_pipeline_config_with_invalid_name(self) -> None:
         """Test creating PipelineConfig with invalid name."""
