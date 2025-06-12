@@ -492,7 +492,8 @@ outputs:
         validation_call = mock_api.post.call_args_list[0]
         assert validation_call.kwargs["endpoint"] == "pipeline_validations"
         assert "indexing_yaml" in validation_call.kwargs["json"]
-        assert validation_call.kwargs["json"]["name"] == "test_index_fallback"
+        # When overwrite=True, name should be excluded from validation payload
+        assert "name" not in validation_call.kwargs["json"]
 
         # Check PATCH attempt
         patch_call = mock_api.patch.call_args_list[0]
@@ -533,7 +534,8 @@ outputs:
         validation_call = mock_api.post.call_args_list[0]
         assert validation_call.kwargs["endpoint"] == "pipeline_validations"
         assert "query_yaml" in validation_call.kwargs["json"]
-        assert validation_call.kwargs["json"]["name"] == "test_pipeline_overwrite"
+        # When overwrite=True, name should be excluded from validation payload
+        assert "name" not in validation_call.kwargs["json"]
 
         # Check overwrite call
         overwrite_call = mock_api.put.call_args_list[0]
@@ -579,7 +581,8 @@ outputs:
         validation_call = mock_api.post.call_args_list[0]
         assert validation_call.kwargs["endpoint"] == "pipeline_validations"
         assert "query_yaml" in validation_call.kwargs["json"]
-        assert validation_call.kwargs["json"]["name"] == "test_pipeline_fallback"
+        # When overwrite=True, name should be excluded from validation payload
+        assert "name" not in validation_call.kwargs["json"]
 
         # Check PUT attempt
         put_call = mock_api.put.call_args_list[0]
@@ -1200,3 +1203,151 @@ class TestValidatePipelineYaml:
             )
             assert error_log is not None, f"Expected to find log for error code {error_code}"
             assert error_message in error_log.get("event", ""), f"Expected error message '{error_message}' in log"
+
+    @pytest.mark.asyncio
+    async def test_validate_index_excludes_name_when_overwrite_true(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test that index validation excludes name from JSON payload when overwrite=True."""
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.OK.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
+        mock_api.patch.return_value = import_response
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        await pipeline_service.import_async(test_pipeline, config)
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+
+        # When overwrite=True, name should be excluded from validation payload
+        validation_json = validation_call.kwargs["json"]
+        assert "name" not in validation_json
+        assert "indexing_yaml" in validation_json
+
+    @pytest.mark.asyncio
+    async def test_validate_index_includes_name_when_overwrite_false(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test that index validation includes name in JSON payload when overwrite=False."""
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.OK.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
+
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,
+            overwrite=False,
+        )
+
+        await pipeline_service.import_async(test_pipeline, config)
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+
+        # When overwrite=False, name should be included in validation payload
+        validation_json = validation_call.kwargs["json"]
+        assert validation_json["name"] == "test_index"
+        assert "indexing_yaml" in validation_json
+
+    @pytest.mark.asyncio
+    async def test_validate_pipeline_excludes_name_when_overwrite_true(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test that pipeline validation excludes name from JSON payload when overwrite=True."""
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.OK.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
+        mock_api.put.return_value = import_response
+
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["prompt_builder.query"]),
+            outputs=PipelineOutputs(answers="prompt_builder.prompt"),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        await pipeline_service.import_async(test_pipeline, config)
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+
+        # When overwrite=True, name should be excluded from validation payload
+        validation_json = validation_call.kwargs["json"]
+        assert "name" not in validation_json
+        assert "query_yaml" in validation_json
+
+    @pytest.mark.asyncio
+    async def test_validate_pipeline_includes_name_when_overwrite_false(
+        self,
+        pipeline_service: PipelineService,
+        test_pipeline: Pipeline,
+        mock_api: AsyncMock,
+    ) -> None:
+        """Test that pipeline validation includes name in JSON payload when overwrite=False."""
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.OK.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
+
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["prompt_builder.query"]),
+            outputs=PipelineOutputs(answers="prompt_builder.prompt"),
+            strict_validation=False,
+            overwrite=False,
+        )
+
+        await pipeline_service.import_async(test_pipeline, config)
+
+        # Check validation call
+        validation_call = mock_api.post.call_args_list[0]
+        assert validation_call.kwargs["endpoint"] == "pipeline_validations"
+
+        # When overwrite=False, name should be included in validation payload
+        validation_json = validation_call.kwargs["json"]
+        assert validation_json["name"] == "test_pipeline"
+        assert "query_yaml" in validation_json
