@@ -312,7 +312,7 @@ class TestImportIndexIntoDeepset:
         validation_request = validation_route.calls[0].request
         assert validation_request.headers["Authorization"] == "Bearer test-api-key"
         validation_body = json.loads(validation_request.content)
-        assert validation_body["name"] == "test-index-fallback"
+        assert "indexing_yaml" in validation_body
 
         # Check PATCH attempt
         overwrite_request = overwrite_route.calls[0].request
@@ -505,7 +505,7 @@ class TestImportPipelineIntoDeepset:
         validation_request = validation_route.calls[0].request
         assert validation_request.headers["Authorization"] == "Bearer test-api-key"
         validation_body = json.loads(validation_request.content)
-        assert validation_body["name"] == "test-pipeline-fallback"
+        assert "query_yaml" in validation_body
 
         # Check PUT attempt
         overwrite_request = overwrite_route.calls[0].request

@@ -148,9 +148,9 @@ class PipelineService:
         """
         try:
             if isinstance(config, IndexConfig):
-                await self._validate_index(config.name, pipeline_yaml)
+                await self._validate_index(config.name, pipeline_yaml, config)
                 return
-            await self._validate_pipeline(config.name, pipeline_yaml)
+            await self._validate_pipeline(config.name, pipeline_yaml, config)
         except DeepsetValidationError as err:
             if config.strict_validation:
                 # Re-raise the error to fail the import
@@ -161,18 +161,25 @@ class PipelineService:
             for error_detail in err.errors:
                 logger.warning(f"Validation error [{error_detail.code}]: {error_detail.message}")
 
-    async def _validate_index(self, name: str, indexing_yaml: str) -> None:
+    async def _validate_index(self, name: str, indexing_yaml: str, config: IndexConfig) -> None:
         """Validate an index configuration.
 
         :param name: Name of the index.
         :param indexing_yaml: YAML configuration for the index.
+        :param config: Index configuration containing overwrite flag.
         :raises DeepsetValidationError: If validation fails.
         """
         logger.debug(f"Validating index {name}.")
+
+        # exclude name if overwrite is True, else we get an error that the name is already in use
+        json_payload = {"indexing_yaml": indexing_yaml}
+        if not config.overwrite:
+            json_payload["name"] = name
+
         response = await self._api.post(
             workspace_name=self._workspace_name,
             endpoint="pipeline_validations",
-            json={"name": name, "indexing_yaml": indexing_yaml},
+            json=json_payload,
         )
 
         if response.status_code != HTTPStatus.NO_CONTENT:
@@ -180,18 +187,25 @@ class PipelineService:
 
         logger.debug(f"Index validation successful for {name}.")
 
-    async def _validate_pipeline(self, name: str, query_yaml: str) -> None:
+    async def _validate_pipeline(self, name: str, query_yaml: str, config: PipelineConfig) -> None:
         """Validate a pipeline configuration.
 
         :param name: Name of the pipeline.
         :param query_yaml: YAML configuration for the pipeline.
+        :param config: Pipeline configuration containing overwrite flag.
         :raises DeepsetValidationError: If validation fails.
         """
         logger.debug(f"Validating pipeline {name}.")
+
+        # exclude name if overwrite is True, else we get an error that the name is already in use
+        json_payload = {"query_yaml": query_yaml}
+        if not config.overwrite:
+            json_payload["name"] = name
+
         response = await self._api.post(
             workspace_name=self._workspace_name,
             endpoint="pipeline_validations",
-            json={"name": name, "query_yaml": query_yaml},
+            json=json_payload,
         )
 
         if response.status_code != HTTPStatus.NO_CONTENT:
