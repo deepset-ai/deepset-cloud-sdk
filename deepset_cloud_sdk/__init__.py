@@ -14,6 +14,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineConfig,
     PipelineInputs,
     PipelineOutputs,
+    PipelineOutputType,
 )
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
     DeepsetValidationError,
@@ -37,4 +38,5 @@ __all__ = [
     "IndexInputs",
     "IndexOutputs",
     "DeepsetValidationError",
+    "PipelineOutputType",
 ]
