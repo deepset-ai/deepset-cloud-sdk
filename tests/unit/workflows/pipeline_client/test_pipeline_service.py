@@ -20,6 +20,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineConfig,
     PipelineInputs,
     PipelineOutputs,
+    PipelineOutputType,
 )
 from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
     DeepsetValidationError,
@@ -115,48 +116,49 @@ class TestImportPipelineService:
         await pipeline_service.import_async(index_pipeline, config)
 
         expected_pipeline_yaml = textwrap.dedent(
-            """components:
-  csv_converter:
-    init_parameters:
-      encoding: utf-8
-      store_full_path: false
-    type: haystack.components.converters.csv.CSVToDocument
-  file_type_router:
-    init_parameters:
-      additional_mimetypes:
-      mime_types:
-      - text/plain
-      - text/csv
-    type: haystack.components.routers.file_type_router.FileTypeRouter
-  joiner:
-    init_parameters:
-      join_mode: concatenate
-      sort_by_score: false
-      top_k:
-      weights:
-    type: haystack.components.joiners.document_joiner.DocumentJoiner
-  text_converter:
-    init_parameters:
-      encoding: utf-8
-      store_full_path: false
-    type: haystack.components.converters.txt.TextFileToDocument
-connection_type_validation: true
-connections:
-- receiver: text_converter.sources
-  sender: file_type_router.text/plain
-- receiver: csv_converter.sources
-  sender: file_type_router.text/csv
-- receiver: joiner.documents
-  sender: text_converter.documents
-- receiver: joiner.documents
-  sender: csv_converter.documents
-max_runs_per_component: 100
-metadata: {}
-inputs:
-  files:
-  - file_type_router.sources
-"""
-        )
+            """
+            components:
+              csv_converter:
+                init_parameters:
+                  encoding: utf-8
+                  store_full_path: false
+                type: haystack.components.converters.csv.CSVToDocument
+              file_type_router:
+                init_parameters:
+                  additional_mimetypes:
+                  mime_types:
+                  - text/plain
+                  - text/csv
+                type: haystack.components.routers.file_type_router.FileTypeRouter
+              joiner:
+                init_parameters:
+                  join_mode: concatenate
+                  sort_by_score: false
+                  top_k:
+                  weights:
+                type: haystack.components.joiners.document_joiner.DocumentJoiner
+              text_converter:
+                init_parameters:
+                  encoding: utf-8
+                  store_full_path: false
+                type: haystack.components.converters.txt.TextFileToDocument
+            connection_type_validation: true
+            connections:
+            - receiver: text_converter.sources
+              sender: file_type_router.text/plain
+            - receiver: csv_converter.sources
+              sender: file_type_router.text/csv
+            - receiver: joiner.documents
+              sender: text_converter.documents
+            - receiver: joiner.documents
+              sender: csv_converter.documents
+            max_runs_per_component: 100
+            metadata: {}
+            inputs:
+              files:
+              - file_type_router.sources
+            """
+        ).lstrip()
 
         # Should call validation endpoint first, then import endpoint
         assert mock_api.post.call_count == 2
@@ -200,39 +202,40 @@ inputs:
         await pipeline_service.import_async(async_index_pipeline, config)
 
         expected_pipeline_yaml = textwrap.dedent(
-            """components:
-  file_type_router:
-    init_parameters:
-      additional_mimetypes:
-      mime_types:
-      - text/plain
-    type: haystack.components.routers.file_type_router.FileTypeRouter
-  joiner:
-    init_parameters:
-      join_mode: concatenate
-      sort_by_score: false
-      top_k:
-      weights:
-    type: haystack.components.joiners.document_joiner.DocumentJoiner
-  text_converter:
-    init_parameters:
-      encoding: utf-8
-      store_full_path: false
-    type: haystack.components.converters.txt.TextFileToDocument
-connection_type_validation: true
-connections:
-- receiver: text_converter.sources
-  sender: file_type_router.text/plain
-- receiver: joiner.documents
-  sender: text_converter.documents
-max_runs_per_component: 100
-metadata: {}
-inputs:
-  files:
-  - file_type_router.sources
-async_enabled: true
-"""
-        )
+            """
+            components:
+              file_type_router:
+                init_parameters:
+                  additional_mimetypes:
+                  mime_types:
+                  - text/plain
+                type: haystack.components.routers.file_type_router.FileTypeRouter
+              joiner:
+                init_parameters:
+                  join_mode: concatenate
+                  sort_by_score: false
+                  top_k:
+                  weights:
+                type: haystack.components.joiners.document_joiner.DocumentJoiner
+              text_converter:
+                init_parameters:
+                  encoding: utf-8
+                  store_full_path: false
+                type: haystack.components.converters.txt.TextFileToDocument
+            connection_type_validation: true
+            connections:
+            - receiver: text_converter.sources
+              sender: file_type_router.text/plain
+            - receiver: joiner.documents
+              sender: text_converter.documents
+            max_runs_per_component: 100
+            metadata: {}
+            inputs:
+              files:
+              - file_type_router.sources
+            async_enabled: true
+            """
+        ).lstrip()
 
         # Should call validation endpoint first, then import endpoint
         assert mock_api.post.call_count == 2
@@ -268,11 +271,12 @@ async_enabled: true
         service = PipelineService(mock_api, workspace_name="default")
         mock_pipeline = Mock(spec=Pipeline)
         mock_pipeline.dumps.return_value = textwrap.dedent(
-            """components:
-  retriever:
-    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
-"""
-        )
+            """
+            components:
+              retriever:
+                type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
+            """
+        ).lstrip()
         config = PipelineConfig(
             name="test_pipeline",
             inputs=PipelineInputs(query=["retriever.query"]),
@@ -292,17 +296,18 @@ async_enabled: true
 
         await service.import_async(mock_pipeline, config)
         expected_pipeline_yaml = textwrap.dedent(
-            """components:
-  retriever:
-    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
-inputs:
-  query:
-  - retriever.query
-outputs:
-  documents: meta_ranker.documents
-  answers: answer_builder.answers
-"""
-        )
+            """
+            components:
+              retriever:
+                type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
+            inputs:
+              query:
+              - retriever.query
+            outputs:
+              documents: meta_ranker.documents
+              answers: answer_builder.answers
+            """
+        ).lstrip()
         # Should call validation endpoint first, then import endpoint
         assert mock_api.post.call_count == 2
 
@@ -316,6 +321,75 @@ outputs:
         import_call = mock_api.post.call_args_list[1]
         assert import_call.kwargs["endpoint"] == "pipelines"
         assert import_call.kwargs["json"] == {"name": "test_pipeline", "query_yaml": expected_pipeline_yaml}
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "output_type, output_type_yaml",
+        [
+            (PipelineOutputType.DOCUMENT, "document"),
+            (PipelineOutputType.CHAT, "chat"),
+            (PipelineOutputType.GENERATIVE, "generative"),
+            (PipelineOutputType.EXTRACTIVE, "extractive"),
+        ],
+    )
+    async def test_import_pipeline_with_pipeline_output_type(
+        self, monkeypatch: pytest.MonkeyPatch, output_type: PipelineOutputType, output_type_yaml: str
+    ) -> None:
+        """Test importing a pipeline."""
+
+        # Set up mock API and service
+        mock_api = AsyncMock()
+        pipeline_service = PipelineService(mock_api, workspace_name="default")
+
+        pipeline = Pipeline()
+        text_converter = TextFileToDocument(encoding="utf-8")
+        pipeline.add_component("text_converter", text_converter)
+
+        config = PipelineConfig(
+            name="test_pipeline_with_output_type",
+            inputs=PipelineInputs(query=["text_converter.sources"]),
+            outputs=PipelineOutputs(documents="text_converter.documents"),
+            pipeline_output_type=output_type,
+        )
+
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock successful import response
+        import_response = Mock(spec=Response)
+        import_response.status_code = HTTPStatus.CREATED.value
+
+        mock_api.post.side_effect = [validation_response, import_response]
+
+        await pipeline_service.import_async(pipeline, config)
+
+        # Verify that the import call was made with the correct YAML
+        import_call = mock_api.post.call_args_list[1]
+        actual_yaml = import_call.kwargs["json"]["query_yaml"]
+
+        expected_pipeline_yaml = textwrap.dedent(
+            f"""
+            components:
+              text_converter:
+                init_parameters:
+                  encoding: utf-8
+                  store_full_path: false
+                type: haystack.components.converters.txt.TextFileToDocument
+            connection_type_validation: true
+            connections: []
+            max_runs_per_component: 100
+            metadata: {{}}
+            inputs:
+              query:
+              - text_converter.sources
+            outputs:
+              documents: text_converter.documents
+            pipeline_output_type: {output_type_yaml}
+            """
+        ).lstrip()
+
+        assert expected_pipeline_yaml == actual_yaml
 
     @pytest.mark.asyncio
     async def test_import_pipeline_import_error(
@@ -351,11 +425,12 @@ outputs:
         service = PipelineService(mock_api, workspace_name="my-workspace")
         mock_pipeline = Mock(spec=Pipeline)
         mock_pipeline.dumps.return_value = textwrap.dedent(
-            """components:
-  retriever:
-    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
-"""
-        )
+            """
+            components:
+              retriever:
+                type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
+            """
+        ).lstrip()
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(
@@ -381,22 +456,23 @@ outputs:
 
         await service.import_async(mock_pipeline, config)
         expected_pipeline_yaml = textwrap.dedent(
-            """components:
-  retriever:
-    type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
-inputs:
-  files:
-  - file_classifier.sources
-  custom_param: custom_value
-  additional_meta:
-  - test_meta
-outputs:
-  documents: meta_ranker.documents
-  custom_output: custom_output_value
-  other_custom_output:
-  - other_custom_output_value
-      """
-        )
+            """
+            components:
+              retriever:
+                type: haystack.components.retrievers.in_memory.InMemoryBM25Retriever
+            inputs:
+              files:
+              - file_classifier.sources
+              custom_param: custom_value
+              additional_meta:
+              - test_meta
+            outputs:
+              documents: meta_ranker.documents
+              custom_output: custom_output_value
+              other_custom_output:
+              - other_custom_output_value
+            """
+        ).lstrip()
 
         # Should call validation endpoint first, then import endpoint
         assert mock_api.post.call_count == 2
@@ -640,6 +716,69 @@ class TestAddAsyncFlagIfNeeded:
         # does not raise
         pipeline_service._add_async_flag_if_needed(mock_pipeline, pipeline_dict)
         assert "async_enabled" not in pipeline_dict
+
+
+class TestAddPipelineOutputTypeIfSet:
+    """Test suite for the _add_pipeline_output_type_if_set method."""
+
+    @pytest.fixture
+    def pipeline_service(self) -> PipelineService:
+        """Create a pipeline service instance."""
+        mock_api = AsyncMock()
+        return PipelineService(mock_api, workspace_name="default")
+
+    @pytest.mark.parametrize(
+        "output_type,expected_value",
+        [
+            (PipelineOutputType.GENERATIVE, "generative"),
+            (PipelineOutputType.CHAT, "chat"),
+            (PipelineOutputType.EXTRACTIVE, "extractive"),
+            (PipelineOutputType.DOCUMENT, "document"),
+        ],
+    )
+    def test_add_pipeline_output_type_with_different_output_types(
+        self, pipeline_service: PipelineService, output_type: PipelineOutputType, expected_value: str
+    ) -> None:
+        """Test adding different pipeline output types."""
+        pipeline_dict = {"components": {"retriever": {"type": "SomeRetriever"}}, "connections": []}
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["retriever.query"]),
+            outputs=PipelineOutputs(answers="answer_builder.answers"),
+            pipeline_output_type=output_type,
+        )
+
+        pipeline_service._add_pipeline_output_type_if_set(pipeline_dict, config)
+
+        assert pipeline_dict["pipeline_output_type"] == expected_value
+
+    def test_add_pipeline_output_type_with_pipeline_config_and_no_output_type(
+        self, pipeline_service: PipelineService
+    ) -> None:
+        """Test that pipeline_output_type is not added when not set in PipelineConfig."""
+        pipeline_dict: dict[str, Any] = {"components": {}, "connections": []}
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["retriever.query"]),
+            outputs=PipelineOutputs(answers="answer_builder.answers"),
+            pipeline_output_type=None,
+        )
+
+        pipeline_service._add_pipeline_output_type_if_set(pipeline_dict, config)
+
+        assert "pipeline_output_type" not in pipeline_dict
+
+    def test_add_pipeline_output_type_with_index_config(self, pipeline_service: PipelineService) -> None:
+        """Test that pipeline_output_type is not added when using IndexConfig."""
+        pipeline_dict: dict[str, Any] = {"components": {}, "connections": []}
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_router.sources"]),
+        )
+
+        pipeline_service._add_pipeline_output_type_if_set(pipeline_dict, config)
+
+        assert "pipeline_output_type" not in pipeline_dict
 
 
 class TestValidatePipelineYaml:
