@@ -34,7 +34,7 @@ class PipelineClient(AsyncPipelineClient):
         client = PipelineClient(
             api_key="your-api-key",
             workspace_name="your-workspace",
-            api_url="https://api.deepset.ai"
+            api_url="https://api.cloud.deepset.ai/api/v1"
         )
 
         # Configure your pipeline
@@ -68,6 +68,33 @@ class PipelineClient(AsyncPipelineClient):
         client.import_into_deepset(pipeline, config)
         ```
     """
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        workspace_name: str | None = None,
+        api_url: str | None = None,
+    ) -> None:
+        """Initialize the Pipeline Client.
+
+        The client can be configured in two ways:
+
+        1. Using environment variables (recommended):
+           - Run `deepset-cloud login` to set up the following environment variables:
+             - `API_KEY`: Your deepset AI platform API key
+             - `API_URL`: The URL of the deepset AI platform API
+             - `DEFAULT_WORKSPACE_NAME`: The workspace name to use.
+
+        2. Using explicit parameters:
+           - Provide the values directly to this constructor
+           - Any missing parameters will fall back to environment variables
+
+        :param api_key: Your deepset AI platform API key. Falls back to `API_KEY` environment variable.
+        :param workspace_name: The workspace to use. Falls back to `DEFAULT_WORKSPACE_NAME` environment variable.
+        :param api_url: The URL of the deepset AI platform API. Falls back to `API_URL` environment variable.
+        :raises ValueError: If no api key or workspace name is provided and `API_KEY` or `DEFAULT_WORKSPACE_NAME` is not set in the environment.
+        """
+        super().__init__(api_key=api_key, workspace_name=workspace_name, api_url=api_url)
 
     def import_into_deepset(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Import a Haystack `Pipeline` or `AsyncPipeline` into deepset AI Platform synchronously.

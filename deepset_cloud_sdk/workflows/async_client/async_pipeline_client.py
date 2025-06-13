@@ -43,7 +43,7 @@ class AsyncPipelineClient:
         client = AsyncPipelineClient(
             api_key="your-api-key",
             workspace_name="your-workspace",
-            api_url="https://api.deepset.ai"
+            api_url="https://api.cloud.deepset.ai/api/v1"
         )
 
         # Configure your pipeline
