@@ -4,6 +4,9 @@ on:
   release:
     types:
       - published
+  pull_request:
+    branches:
+      - main
 
 env:
   CATEGORY_ID: ${{ secrets.CATEGORY_ID }}
@@ -63,4 +66,4 @@ jobs:
       - name: Run `docs` command 🚀
         uses: readmeio/rdme@v10
         with:
-          rdme: docs docs/_pydoc/temp --key=${{ secrets.README_API_KEY }} --version=1.0
+          rdme: "docs docs/_pydoc/temp --key=${{ secrets.README_API_KEY }} --version=1.0"
