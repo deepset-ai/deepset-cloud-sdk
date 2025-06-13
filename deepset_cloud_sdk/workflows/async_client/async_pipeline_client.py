@@ -1,6 +1,4 @@
-"""Pipeline client for importing pipelines and indexes to deepset AI Platform."""
-import asyncio
-
+"""Async pipeline client for importing pipelines and indexes to deepset AI Platform."""
 import structlog
 
 from deepset_cloud_sdk._api.config import (
@@ -10,27 +8,26 @@ from deepset_cloud_sdk._api.config import (
     CommonConfig,
 )
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk.workflows.pipeline_client.models import (
-    IndexConfig,
-    PipelineConfig,
-)
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
+from deepset_cloud_sdk._service.pipeline_service import (
     PipelineProtocol,
     PipelineService,
 )
+from deepset_cloud_sdk.models import IndexConfig, PipelineConfig
 
 logger = structlog.get_logger(__name__)
 
 
-class PipelineClient:
-    """Client for importing Haystack pipelines and indexes to deepset AI platform.
+# pylint: disable=too-few-public-methods
+class AsyncPipelineClient:
+    """Async client for importing Haystack pipelines and indexes to deepset AI platform.
 
-    This class provides functionality to import Haystack pipelines and indexes into the deepset AI platform.
+    Note:
+        When using this client, you need to manage your own event loop.
 
     Example for importing a Haystack pipeline or index to deepset AI platform:
         ```python
         from deepset_cloud_sdk import (
-            PipelineClient,
+            AsyncPipelineClient,
             PipelineConfig,
             PipelineInputs,
             PipelineOutputs,
@@ -40,10 +37,10 @@ class PipelineClient:
         from haystack import Pipeline
 
         # Initialize the client with configuration from environment variables (after running `deepset-cloud login`)
-        client = PipelineClient()
+        client = AsyncPipelineClient()
 
         # or initialize the client with explicit configuration
-        client = PipelineClient(
+        client = AsyncPipelineClient(
             api_key="your-api-key",
             workspace_name="your-workspace",
             api_url="https://api.deepset.ai"
@@ -76,9 +73,6 @@ class PipelineClient:
             overwrite=False,  # Overwrite existing indexes with the same name. If True, creates if it doesn't exist (default: False)
         )
 
-        # sync execution
-        client.import_into_deepset(pipeline, config)
-
         # async execution
         await client.import_into_deepset_async(pipeline, config)
         ```
@@ -90,7 +84,7 @@ class PipelineClient:
         workspace_name: str | None = None,
         api_url: str | None = None,
     ) -> None:
-        """Initialize the Pipeline Client.
+        """Initialize the Async Pipeline Client.
 
         The client can be configured in two ways:
 
@@ -135,31 +129,3 @@ class PipelineClient:
         async with DeepsetCloudAPI.factory(self._api_config) as api:
             service = PipelineService(api, self._workspace_name)
             await service.import_async(pipeline, config)
-
-    def import_into_deepset(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
-        """Import a Haystack `Pipeline` or `AsyncPipeline` into deepset AI Platform synchronously.
-
-        The pipeline must be imported as either an index or a pipeline:
-        - An index: Processes files and stores them in a document store, making them available for
-          pipelines to search.
-        - A pipeline: For other use cases, for example, searching through documents stored by index pipelines.
-
-        :param pipeline: The Haystack `Pipeline` or `AsyncPipeline` to import.
-        :param config: Configuration for importing into deepset, use either `IndexConfig` or `PipelineConfig`.
-            If importing an index, the config argument is expected to be of type `IndexConfig`,
-            if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
-        """
-        try:
-            loop = asyncio.get_event_loop()
-            # do not close if event loop already exists, e.g. in Jupyter notebooks
-            should_close = False
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            should_close = True
-
-        try:
-            return loop.run_until_complete(self.import_into_deepset_async(pipeline, config))
-        finally:
-            if should_close:
-                loop.close()

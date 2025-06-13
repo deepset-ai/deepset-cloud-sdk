@@ -22,17 +22,18 @@ from haystack.utils import Secret
 from httpx import Response
 
 from deepset_cloud_sdk._api.config import CommonConfig
-from deepset_cloud_sdk.workflows.pipeline_client import PipelineClient
-from deepset_cloud_sdk.workflows.pipeline_client.models import (
+from deepset_cloud_sdk._service.pipeline_service import DeepsetValidationError
+from deepset_cloud_sdk.models import (
     IndexConfig,
     IndexInputs,
     PipelineConfig,
     PipelineInputs,
     PipelineOutputs,
 )
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
-    DeepsetValidationError,
+from deepset_cloud_sdk.workflows.async_client.async_pipeline_client import (
+    AsyncPipelineClient,
 )
+from deepset_cloud_sdk.workflows.sync_client.pipeline_client import PipelineClient
 
 
 class MockRoutes(NamedTuple):
@@ -46,6 +47,14 @@ class MockRoutes(NamedTuple):
 def test_client() -> PipelineClient:
     """Create a test client with standard test configuration."""
     return PipelineClient(api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace")
+
+
+@pytest.fixture
+def test_async_client() -> AsyncPipelineClient:
+    """Create a test client with standard test configuration."""
+    return AsyncPipelineClient(
+        api_key="test-api-key", api_url="https://test-api-url.com", workspace_name="test-workspace"
+    )
 
 
 @pytest.fixture
@@ -203,7 +212,7 @@ class TestImportIndexIntoDeepset:
     @pytest.mark.asyncio
     @respx.mock
     async def test_import_index_into_deepset_async(
-        self, sample_index: Pipeline, test_client: PipelineClient, index_import_routes: MockRoutes
+        self, sample_index: Pipeline, test_async_client: AsyncPipelineClient, index_import_routes: MockRoutes
     ) -> None:
         """Test asynchronously importing an index into deepset."""
         index_config = IndexConfig(
@@ -212,7 +221,7 @@ class TestImportIndexIntoDeepset:
             strict_validation=False,
         )
 
-        await test_client.import_into_deepset_async(sample_index, index_config)
+        await test_async_client.import_into_deepset_async(sample_index, index_config)
 
         assert_both_endpoints_called_with_auth(
             index_import_routes, "test-index-async", "config_yaml", "components:\n  document_embedder:\n"
@@ -385,7 +394,7 @@ class TestImportPipelineIntoDeepset:
     @pytest.mark.asyncio
     @respx.mock
     async def test_import_pipeline_into_deepset_async(
-        self, sample_pipeline: Pipeline, test_client: PipelineClient, pipeline_import_routes: MockRoutes
+        self, sample_pipeline: Pipeline, test_async_client: AsyncPipelineClient, pipeline_import_routes: MockRoutes
     ) -> None:
         """Test asynchronously importing a pipeline into deepset."""
         pipeline_config = PipelineConfig(
@@ -394,7 +403,7 @@ class TestImportPipelineIntoDeepset:
             outputs=PipelineOutputs(answers="answer_builder.answers"),
             strict_validation=False,
         )
-        await test_client.import_into_deepset_async(sample_pipeline, pipeline_config)
+        await test_async_client.import_into_deepset_async(sample_pipeline, pipeline_config)
 
         assert_both_endpoints_called_with_auth(
             pipeline_import_routes,
@@ -406,7 +415,7 @@ class TestImportPipelineIntoDeepset:
     @pytest.mark.asyncio
     @respx.mock
     async def test_import_pipeline_into_deepset_async_with_validation(
-        self, sample_pipeline: Pipeline, test_client: PipelineClient, pipeline_import_routes: MockRoutes
+        self, sample_pipeline: Pipeline, test_async_client: AsyncPipelineClient, pipeline_import_routes: MockRoutes
     ) -> None:
         """Test asynchronously importing a pipeline into deepset with validation enabled."""
         pipeline_config = PipelineConfig(
@@ -468,7 +477,7 @@ class TestImportPipelineIntoDeepset:
     @pytest.mark.asyncio
     @respx.mock
     async def test_import_pipeline_with_overwrite_fallback_to_create_async(
-        self, sample_pipeline: Pipeline, test_client: PipelineClient
+        self, sample_pipeline: Pipeline, test_async_client: AsyncPipelineClient
     ) -> None:
         """Test overwriting a pipeline that doesn't exist, falling back to creation."""
         # Mock validation success
@@ -494,7 +503,7 @@ class TestImportPipelineIntoDeepset:
             overwrite=True,
         )
 
-        await test_client.import_into_deepset_async(sample_pipeline, pipeline_config)
+        await test_async_client.import_into_deepset_async(sample_pipeline, pipeline_config)
 
         # Verify all three endpoints were called in sequence
         assert validation_route.called
@@ -636,13 +645,13 @@ class TestRealIntegrationPipeline:
 
         return pipeline
 
-    async def test_create_and_delete_pipeline_integration(
+    async def test_create_and_delete_pipeline_integration_async(
         self, integration_config: CommonConfig, workspace_name: str, sample_pipeline_for_integration: Pipeline
     ) -> None:
-        """Test import a pipeline using real API calls."""
+        """Test import a pipeline using real API calls asynchronously."""
         pipeline_name = f"test-integration-pipeline-{uuid.uuid4().hex[:8]}"
 
-        client = PipelineClient(
+        client = AsyncPipelineClient(
             api_key=integration_config.api_key, api_url=integration_config.api_url, workspace_name=workspace_name
         )
 
@@ -660,13 +669,13 @@ class TestRealIntegrationPipeline:
         finally:
             remove_pipeline(integration_config, workspace_name, pipeline_name)
 
-    async def test_overwrite_non_existing_pipeline_integration(
+    async def test_overwrite_non_existing_pipeline_integration_async(
         self, integration_config: CommonConfig, workspace_name: str, sample_pipeline_for_integration: Pipeline
     ) -> None:
         """Test that importing a non-existent pipeline with overwrite=True falls back to creating it."""
         pipeline_name = f"test-integration-pipeline-{uuid.uuid4().hex[:8]}"
 
-        client = PipelineClient(
+        client = AsyncPipelineClient(
             api_key=integration_config.api_key, api_url=integration_config.api_url, workspace_name=workspace_name
         )
 

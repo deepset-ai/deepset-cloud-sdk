@@ -13,7 +13,11 @@ from haystack.components.routers import FileTypeRouter
 from httpx import Response
 from structlog.testing import capture_logs
 
-from deepset_cloud_sdk.workflows.pipeline_client.models import (
+from deepset_cloud_sdk._service.pipeline_service import (
+    DeepsetValidationError,
+    PipelineService,
+)
+from deepset_cloud_sdk.models import (
     IndexConfig,
     IndexInputs,
     IndexOutputs,
@@ -21,11 +25,6 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
     PipelineInputs,
     PipelineOutputs,
     PipelineOutputType,
-)
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
-    DeepsetValidationError,
-    ErrorDetail,
-    PipelineService,
 )
 
 
