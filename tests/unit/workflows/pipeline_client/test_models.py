@@ -2,13 +2,88 @@ import pytest
 from pydantic import ValidationError
 
 from deepset_cloud_sdk.workflows.pipeline_client.models import (
+    BaseConfig,
     IndexConfig,
     IndexInputs,
     IndexOutputs,
     PipelineConfig,
     PipelineInputs,
     PipelineOutputs,
+    PipelineOutputType,
 )
+
+
+class TestBaseConfig:
+    """Test suite for the BaseConfig model."""
+
+    def test_create_base_config_with_minimal_values(self) -> None:
+        """Test creating BaseConfig with minimal required values."""
+        config = BaseConfig(name="test_config")
+        assert config.name == "test_config"
+        assert config.strict_validation is False  # Default value
+        assert config.overwrite is False  # Default value
+
+    def test_create_base_config_with_all_values(self) -> None:
+        """Test creating BaseConfig with all values."""
+        config = BaseConfig(name="test_config", strict_validation=False, overwrite=False)
+        assert config.name == "test_config"
+        assert config.strict_validation is False
+        assert config.overwrite is False
+
+    def test_base_config_with_invalid_name(self) -> None:
+        """Test creating BaseConfig with invalid name."""
+        with pytest.raises(ValidationError, match="String should have at least 1 character"):
+            BaseConfig(name="")
+
+    def test_base_config_with_additional_fields(self) -> None:
+        """Test that BaseConfig forbids additional fields."""
+        with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+            BaseConfig(name="test_config", extra_field="test")  # type: ignore
+
+    def test_base_config_strict_validation_explicit_true(self) -> None:
+        """Test BaseConfig with explicit strict_validation=True."""
+        config = BaseConfig(name="test_config", strict_validation=True)
+        assert config.strict_validation is True
+
+    def test_base_config_strict_validation_explicit_false(self) -> None:
+        """Test BaseConfig with explicit strict_validation=False."""
+        config = BaseConfig(name="test_config", strict_validation=False)
+        assert config.strict_validation is False
+
+    def test_base_config_overwrite_explicit_true(self) -> None:
+        """Test BaseConfig with explicit overwrite=True."""
+        config = BaseConfig(name="test_config", overwrite=True)
+        assert config.overwrite is True
+
+    def test_base_config_overwrite_explicit_false(self) -> None:
+        """Test BaseConfig with explicit overwrite=False."""
+        config = BaseConfig(name="test_config", overwrite=False)
+        assert config.overwrite is False
+
+    def test_inheritance_from_base_config(self) -> None:
+        """Test that IndexConfig and PipelineConfig properly inherit from BaseConfig."""
+        # Test that they are instances of BaseConfig
+        index_config = IndexConfig(name="test_index", inputs=IndexInputs(files=["file.txt"]))
+        pipeline_config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["retriever.query"]),
+            outputs=PipelineOutputs(answers="answer_builder.answers"),
+        )
+
+        assert isinstance(index_config, BaseConfig)
+        assert isinstance(pipeline_config, BaseConfig)
+
+        # Test that they inherit the common fields
+        assert hasattr(index_config, "name")
+        assert hasattr(index_config, "strict_validation")
+        assert hasattr(pipeline_config, "name")
+        assert hasattr(pipeline_config, "strict_validation")
+
+        # Test that the inherited fields work correctly
+        assert index_config.name == "test_index"
+        assert index_config.strict_validation is False  # Default value
+        assert pipeline_config.name == "test_pipeline"
+        assert pipeline_config.strict_validation is False  # Default value
 
 
 class TestPipelineInputs:
@@ -185,6 +260,17 @@ class TestIndexOutputs:
         assert yaml_dict == {}
 
 
+class TestPipelineOutputType:
+    """Test suite for the PipelineOutputType enum."""
+
+    def test_pipeline_output_type_values(self) -> None:
+        """Test that PipelineOutputType has the correct values."""
+        assert PipelineOutputType.GENERATIVE == "generative"
+        assert PipelineOutputType.CHAT == "chat"
+        assert PipelineOutputType.EXTRACTIVE == "extractive"
+        assert PipelineOutputType.DOCUMENT == "document"
+
+
 class TestPipelineConfig:
     """Test suite for the PipelineConfig model."""
 
@@ -198,6 +284,9 @@ class TestPipelineConfig:
         assert config.name == "test_pipeline"
         assert isinstance(config.inputs, PipelineInputs)
         assert isinstance(config.outputs, PipelineOutputs)
+        assert config.strict_validation is False  # Default value
+        assert config.overwrite is False  # Default value
+        assert config.pipeline_output_type is None  # Default value
 
     def test_create_pipeline_config_with_all_values(self) -> None:
         """Test creating PipelineConfig with all values."""
@@ -205,10 +294,16 @@ class TestPipelineConfig:
             name="test_pipeline",
             inputs=PipelineInputs(query=["retriever.query"], filters=["retriever.filters"]),
             outputs=PipelineOutputs(documents="retriever.documents", answers="reader.answers"),
+            strict_validation=False,
+            overwrite=True,
+            pipeline_output_type=PipelineOutputType.GENERATIVE,
         )
         assert config.name == "test_pipeline"
         assert config.inputs.query == ["retriever.query"]
         assert config.outputs.documents == "retriever.documents"
+        assert config.strict_validation is False
+        assert config.overwrite is True
+        assert config.pipeline_output_type == PipelineOutputType.GENERATIVE
 
     def test_pipeline_config_with_invalid_name(self) -> None:
         """Test creating PipelineConfig with invalid name."""
@@ -224,6 +319,35 @@ class TestPipelineConfig:
         with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
             PipelineConfig(name="test_pipeline", extra_field="test", inputs=PipelineInputs(query=["prompt_builder.query"]), outputs=PipelineOutputs(answers="answers_builder.answers"))  # type: ignore
 
+    def test_pipeline_config_strict_validation_default_value(self) -> None:
+        """Test that PipelineConfig strict_validation field defaults to False."""
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["prompt_builder.query"]),
+            outputs=PipelineOutputs(answers="answers_builder.answers"),
+        )
+        assert config.strict_validation is False
+
+    def test_pipeline_config_strict_validation_explicit_true(self) -> None:
+        """Test PipelineConfig with explicit strict_validation=True."""
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["prompt_builder.query"]),
+            outputs=PipelineOutputs(answers="answers_builder.answers"),
+            strict_validation=True,
+        )
+        assert config.strict_validation is True
+
+    def test_pipeline_config_strict_validation_explicit_false(self) -> None:
+        """Test PipelineConfig with explicit strict_validation=False."""
+        config = PipelineConfig(
+            name="test_pipeline",
+            inputs=PipelineInputs(query=["prompt_builder.query"]),
+            outputs=PipelineOutputs(answers="answers_builder.answers"),
+            strict_validation=False,
+        )
+        assert config.strict_validation is False
+
 
 class TestIndexConfig:
     """Test suite for the IndexConfig model."""
@@ -234,15 +358,23 @@ class TestIndexConfig:
         assert config.name == "test_index"
         assert isinstance(config.inputs, IndexInputs)
         assert isinstance(config.outputs, IndexOutputs)
+        assert config.strict_validation is False  # Default value
+        assert config.overwrite is False  # Default value
 
     def test_create_index_config_with_all_values(self) -> None:
         """Test creating IndexConfig with all values."""
         config = IndexConfig(
-            name="test_index", inputs=IndexInputs(files=["file_type_router.sources"]), outputs=IndexOutputs()
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            outputs=IndexOutputs(),
+            strict_validation=False,
+            overwrite=True,
         )
         assert config.name == "test_index"
         assert config.inputs.files == ["file_type_router.sources"]
         assert isinstance(config.outputs, IndexOutputs)
+        assert config.strict_validation is False
+        assert config.overwrite is True
 
     def test_index_config_with_invalid_name(self) -> None:
         """Test creating IndexConfig with invalid name."""
@@ -253,3 +385,26 @@ class TestIndexConfig:
         """Test that IndexConfig forbids additional fields."""
         with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
             IndexConfig(name="test_index", inputs=IndexInputs(files=["file_type_router.sources"]), extra_field="test")  # type: ignore
+
+    def test_index_config_strict_validation_default_value(self) -> None:
+        """Test that IndexConfig strict_validation field defaults to False."""
+        config = IndexConfig(name="test_index", inputs=IndexInputs(files=["file_type_router.sources"]))
+        assert config.strict_validation is False
+
+    def test_index_config_strict_validation_explicit_true(self) -> None:
+        """Test IndexConfig with explicit strict_validation=True."""
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=True,
+        )
+        assert config.strict_validation is True
+
+    def test_index_config_strict_validation_explicit_false(self) -> None:
+        """Test IndexConfig with explicit strict_validation=False."""
+        config = IndexConfig(
+            name="test_index",
+            inputs=IndexInputs(files=["file_type_router.sources"]),
+            strict_validation=False,
+        )
+        assert config.strict_validation is False
