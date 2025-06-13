@@ -4,9 +4,6 @@ on:
   release:
     types:
       - published
-  pull_request:
-    branches:
-      - main
 
 env:
   CATEGORY_ID: ${{ secrets.CATEGORY_ID }}
@@ -52,10 +49,10 @@ jobs:
       - name: Install dependencies for doc deployment
         run: pip install mkdocs-material mkdocstrings[python] mkdocs-mermaid2-plugin mike
 
-      # - name: Publish docs to pages
-      #   run: |
-      #     mike deploy --push --update-aliases ${{github.ref_name}} && \
-      #     mike set-default --push ${{github.ref_name}}
+      - name: Publish docs to pages
+        run: |
+          mike deploy --push --update-aliases ${{github.ref_name}} && \
+          mike set-default --push ${{github.ref_name}}
 
       - name: Add Category ID to all API docs
         run: python ./.github/utils/add-category-id.py
