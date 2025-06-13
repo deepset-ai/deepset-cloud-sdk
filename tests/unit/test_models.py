@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from deepset_cloud_sdk.workflows.pipeline_client.models import (
+from deepset_cloud_sdk.models import (
     BaseConfig,
     IndexConfig,
     IndexInputs,
@@ -14,7 +14,7 @@ from deepset_cloud_sdk.workflows.pipeline_client.models import (
 
 
 class TestBaseConfig:
-    """Test suite for the BaseConfig model."""
+    """Test suite for the PipelineClient BaseConfig model."""
 
     def test_create_base_config_with_minimal_values(self) -> None:
         """Test creating BaseConfig with minimal required values."""

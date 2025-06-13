@@ -1,31 +1,19 @@
-"""Pipeline client for importing pipelines and indexes to deepset AI Platform."""
+"""Sync pipeline client for importing pipelines and indexes to deepset AI Platform."""
 import asyncio
 
 import structlog
 
-from deepset_cloud_sdk._api.config import (
-    API_KEY,
-    API_URL,
-    DEFAULT_WORKSPACE_NAME,
-    CommonConfig,
-)
-from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk.workflows.pipeline_client.models import (
-    IndexConfig,
-    PipelineConfig,
-)
-from deepset_cloud_sdk.workflows.pipeline_client.pipeline_service import (
-    PipelineProtocol,
-    PipelineService,
+from deepset_cloud_sdk._service.pipeline_service import PipelineProtocol
+from deepset_cloud_sdk.models import IndexConfig, PipelineConfig
+from deepset_cloud_sdk.workflows.async_client.async_pipeline_client import (
+    AsyncPipelineClient,
 )
 
 logger = structlog.get_logger(__name__)
 
 
-class PipelineClient:
-    """Client for importing Haystack pipelines and indexes to deepset AI platform.
-
-    This class provides functionality to import Haystack pipelines and indexes into the deepset AI platform.
+class PipelineClient(AsyncPipelineClient):
+    """Sync client for importing Haystack pipelines and indexes to deepset AI platform.
 
     Example for importing a Haystack pipeline or index to deepset AI platform:
         ```python
@@ -46,7 +34,7 @@ class PipelineClient:
         client = PipelineClient(
             api_key="your-api-key",
             workspace_name="your-workspace",
-            api_url="https://api.deepset.ai"
+            api_url="https://api.cloud.deepset.ai/api/v1"
         )
 
         # Configure your pipeline
@@ -78,9 +66,6 @@ class PipelineClient:
 
         # sync execution
         client.import_into_deepset(pipeline, config)
-
-        # async execution
-        await client.import_into_deepset_async(pipeline, config)
         ```
     """
 
@@ -109,32 +94,7 @@ class PipelineClient:
         :param api_url: The URL of the deepset AI platform API. Falls back to `API_URL` environment variable.
         :raises ValueError: If no api key or workspace name is provided and `API_KEY` or `DEFAULT_WORKSPACE_NAME` is not set in the environment.
         """
-        self._api_config = CommonConfig(
-            api_key=api_key or API_KEY,
-            api_url=api_url or API_URL,
-        )
-        self._workspace_name = workspace_name or DEFAULT_WORKSPACE_NAME
-        if not self._workspace_name:
-            raise ValueError(
-                "Workspace not configured. Provide a workspace name or set the `DEFAULT_WORKSPACE_NAME` environment variable."
-            )
-
-    async def import_into_deepset_async(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
-        """Import a Haystack `Pipeline` or `AsyncPipeline` into deepset AI Platform asynchronously.
-
-        The pipeline must be imported as either an index or a pipeline:
-        - An index: Processes files and stores them in a document store, making them available for
-          pipelines to search.
-        - A pipeline: For other use cases, for example, searching through documents stored by index pipelines.
-
-        :param pipeline: The Haystack `Pipeline` or `AsyncPipeline` to import.
-        :param config: Configuration for importing, use either `IndexConfig` or `PipelineConfig`.
-            If importing an index, the config argument is expected to be of type `IndexConfig`,
-            if importing a pipeline, the config argument is expected to be of type `PipelineConfig`.
-        """
-        async with DeepsetCloudAPI.factory(self._api_config) as api:
-            service = PipelineService(api, self._workspace_name)
-            await service.import_async(pipeline, config)
+        super().__init__(api_key=api_key, workspace_name=workspace_name, api_url=api_url)
 
     def import_into_deepset(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Import a Haystack `Pipeline` or `AsyncPipeline` into deepset AI Platform synchronously.
