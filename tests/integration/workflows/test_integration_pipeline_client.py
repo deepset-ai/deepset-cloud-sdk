@@ -424,7 +424,7 @@ class TestImportPipelineIntoDeepset:
             outputs=PipelineOutputs(answers="answer_builder.answers"),
             strict_validation=True,
         )
-        await test_client.import_into_deepset_async(sample_pipeline, pipeline_config)
+        await test_async_client.import_into_deepset_async(sample_pipeline, pipeline_config)
 
         # Verify both endpoints were called
         assert pipeline_import_routes.validation.called
