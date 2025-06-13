@@ -4,10 +4,11 @@ import asyncio
 import os
 import re
 from dataclasses import dataclass
+from datetime import timedelta
 from http import HTTPStatus
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Coroutine, List, Optional, Sequence, Type, Union
+from typing import Any, Coroutine, List, Optional, Sequence, Type, Union, cast
 
 import aiofiles
 import aiohttp
@@ -62,6 +63,7 @@ class S3UploadSummary:
     successful_upload_count: int
     failed_upload_count: int
     failed: List[S3UploadResult]
+    cancelled: bool = False
 
 
 def make_safe_file_name(file_name: str) -> str:
@@ -277,18 +279,41 @@ class S3:
         self,
         tasks: List[Coroutine[Any, Any, S3UploadResult]],
         show_progress: bool = True,
+        timeout: timedelta = timedelta(hours=1),
     ) -> S3UploadSummary:
         """Summarize the results of the uploads to S3.
 
         :param tasks: List of upload tasks.
+        :param show_progress: Whether to show a progress bar.
+        :param timeout: Timeout for the upload. If set, cancels remaining uploads after timeout.
         :return: S3UploadResult object.
         """
         results: List[S3UploadResult] = []
+        cancelled = False
 
-        if show_progress:
-            results = await tqdm.gather(*tasks, desc="Upload to S3")
-        else:
-            results = await asyncio.gather(*tasks)
+        async def process_with_timeout() -> List[S3UploadResult]:
+            try:
+                if show_progress:
+                    return cast(
+                        List[S3UploadResult],
+                        await tqdm.gather(*tasks, desc="Upload to S3"),
+                    )
+                return cast(List[S3UploadResult], await asyncio.gather(*tasks))
+            except asyncio.TimeoutError:
+                task_objects = [asyncio.create_task(task) for task in tasks]
+                results = [task.result() for task in task_objects if task.done()]
+                return results
+
+        try:
+            results = await asyncio.wait_for(process_with_timeout(), timeout=timeout.total_seconds())
+        except asyncio.TimeoutError:
+            cancelled = True
+            logger.warning(
+                "Upload timeout reached. Returning partial results.",
+                timeout_s=timeout.total_seconds(),
+            )
+            task_objects = [asyncio.create_task(task) for task in tasks]
+            results = [task.result() for task in task_objects if task.done()]
 
         logger.info(
             "Finished uploading files.",
@@ -309,6 +334,7 @@ class S3:
             failed_upload_count=len(failed),
             failed=failed,
             total_files=len(tasks),
+            cancelled=cancelled,
         )
         if result_summary.successful_upload_count == 0:
             logger.error("Could not upload any files to S3.")
@@ -320,21 +346,34 @@ class S3:
         upload_session: UploadSession,
         file_paths: List[Path],
         show_progress: bool = True,
+        timeout: timedelta = timedelta(hours=1),
     ) -> S3UploadSummary:
         """Upload a set of files to the prefixed S3 namespace given a list of paths.
+
+        The timeout can be set to automatically canceling the remaining uploads if
+        the upload takes too long. The method will return the summary of all processed
+        files until the timeout is reached.
 
         :param upload_session: UploadSession to associate the upload with.
         :param file_paths: A list of paths to upload.
         :param show_progress: Whether to show a progress bar on the upload.
+        :param timeout: Timeout for the upload.
         :return: S3UploadSummary object.
         """
-        async with aiohttp.ClientSession(connector=self.connector) as client_session:
+        async with aiohttp.ClientSession(
+            connector=self.connector,
+        ) as client_session:
             tasks = []
 
             for file_path in file_paths:
                 tasks.append(self.upload_from_file(file_path, upload_session, client_session))
 
-            result_summary = await self._process_results(tasks, show_progress=show_progress)
+            result_summary = await self._process_results(tasks, show_progress=show_progress, timeout=timeout)
+            if result_summary.cancelled:
+                logger.warning(
+                    "Upload timeout reached. Returning partial results.",
+                    timeout_s=timeout.total_seconds(),
+                )
             return result_summary
 
     async def upload_in_memory(
@@ -342,12 +381,18 @@ class S3:
         upload_session: UploadSession,
         files: Sequence[DeepsetCloudFileBase],
         show_progress: bool = True,
+        timeout: timedelta = timedelta(hours=1),
     ) -> S3UploadSummary:
         """Upload a set of files to the prefixed S3 namespace given a list of paths.
+
+        The timeout can be set to automatically canceling the remaining uploads if
+        the upload takes too long. The method will return the summary of all processed
+        files until the timeout is reached.
 
         :param upload_session: UploadSession to associate the upload with.
         :param files: A list of DeepsetCloudFileBase to upload.
         :param show_progress: Whether to show a progress bar on the upload.
+        :param timeout: Timeout for the upload.
         :return: S3UploadSummary object.
         """
         async with aiohttp.ClientSession(
@@ -373,6 +418,6 @@ class S3:
                         )
                     )
 
-            result_summary = await self._process_results(tasks, show_progress=show_progress)
+            result_summary = await self._process_results(tasks, show_progress=show_progress, timeout=timeout)
 
             return result_summary

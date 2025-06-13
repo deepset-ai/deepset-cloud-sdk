@@ -135,7 +135,9 @@ class FilesService:
         :return: Upload session ID.
         """
         upload_session = await self._upload_sessions.create(
-            workspace_name=workspace_name, write_mode=write_mode, enable_parallel_processing=enable_parallel_processing
+            workspace_name=workspace_name,
+            write_mode=write_mode,
+            enable_parallel_processing=enable_parallel_processing,
         )
         try:
             yield upload_session
@@ -143,7 +145,11 @@ class FilesService:
             await self._upload_sessions.close(workspace_name=workspace_name, session_id=upload_session.session_id)
 
     async def _wrapped_direct_upload_path(
-        self, workspace_name: str, file_path: Path, meta: Dict[str, Any], write_mode: WriteMode
+        self,
+        workspace_name: str,
+        file_path: Path,
+        meta: Dict[str, Any],
+        write_mode: WriteMode,
     ) -> S3UploadResult:
         try:
             await self._files.direct_upload_path(
@@ -226,7 +232,10 @@ class FilesService:
 
                 _coroutines.append(
                     self._wrapped_direct_upload_path(
-                        workspace_name=workspace_name, file_path=file_path, meta=meta, write_mode=write_mode
+                        workspace_name=workspace_name,
+                        file_path=file_path,
+                        meta=meta,
+                        write_mode=write_mode,
                     )
                 )
             result = await asyncio.gather(*_coroutines)
@@ -242,25 +251,37 @@ class FilesService:
                 failed=[r for r in result if r.success is False],
             )
 
-        # create session to upload files to
-        async with self._create_upload_session(
-            workspace_name=workspace_name, write_mode=write_mode, enable_parallel_processing=enable_parallel_processing
-        ) as upload_session:
-            # upload file paths to session
-
-            upload_summary = await self._s3.upload_files_from_paths(
-                upload_session=upload_session, file_paths=file_paths, show_progress=show_progress
-            )
-            logger.info(
-                "Summary of S3 Uploads",
-                successful_uploads=upload_summary.successful_upload_count,
-                failed_uploads=upload_summary.failed_upload_count,
-                failed=upload_summary.failed,
-            )
+        cancelled = False
+        while not cancelled:
+            # create session to upload files to
+            async with self._create_upload_session(
+                workspace_name=workspace_name,
+                write_mode=write_mode,
+                enable_parallel_processing=enable_parallel_processing,
+            ) as upload_session:
+                upload_summary = await self._s3.upload_files_from_paths(
+                    upload_session=upload_session,
+                    file_paths=file_paths,
+                    show_progress=show_progress,
+                )
+                cancelled = upload_summary.cancelled
+                logger.info(
+                    "Summary of S3 Uploads",
+                    successful_uploads=upload_summary.successful_upload_count,
+                    failed_uploads=upload_summary.failed_upload_count,
+                    failed=upload_summary.failed,
+                )
 
         # wait for ingestion to finish
         if blocking:
-            total_files = len(list(filter(lambda x: not os.path.basename(x).endswith(META_SUFFIX), file_paths)))
+            total_files = len(
+                list(
+                    filter(
+                        lambda x: not os.path.basename(x).endswith(META_SUFFIX),
+                        file_paths,
+                    )
+                )
+            )
             await self._wait_for_finished(
                 workspace_name=workspace_name,
                 session_id=upload_session.session_id,
@@ -336,7 +357,8 @@ class FilesService:
         for file_name, file_group in files_by_name.items():
             if len(file_group) > 1:
                 logger.warning(
-                    "Multiple files with the same name found. Keeping the most recent one.", file_name=file_name
+                    "Multiple files with the same name found. Keeping the most recent one.",
+                    file_name=file_name,
                 )
             most_recent_file = sorted(file_group, key=lambda x: x.stat().st_mtime, reverse=True)[0]
             most_recent_files.append(most_recent_file)
@@ -417,13 +439,19 @@ class FilesService:
             Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
-        logger.info("Getting valid files from file path. This may take a few minutes.", recursive=recursive)
+        logger.info(
+            "Getting valid files from file path. This may take a few minutes.",
+            recursive=recursive,
+        )
 
         if show_progress:
             with yaspin().arc as sp:
                 sp.text = "Finding uploadable files in the given paths."
                 file_paths = self._preprocess_paths(
-                    paths, spinner=sp, recursive=recursive, desired_file_types=desired_file_types
+                    paths,
+                    spinner=sp,
+                    recursive=recursive,
+                    desired_file_types=desired_file_types,
                 )
         else:
             file_paths = self._preprocess_paths(paths, recursive=recursive, desired_file_types=desired_file_types)
@@ -455,7 +483,11 @@ class FilesService:
                 include_meta=include_meta,
             )
         except FileNotFoundInDeepsetCloudException as e:
-            logger.error("File was listed in deepset Cloud but could not be downloaded.", file_id=file_id, error=e)
+            logger.error(
+                "File was listed in deepset Cloud but could not be downloaded.",
+                file_id=file_id,
+                error=e,
+            )
         except Exception as e:
             logger.error("Failed to download file.", file_id=file_id, error=e)
 
@@ -598,7 +630,9 @@ class FilesService:
 
         # create session to upload files to
         async with self._create_upload_session(
-            workspace_name=workspace_name, write_mode=write_mode, enable_parallel_processing=enable_parallel_processing
+            workspace_name=workspace_name,
+            write_mode=write_mode,
+            enable_parallel_processing=enable_parallel_processing,
         ) as upload_session:
             upload_summary = await self._s3.upload_in_memory(
                 upload_session=upload_session, files=files, show_progress=show_progress
