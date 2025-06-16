@@ -1,7 +1,7 @@
 loaders:
   - type: python
     search_path: [../../../deepset_cloud_sdk/workflows/sync_client]
-    modules: ["files"]
+    modules: ["files", "pipeline_client"]
     ignore_when_discovered: ["__init__"]
 processors:
   - type: filter
@@ -13,7 +13,7 @@ processors:
   - type: crossref
 renderer:
   type: renderers.ReadmeRenderer
-  excerpt: A synchronous client for the deepset Cloud API.
+  excerpt: A synchronous client for the deepset AI Platform API.
   category_slug: sdk-10
   title: Synchronous Client
   slug: sync_client
