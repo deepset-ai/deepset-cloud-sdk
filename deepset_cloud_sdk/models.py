@@ -1,4 +1,4 @@
-"""General data classes for deepset Cloud SDK."""
+"""General data classes for deepset SDK."""
 import json
 from abc import abstractmethod
 from dataclasses import dataclass
@@ -19,7 +19,7 @@ class UserInfo:
 
 
 class DeepsetCloudFileBase:  # pylint: disable=too-few-public-methods
-    """Base class for deepset Cloud files."""
+    """Base class for deepset files."""
 
     def __init__(self, name: str, meta: Optional[Dict[str, Any]] = None):
         """
@@ -45,7 +45,7 @@ class DeepsetCloudFileBase:  # pylint: disable=too-few-public-methods
 
 
 class DeepsetCloudFile(DeepsetCloudFileBase):  # pylint: disable=too-few-public-methods
-    """Data class for text files in deepset Cloud."""
+    """Data class for text files in deepset AI Platform."""
 
     def __init__(self, text: str, name: str, meta: Optional[Dict[str, Any]] = None):
         """
@@ -73,7 +73,7 @@ class DeepsetCloudFile(DeepsetCloudFileBase):  # pylint: disable=too-few-public-
 
 
 class DeepsetCloudFileBytes(DeepsetCloudFileBase):  # pylint: disable=too-few-public-methods
-    """Data class for uploading files of any valid type in deepset Cloud."""
+    """Data class for uploading files of any valid type in deepset AI Platform."""
 
     def __init__(self, file_bytes: bytes, name: str, meta: Optional[Dict[str, Any]] = None):
         """

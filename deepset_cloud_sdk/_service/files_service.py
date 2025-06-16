@@ -130,7 +130,7 @@ class FilesService:
         """Create a new upload session.
 
         :param workspace_name: Name of the workspace to create the upload session for.
-        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        :param enable_parallel_processing: If `True`, the deepset AI Platform ingests the files in parallel.
             Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
         :return: Upload session ID.
         """
@@ -193,10 +193,10 @@ class FilesService:
     ) -> S3UploadSummary:
         """Upload a list of files to a workspace.
 
-        Upload a list of files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset Cloud.
-        Listing the files in deepset Cloud may take a couple of minutes. Use the `blocking` parameter to control if you want to wait until the files are listed and displayed in deepset Cloud.
-        If blocking is set to `True`, the function waits until all files are visible in deepset Cloud. If blocking is set to `False`, the function returns immediately after
-        the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
+        Upload a list of files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset AI Platform.
+        Listing the files in deepset may take a couple of minutes. Use the `blocking` parameter to control if you want to wait until the files are listed and displayed in deepset AI Platform.
+        If blocking is set to `True`, the function waits until all files are visible in deepset. If blocking is set to `False`, the function returns immediately after
+        the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :param file_paths: List of file paths to upload.
@@ -205,16 +205,16 @@ class FilesService:
         KEEP - uploads the file with the same name and keeps both files in the workspace.
         OVERWRITE - overwrites the file that is in the workspace.
         FAIL - fails to upload the file with the same name.
-        :param blocking: If True, waits until the ingestion is finished and the files are visible in deepset Cloud.
+        :param blocking: If True, waits until the ingestion is finished and the files are visible in deepset.
         :param timeout_s: Timeout in seconds for the `blocking` parameter.
         :param show_progress If True, shows a progress bar for S3 uploads.
-        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        :param enable_parallel_processing: If `True`, the deepset will ingest the files in parallel.
             Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
 
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         if len(file_paths) <= DIRECT_UPLOAD_THRESHOLD:
-            logger.info("Uploading files to deepset Cloud.", file_paths=file_paths)
+            logger.info("Uploading files to deepset AI Platform.", file_paths=file_paths)
             _coroutines = []
             _raw_files = [path for path in file_paths if not path.name.endswith(META_SUFFIX)]
             for file_path in _raw_files:
@@ -395,10 +395,10 @@ class FilesService:
     ) -> S3UploadSummary:
         """Upload a list of file or folder paths to a workspace.
 
-        Upload files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset Cloud.
-        Listing the files in deepset Cloud may take a couple of minutes. Use the `blocking` parameter to control if you want to wait until the files are listed and displayed in deepset Cloud.
-        If blocking is set to `True`, the function waits until all files are visible in deepset Cloud. If blocking is set to `False`, the function returns immediately after
-        the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
+        Upload files to a selected workspace using upload sessions. It first uploads the files to S3 and then lists them in deepset AI Platform.
+        Listing the files in deepset may take a couple of minutes. Use the `blocking` parameter to control if you want to wait until the files are listed and displayed in deepset.
+        If blocking is set to `True`, the function waits until all files are visible in deepset. If blocking is set to `False`, the function returns immediately after
+        the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :param paths: Path to the folder to upload.
@@ -407,13 +407,13 @@ class FilesService:
         KEEP - uploads the file with the same name and keeps both files in the workspace.
         OVERWRITE - overwrites the file that is in the workspace.
         FAIL - fails to upload the file with the same name.
-        :param blocking: If True, waits until the ingestion to S3 is finished and the files are visible in deepset Cloud.
+        :param blocking: If True, waits until the ingestion to S3 is finished and the files are visible in deepset AI Platform.
         :param timeout_s: Timeout in seconds for the `blocking` parameter.
         :param show_progress If True, shows a progress bar for S3 uploads.
         :param recursive: If True, recursively uploads all files in the folder.
         :param desired_file_types: A list of allowed file types to upload, defaults to
         `[".txt", ".pdf", ".docx", ".pptx", ".xlsx", ".xml", ".csv", ".html", ".md", ".json"]`
-        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        :param enable_parallel_processing: If `True`, the deepset AI Platform ingests the files in parallel.
             Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
@@ -455,7 +455,7 @@ class FilesService:
                 include_meta=include_meta,
             )
         except FileNotFoundInDeepsetCloudException as e:
-            logger.error("File was listed in deepset Cloud but could not be downloaded.", file_id=file_id, error=e)
+            logger.error("File was listed in deepset AI Platform but could not be downloaded.", file_id=file_id, error=e)
         except Exception as e:
             logger.error("Failed to download file.", file_id=file_id, error=e)
 
@@ -470,7 +470,7 @@ class FilesService:
         timeout_s: Optional[int] = None,
         show_progress: bool = True,
     ) -> None:
-        """Download files from deepset Cloud to a folder.
+        """Download files from deepset AI Platform to a folder.
 
         :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
         :param file_dir: Path to the folder to download. If None, the current working directory is used.
@@ -551,10 +551,10 @@ class FilesService:
         Upload a list of raw texts to a workspace using upload sessions. This method accepts a list of DeepsetCloudFiles
         which contain raw text, file name, and optional metadata.
 
-        It first uploads the files to S3 and then lists them in deepset Cloud.
-        Listing the files in deepset Cloud may take a couple of minutes. Use the `blocking` parameter to control if you want to wait until the files are listed and displayed in deepset Cloud.
-        If blocking is set to `True`, the function waits until all files are visible in deepset Cloud. If blocking is set to `False`, the function returns immediately after
-        the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset Cloud.
+        It first uploads the files to S3 and then lists them in deepset AI Platform.
+        Listing the files in deepset may take a couple of minutes. Use the `blocking` parameter to control if you want to wait until the files are listed and displayed in deepset.
+        If blocking is set to `True`, the function waits until all files are visible in deepset. If blocking is set to `False`, the function returns immediately after
+        the upload of the files to S3 is completed and doesn't wait until the files are shown in deepset.
 
         :param workspace_name: Name of the workspace to upload the files to.
         :param files: List of DeepsetCloudFiles to upload.
@@ -563,15 +563,15 @@ class FilesService:
         KEEP - uploads the file with the same name and keeps both files in the workspace.
         OVERWRITE - overwrites the file that is in the workspace.
         FAIL - fails to upload the file with the same name.
-        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        :param enable_parallel_processing: If `True`, the deepset AI Platform ingests the files in parallel.
             Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
-        :param blocking: If True, waits until the ingestion to S3 is finished and the files are displayed in deepset Cloud.
+        :param blocking: If True, waits until the ingestion to S3 is finished and the files are displayed in deepset AI Platform.
         :param timeout_s: Timeout in seconds for the `blocking` parameter.
         :param show_progress If True, shows a progress bar for S3 uploads.
         :raises TimeoutError: If blocking is True and the ingestion takes longer than timeout_s.
         """
         if len(files) <= DIRECT_UPLOAD_THRESHOLD:
-            logger.info("Uploading files to deepset Cloud.", total_text_files=len(files))
+            logger.info("Uploading files to deepset AI Platform.", total_text_files=len(files))
             _coroutines = []
             for file in files:
                 _coroutines.append(

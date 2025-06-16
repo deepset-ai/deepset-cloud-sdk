@@ -79,7 +79,7 @@ def make_safe_file_name(file_name: str) -> str:
 
 
 class S3:
-    """Client for S3 operations related to deepset Cloud uploads."""
+    """Client for S3 operations related to deepset AI Platform uploads."""
 
     def __init__(
         self,
@@ -239,7 +239,7 @@ class S3:
                 except Exception as exception:  # pylint: disable=broad-exception-caught
                     reason = str(exception) or str(exception.__class__)
                     logger.error(
-                        "Could not upload a file to deepset Cloud",
+                        "Could not upload a file to deepset AI Platform",
                         file_name=file_name,
                         session_id=upload_session.session_id,
                         reason=reason,
@@ -266,7 +266,7 @@ class S3:
             return S3UploadResult(file_name=file_name, success=True)
         except Exception as exception:  # pylint: disable=bare-except, disable=broad-exception-caught
             logger.warning(
-                "Could not upload a file to deepset Cloud",
+                "Could not upload a file to deepset AI Platform",
                 file_name=file_name,
                 session_id=upload_session.session_id,
                 reason=str(exception),

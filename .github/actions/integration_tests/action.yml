@@ -3,10 +3,10 @@ description: "Runs the Integration tests "
 
 inputs:
   API_KEY:
-    description: "The API_KEY for deepset Cloud"
+    description: "The API_KEY for deepset"
     required: true
   API_URL:
-    description: "The API_URL for deepset Cloud"
+    description: "The API_URL for deepset"
     required: true
 
 outputs: {}

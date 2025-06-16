@@ -1,5 +1,5 @@
 # pylint:disable=too-many-arguments
-"""This module contains async functions for uploading files and folders to deepset Cloud."""
+"""This module contains async functions for uploading files and folders to deepset AI Platform."""
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional, Union
 from uuid import UUID
@@ -38,7 +38,7 @@ async def list_files(
 ) -> AsyncGenerator[List[File], None]:
     """List all files in a workspace.
 
-    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_key: deepset API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
@@ -73,7 +73,7 @@ async def list_upload_sessions(
 ) -> AsyncGenerator[List[UploadSessionDetail], None]:
     """List the details of all upload sessions for a given workspace, including the closed sessions.
 
-    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_key: deepset API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
     :param is_expired: Whether to list expired upload sessions.
@@ -104,7 +104,7 @@ async def get_upload_session(
     """Get the status of an upload session.
 
     :param session_id: ID of the upload session to get the status for.
-    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_key: deepset API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from.
     :return: List of files.
@@ -130,7 +130,7 @@ async def upload(
     enable_parallel_processing: bool = False,
     safe_mode: bool = False,
 ) -> S3UploadSummary:
-    """Upload a folder to deepset Cloud.
+    """Upload a folder to deepset AI Platform.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported files, they're skipped.
     during the upload. Supported file formats are txt, pdf, docx, pptx, xlsx, xml, csv, html, md, json.
@@ -148,9 +148,9 @@ async def upload(
     :param recursive: Uploads files from subdirectories as well.
     :param desired_file_types: A list of allowed file types to upload. If not provided, all
         files are uploaded.
-    :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+    :param enable_parallel_processing: If `True`, deepset AI Platform ingests the files in parallel.
         Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
-    :param safe_mode: If `True`, the deepset Cloud will not ingest the files in parallel.
+    :param safe_mode: If `True`, the deepset AI Platform doesn not ingest the files in parallel.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url, safe_mode=safe_mode)) as file_service:
         return await file_service.upload(
@@ -179,7 +179,7 @@ async def download(
     timeout_s: Optional[int] = None,
     safe_mode: bool = False,
 ) -> None:
-    """Download a folder to deepset Cloud.
+    """Download a folder to deepset AI Platform.
 
     Downloads all files from a workspace to a local folder.
 
@@ -219,10 +219,10 @@ async def upload_texts(
     show_progress: bool = True,
     enable_parallel_processing: bool = False,
 ) -> S3UploadSummary:
-    """Upload raw texts to deepset Cloud.
+    """Upload raw texts to deepset AI Platform.
 
     :param files: List of DeepsetCloudFile objects to upload.
-    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_key: deepset API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
@@ -230,11 +230,11 @@ async def upload_texts(
     KEEP - uploads the file with the same name and keeps both files in the workspace.
     OVERWRITE - overwrites the file that is in the workspace.
     FAIL - fails to upload the file with the same name.
-    :param blocking: Whether to wait for the files to be listed and displayed in deepset Cloud.
+    :param blocking: Whether to wait for the files to be listed and displayed in deepset AI Platform.
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
-    :param enable_parallel_processing: If `True`, deepset Cloud ingests files in parallel.
+    :param enable_parallel_processing: If `True`, deepset AI Platform ingests files in parallel.
         Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
 
     Example:
@@ -288,7 +288,7 @@ async def upload_bytes(
     """Upload files in byte format.
 
     :param files: List of DeepsetCloudFileBytes objects to upload.
-    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_key: deepset API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
@@ -296,11 +296,11 @@ async def upload_bytes(
     KEEP - uploads the file with the same name and keeps both files in the workspace.
     OVERWRITE - overwrites the file in the workspace with the file you're uploading.
     FAIL - fails to upload the file if a file with the same name already exists in the workspace.
-    :param blocking: Whether to wait for the files to be listed and displayed in deepset Cloud.
+    :param blocking: Whether to wait for the files to be listed and displayed in deepset AI Platform.
     This may take a couple of minutes.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
-    :param enable_parallel_processing: If `True`, deepset Cloud ingests files in parallel.
+    :param enable_parallel_processing: If `True`, deepset AI Platform ingests files in parallel.
         Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
     """
     async with FilesService.factory(_get_config(api_key=api_key, api_url=api_url)) as file_service:

@@ -1,4 +1,4 @@
-"""Upload sessions API for deepset Cloud."""
+"""Upload sessions API for deepset AI Platform."""
 
 import datetime
 import enum
@@ -110,7 +110,7 @@ class FailedToSendUploadSessionRequest(Exception):
 
 
 class UploadSessionsAPI:
-    """Upload sessions API for deepset Cloud."""
+    """Upload sessions API for deepset AI Platform."""
 
     def __init__(self, deepset_cloud_api: DeepsetCloudAPI) -> None:
         """
@@ -128,7 +128,7 @@ class UploadSessionsAPI:
     ) -> UploadSession:
         """Create an upload session.
 
-        This method creates an upload session for a given workspace. Use this session to upload files to deepset Cloud.
+        This method creates an upload session for a given workspace. Use this session to upload files to deepset AI Plaform.
 
         You must close the session to start the file upload. If you don't close a session, it remains open for 24 hours.
         After that it's automatically closed and you must open a new session to upload more files.
@@ -139,7 +139,7 @@ class UploadSessionsAPI:
         KEEP - uploads the file with the same name and keeps both files in the workspace.
         OVERWRITE - overwrites the file that is in the workspace.
         FAIL - fails to upload the file with the same name.
-        :param enable_parallel_processing: If `True`, the deepset Cloud will ingest the files in parallel.
+        :param enable_parallel_processing: If `True`, deepset ingests the files in parallel.
             Use this to speed up the upload process and if you are not running concurrent uploads for the same files.
         :raises FailedToSendUploadSessionRequest: If the session could not be created.
         :return: UploadSession object.

@@ -1,4 +1,4 @@
-# Software development kit for the deepset Cloud API
+# Software development kit for the deepset API
 
 This package is split into multiple layers:
 - API layer

@@ -1,4 +1,4 @@
-"""Pipeline importing service for deepset Cloud SDK."""
+"""Pipeline importing service for deepset SDK."""
 # pylint: disable=unnecessary-ellipsis,import-outside-toplevel
 from __future__ import annotations
 
