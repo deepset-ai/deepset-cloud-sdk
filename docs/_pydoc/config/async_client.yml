@@ -1,7 +1,7 @@
 loaders:
   - type: python
     search_path: [../../../deepset_cloud_sdk/workflows/async_client]
-    modules: ["files"]
+    modules: ["files", "async_pipeline_client"]
     ignore_when_discovered: ["__init__"]
 processors:
   - type: filter
@@ -14,7 +14,7 @@ processors:
 renderer:
   id: async-client
   type: renderers.ReadmeRenderer
-  excerpt: An asynchronous client for the deepset Cloud API.
+  excerpt: An asynchronous client for the deepset AI Platform API.
   category_slug: sdk-10
   title: Asynchronous Client
   slug: /asynchronous-client

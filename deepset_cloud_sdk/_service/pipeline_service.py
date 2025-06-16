@@ -13,10 +13,7 @@ from ruamel.yaml import YAML
 
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
-from deepset_cloud_sdk.workflows.pipeline_client.models import (
-    IndexConfig,
-    PipelineConfig,
-)
+from deepset_cloud_sdk.models import IndexConfig, PipelineConfig
 
 logger = structlog.get_logger(__name__)
 
