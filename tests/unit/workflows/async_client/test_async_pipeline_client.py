@@ -161,7 +161,7 @@ class TestAsyncPipelineClientImport:
         """Test successful async import of pipeline with IndexConfig."""
         mock_pipeline = Mock(spec=pipeline_type)
 
-        await client_with_explicit_config.import_into_deepset_async(mock_pipeline, index_config)
+        await client_with_explicit_config.import_into_deepset(mock_pipeline, index_config)
 
         mock_api_service_setup["api_factory"].assert_called_once_with(client_with_explicit_config._api_config)
         mock_api_service_setup["pipeline_service"].assert_called_once_with(
@@ -181,7 +181,7 @@ class TestAsyncPipelineClientImport:
         """Test successful async import of pipeline with PipelineConfig."""
         mock_pipeline = Mock(spec=pipeline_type)
 
-        await client_with_explicit_config.import_into_deepset_async(mock_pipeline, pipeline_config)
+        await client_with_explicit_config.import_into_deepset(mock_pipeline, pipeline_config)
 
         mock_api_service_setup["api_factory"].assert_called_once_with(client_with_explicit_config._api_config)
         mock_api_service_setup["pipeline_service"].assert_called_once_with(

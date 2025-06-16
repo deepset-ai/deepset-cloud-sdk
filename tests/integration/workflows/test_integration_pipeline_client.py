@@ -221,7 +221,7 @@ class TestImportIndexIntoDeepset:
             strict_validation=False,
         )
 
-        await test_async_client.import_into_deepset_async(sample_index, index_config)
+        await test_async_client.import_into_deepset(sample_index, index_config)
 
         assert_both_endpoints_called_with_auth(
             index_import_routes, "test-index-async", "config_yaml", "components:\n  document_embedder:\n"
@@ -403,7 +403,7 @@ class TestImportPipelineIntoDeepset:
             outputs=PipelineOutputs(answers="answer_builder.answers"),
             strict_validation=False,
         )
-        await test_async_client.import_into_deepset_async(sample_pipeline, pipeline_config)
+        await test_async_client.import_into_deepset(sample_pipeline, pipeline_config)
 
         assert_both_endpoints_called_with_auth(
             pipeline_import_routes,
@@ -424,7 +424,7 @@ class TestImportPipelineIntoDeepset:
             outputs=PipelineOutputs(answers="answer_builder.answers"),
             strict_validation=True,
         )
-        await test_async_client.import_into_deepset_async(sample_pipeline, pipeline_config)
+        await test_async_client.import_into_deepset(sample_pipeline, pipeline_config)
 
         # Verify both endpoints were called
         assert pipeline_import_routes.validation.called
@@ -503,7 +503,7 @@ class TestImportPipelineIntoDeepset:
             overwrite=True,
         )
 
-        await test_async_client.import_into_deepset_async(sample_pipeline, pipeline_config)
+        await test_async_client.import_into_deepset(sample_pipeline, pipeline_config)
 
         # Verify all three endpoints were called in sequence
         assert validation_route.called
@@ -663,7 +663,7 @@ class TestRealIntegrationPipeline:
                 strict_validation=False,  # Skip validation for integration test
             )
 
-            await client.import_into_deepset_async(sample_pipeline_for_integration, pipeline_config)
+            await client.import_into_deepset(sample_pipeline_for_integration, pipeline_config)
 
             assert_pipeline_exists(integration_config, workspace_name, pipeline_name)
         finally:
@@ -688,7 +688,7 @@ class TestRealIntegrationPipeline:
                 overwrite=True,
             )
 
-            await client.import_into_deepset_async(sample_pipeline_for_integration, pipeline_config)
+            await client.import_into_deepset(sample_pipeline_for_integration, pipeline_config)
 
             assert_pipeline_exists(integration_config, workspace_name, pipeline_name)
         finally:

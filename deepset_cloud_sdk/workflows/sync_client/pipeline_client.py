@@ -12,7 +12,7 @@ from deepset_cloud_sdk.workflows.async_client.async_pipeline_client import (
 logger = structlog.get_logger(__name__)
 
 
-class PipelineClient(AsyncPipelineClient):
+class PipelineClient:
     """Sync client for importing Haystack pipelines and indexes to deepset AI platform.
 
     Example for importing a Haystack pipeline or index to deepset AI platform:
@@ -94,7 +94,11 @@ class PipelineClient(AsyncPipelineClient):
         :param api_url: The URL of the deepset AI platform API. Falls back to `API_URL` environment variable.
         :raises ValueError: If no api key or workspace name is provided and `API_KEY` or `DEFAULT_WORKSPACE_NAME` is not set in the environment.
         """
-        super().__init__(api_key=api_key, workspace_name=workspace_name, api_url=api_url)
+        self._async_client = AsyncPipelineClient(
+            api_key=api_key,
+            workspace_name=workspace_name,
+            api_url=api_url,
+        )
 
     def import_into_deepset(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Import a Haystack `Pipeline` or `AsyncPipeline` into deepset AI Platform synchronously.
@@ -119,7 +123,7 @@ class PipelineClient(AsyncPipelineClient):
             should_close = True
 
         try:
-            return loop.run_until_complete(self.import_into_deepset_async(pipeline, config))
+            return loop.run_until_complete(self._async_client.import_into_deepset(pipeline, config))
         finally:
             if should_close:
                 loop.close()

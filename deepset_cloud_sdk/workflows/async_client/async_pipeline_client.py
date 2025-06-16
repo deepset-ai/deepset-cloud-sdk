@@ -74,7 +74,7 @@ class AsyncPipelineClient:
         )
 
         # async execution
-        await client.import_into_deepset_async(pipeline, config)
+        await client.import_into_deepset(pipeline, config)
         ```
     """
 
@@ -113,7 +113,7 @@ class AsyncPipelineClient:
                 "Workspace not configured. Provide a workspace name or set the `DEFAULT_WORKSPACE_NAME` environment variable."
             )
 
-    async def import_into_deepset_async(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
+    async def import_into_deepset(self, pipeline: PipelineProtocol, config: IndexConfig | PipelineConfig) -> None:
         """Import a Haystack `Pipeline` or `AsyncPipeline` into deepset AI Platform asynchronously.
 
         The pipeline must be imported as either an index or a pipeline:
