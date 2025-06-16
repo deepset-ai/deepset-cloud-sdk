@@ -12,11 +12,12 @@ processors:
   - type: smart
   - type: crossref
 renderer:
+  id: deepset-cli
   type: renderers.ReadmeRenderer
   excerpt: A cli tool for the deepset Cloud API.
   category_slug: sdk-10
-  title: deepset Cloud CLI
-  slug: cli
+  title: deepset AI Platform CLI
+  slug: /deepset-cli
   order: 0
   markdown:
     descriptive_class_title: false

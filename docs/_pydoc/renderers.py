@@ -1,7 +1,5 @@
-import base64
 import dataclasses
 import io
-import os
 import sys
 import typing as t
 
@@ -10,6 +8,7 @@ from pydoc_markdown.contrib.renderers.markdown import MarkdownRenderer
 from pydoc_markdown.interfaces import Context, Renderer
 
 README_FRONTMATTER = """---
+id: {id}
 title: {title}
 excerpt: {excerpt}
 slug: {slug}
@@ -29,6 +28,7 @@ class ReadmeRenderer(Renderer):
     """
 
     # These settings will be used in the front matter output
+    id: str
     title: str
     category_slug: str
     excerpt: str
@@ -42,7 +42,7 @@ class ReadmeRenderer(Renderer):
 
     def init(self, context: Context) -> None:
         self.markdown.init(context)
-        version = self._doc_version()
+        self._doc_version()
 
     def _doc_version(self) -> str:
         """
@@ -67,6 +67,7 @@ class ReadmeRenderer(Renderer):
 
     def _frontmatter(self) -> str:
         return README_FRONTMATTER.format(
+            id=self.id,
             title=self.title,
             excerpt=self.excerpt,
             slug=self.slug,

@@ -12,11 +12,12 @@ processors:
   - type: smart
   - type: crossref
 renderer:
+  id: sync-client
   type: renderers.ReadmeRenderer
   excerpt: A synchronous client for the deepset Cloud API.
   category_slug: sdk-10
   title: Synchronous Client
-  slug: sync_client
+  slug: /synchronous-client
   order: 0
   markdown:
     descriptive_class_title: false
