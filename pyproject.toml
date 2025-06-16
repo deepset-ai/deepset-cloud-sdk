@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "deepset-cloud-sdk"
 dynamic = ["version"]
-description = 'deepset Cloud SDK'
+description = 'deepset SDK'
 readme = "README.md"
 requires-python = ">= 3.8"
 license = "Apache-2.0"

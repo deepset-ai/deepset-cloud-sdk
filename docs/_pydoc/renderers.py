@@ -53,7 +53,7 @@ class ReadmeRenderer(Renderer):
         # return f"v{major}.{minor}"
 
         # The readme.io version is hardcoded for now to manually maintain the guides
-        # within the same documentation page as the deepset Cloud Docs.
+        # within the same documentation page as the deepset Docs.
         return "v1.0"
 
     def render(self, modules: t.List[docspec.Module]) -> None:

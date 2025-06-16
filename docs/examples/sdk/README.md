@@ -1,13 +1,13 @@
 # Examples
 
-## Upload files to deepset Cloud
+## Upload files to deepset AI Platform
 
 You can upload files in three different ways:
 1. Upload multiple files by providing explicit file paths.
 2. Upload all files from a folder.
 3. Upload raw text.
 
-For uploading files from your local machine to deepset Cloud, you can use `upload`.
+For uploading files from your local machine to deepset AI Platform, you can use `upload`.
 
 ## Authentication
 
