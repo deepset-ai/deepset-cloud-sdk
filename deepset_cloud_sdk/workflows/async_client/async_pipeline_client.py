@@ -1,4 +1,5 @@
 """Async pipeline client for importing pipelines and indexes to deepset AI Platform."""
+
 import structlog
 
 from deepset_cloud_sdk._api.config import (

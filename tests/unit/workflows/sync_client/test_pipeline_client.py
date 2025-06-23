@@ -1,4 +1,5 @@
 """Tests for the PipelineClient class."""
+
 from unittest.mock import AsyncMock, Mock
 
 import pytest

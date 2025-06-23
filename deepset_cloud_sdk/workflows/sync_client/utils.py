@@ -1,4 +1,5 @@
 """Utils for making async code sync."""
+
 from asyncio import AbstractEventLoop
 from typing import AsyncIterator, Generator, Optional, Tuple, TypeVar
 

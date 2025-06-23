@@ -1,4 +1,5 @@
 """Sync pipeline client for importing pipelines and indexes to deepset AI Platform."""
+
 import asyncio
 
 import structlog

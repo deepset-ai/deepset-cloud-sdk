@@ -41,11 +41,11 @@ def upload(  # pylint: disable=too-many-arguments
     enable_parallel_processing: bool = False,
     safe_mode: bool = False,
 ) -> None:
-    """Upload a folder to deepset Cloud.
+    """Upload a folder to deepset AI Platform.
 
     :param paths: Path to the folder to upload. If the folder contains unsupported file types, they're skipped.
-    deepset Cloud supports CSV, DOCX, HTML, JSON, MD, TXT, PDF, PPTX, XLSX, XML.
-    :param api_key: deepset Cloud API key to use for authentication.
+    deepset supports CSV, DOCX, HTML, JSON, MD, TXT, PDF, PPTX, XLSX, XML.
+    :param api_key: deepset API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to upload the files to. It uses the workspace from the .ENV file by default.
     :param write_mode: Specifies what to do when a file with the same name already exists in the workspace.
@@ -53,12 +53,12 @@ def upload(  # pylint: disable=too-many-arguments
     KEEP - uploads the file with the same name and keeps both files in the workspace.
     OVERWRITE - overwrites the file that is in the workspace.
     FAIL - fails to upload the file with the same name.
-    :param blocking: Whether to wait for the files to be uploaded and displayed in deepset Cloud.
+    :param blocking: Whether to wait for the files to be uploaded and displayed in deepset AI Platform.
     :param timeout_s: Timeout in seconds for the `blocking` parameter.
     :param show_progress: Shows the upload progress.
     :param recursive: Uploads files from subfolders as well.
     :param use_type: A comma-separated string of allowed file types to upload.
-    :param enable_parallel_processing: If `True`, deepset Cloud ingests the files in parallel.
+    :param enable_parallel_processing: If `True`, deepset AI Platform ingests the files in parallel.
         Use this to speed up the upload process. Make sure you are not running concurrent uploads for the same files.
     :param safe_mode: If `True`, disables ingesting files in parallel.
     """
@@ -91,7 +91,7 @@ def download(  # pylint: disable=too-many-arguments
     show_progress: bool = True,
     safe_mode: bool = False,
 ) -> None:
-    """Download files from deepset Cloud to your local machine.
+    """Download files from deepset AI Platform to your local machine.
 
     :param workspace_name: Name of the workspace to download the files from. Uses the workspace from the .ENV file by default.
     :param file_dir: Path to the folder where you want to download the files.
@@ -170,7 +170,7 @@ def login() -> None:
 
 @cli_app.command()
 def logout() -> None:
-    """Log out of deepset Cloud. This command deletes the .ENV file created during login.
+    """Log out of deepset AI Platform. This command deletes the .ENV file created during login.
 
     Example:
     `deepset-cloud logout`
@@ -193,9 +193,9 @@ def list_files(
     batch_size: int = 10,
     timeout_s: Optional[int] = None,
 ) -> None:
-    """List files that exist in the specified deepset Cloud workspace.
+    """List files that exist in the specified deepset workspace.
 
-    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_key: deepset API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
@@ -240,7 +240,7 @@ def list_upload_sessions(
 ) -> None:
     """List the details of all upload sessions for the specified workspace, including closed sessions.
 
-    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_key: deepset API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace to list the files from. Uses the workspace from the .ENV file by default.
     :param is_expired: Whether to list expired upload sessions.
@@ -291,11 +291,11 @@ def get_upload_session(
     api_url: Optional[str] = None,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
 ) -> None:  # noqa: D400, D205
-    """Fetch an upload session from deepset Cloud. This method is useful for checking
-    the status of an upload session after uploading files to deepset Cloud.
+    """Fetch an upload session from deepset AI Platform. This method is useful for checking
+    the status of an upload session after uploading files to deepset.
 
     :param session_id: ID of the upload session whose status you want to check.
-    :param api_key: deepset Cloud API key to use for authentication.
+    :param api_key: deepset API key to use for authentication.
     :param api_url: API URL to use for authentication.
     :param workspace_name: Name of the workspace where you upload your files. Uses the workspace from the .ENV file by default.
 
@@ -330,7 +330,7 @@ def version_callback(value: bool) -> None:
     `deepset-cloud --version`
     """
     if value:
-        typer.echo(f"deepset Cloud SDK version: {__version__}")
+        typer.echo(f"deepset SDK version: {__version__}")
         raise typer.Exit()
 
 
@@ -340,7 +340,7 @@ def main(
         None, "--version", callback=version_callback, is_eager=True, help="Show the SDK version and exit."
     )
 ) -> None:  # noqa
-    """The CLI for the deepset Cloud SDK.
+    """The CLI for the deepset SDK.
 
     This documentation uses Python type hints to provide information about the arguments and return values.
     Typer turns these type hints into a CLI interface. To see how these arguments are used in the CLI, check the

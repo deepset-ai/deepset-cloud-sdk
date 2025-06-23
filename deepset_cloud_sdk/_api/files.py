@@ -1,7 +1,7 @@
 """
-File API for deepset Cloud.
+File API for deepset AI Platform.
 
-This module takes care of all file-related API calls to deepset Cloud, including uploading, downloading, listing, and
+This module takes care of all file-related API calls to deepset AI Platform, including uploading, downloading, listing, and
 deleting files.
 """
 
@@ -37,7 +37,7 @@ class FailedToUploadFileException(Exception):
 
 @dataclass
 class File:
-    """File primitive from deepset Cloud. This dataclass is used for all file-related operations that don't include the actual file content."""
+    """File primitive from deepset AI Platform. This dataclass is used for all file-related operations that don't include the actual file content."""
 
     file_id: UUID
     url: str
@@ -62,7 +62,7 @@ class File:
 
 @dataclass
 class FileList:
-    """List of files from deepset Cloud. This dataclass is used for all file-related operations that return a list of files."""
+    """List of files from deepset AI Plaform. This dataclass is used for all file-related operations that return a list of files."""
 
     total: int
     data: List[File]
@@ -70,9 +70,9 @@ class FileList:
 
 
 class FilesAPI:
-    """File API for deepset Cloud.
+    """File API for deepset AI Platform.
 
-    This module takes care of all file-related API calls to deepset Cloud, including
+    This module takes care of all file-related API calls to deepset, including
     uploading, downloading, listing, and deleting files.
 
     :param deepset_cloud_api: Instance of the DeepsetCloudAPI.
@@ -170,7 +170,7 @@ class FilesAPI:
         meta: Optional[Dict[str, Any]] = None,
         write_mode: WriteMode = WriteMode.KEEP,
     ) -> UUID:
-        """Directly upload a file to deepset Cloud.
+        """Directly upload a file to deepset AI Platform.
 
         :param workspace_name: Name of the workspace to use.
         :param file_path: Path to the file to upload.
@@ -211,7 +211,7 @@ class FilesAPI:
         meta: Optional[Dict[str, Any]] = None,
         write_mode: WriteMode = WriteMode.KEEP,
     ) -> UUID:
-        """Directly upload files to deepset Cloud.
+        """Directly upload files to deepset AI Platform.
 
         :param workspace_name: Name of the workspace to use.
         :param content: File text to upload.
