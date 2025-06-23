@@ -455,7 +455,9 @@ class FilesService:
                 include_meta=include_meta,
             )
         except FileNotFoundInDeepsetCloudException as e:
-            logger.error("File was listed in deepset AI Platform but could not be downloaded.", file_id=file_id, error=e)
+            logger.error(
+                "File was listed in deepset AI Platform but could not be downloaded.", file_id=file_id, error=e
+            )
         except Exception as e:
             logger.error("Failed to download file.", file_id=file_id, error=e)
 

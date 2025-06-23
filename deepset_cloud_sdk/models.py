@@ -1,4 +1,5 @@
 """General data classes for deepset SDK."""
+
 import json
 from abc import abstractmethod
 from dataclasses import dataclass

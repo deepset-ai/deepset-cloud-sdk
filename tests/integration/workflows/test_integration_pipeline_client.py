@@ -1,4 +1,5 @@
 """Integration tests for importing Haystack pipelines into deepset AI Platform."""
+
 import json
 import uuid
 from datetime import timedelta

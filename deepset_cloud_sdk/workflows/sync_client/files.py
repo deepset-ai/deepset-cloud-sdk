@@ -277,7 +277,10 @@ def list_files(
     :param workspace_name: Name of the workspace to list the files from. It uses the workspace from the .ENV file by default.
     :param name: Name of the file to odata_filter for.
     :param odata_filter: odata_filter to apply to the file list.
-    For example, `odata_filter="category eq 'news'" lists files with metadata `{"meta": {"category": "news"}}.
+    For example, `odata_filter="category eq 'news'"` lists files with metadata:
+        ```json
+        {"meta": {"category": "news"}}
+        ```
     :param batch_size: Batch size to use for the file list.
     :param timeout_s: Timeout in seconds for the API requests.
     """

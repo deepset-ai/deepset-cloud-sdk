@@ -1,4 +1,5 @@
 """Tests for the pipeline service."""
+
 import builtins
 import textwrap
 from http import HTTPStatus
