@@ -4,7 +4,7 @@ import json
 import uuid
 from datetime import timedelta
 from http import HTTPStatus
-from typing import NamedTuple
+from typing import NamedTuple, Type, Union
 
 import httpx
 import pytest
@@ -173,7 +173,7 @@ def remove_pipeline(integration_config: CommonConfig, workspace_name: str, pipel
 @pytest.mark.parametrize("pipeline_class", [Pipeline, AsyncPipeline])
 class TestImportIndexIntoDeepset:
     @pytest.fixture
-    def sample_index(self, pipeline_class: Pipeline | AsyncPipeline) -> Pipeline:
+    def sample_index(self, pipeline_class: Type[Union[Pipeline, AsyncPipeline]]) -> Union[Pipeline, AsyncPipeline]:
         """Create a simple index for testing."""
         file_type_router = FileTypeRouter(mime_types=["text/plain"])
         text_converter = TextFileToDocument(encoding="utf-8")
@@ -341,7 +341,9 @@ class TestImportIndexIntoDeepset:
 @pytest.mark.parametrize("pipeline_class", [Pipeline, AsyncPipeline])
 class TestImportPipelineIntoDeepset:
     @pytest.fixture
-    def sample_pipeline(self, pipeline_class: Pipeline | AsyncPipeline, monkeypatch: pytest.MonkeyPatch) -> Pipeline:
+    def sample_pipeline(
+        self, pipeline_class: Type[Union[Pipeline, AsyncPipeline]], monkeypatch: pytest.MonkeyPatch
+    ) -> Union[Pipeline, AsyncPipeline]:
         """Create a sample pipeline for testing."""
         monkeypatch.setenv("OPENAI_API_KEY", "test-openai-api-key")
 
