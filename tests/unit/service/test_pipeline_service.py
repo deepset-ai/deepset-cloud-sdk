@@ -120,7 +120,10 @@ class TestImportPipelineService:
             components:
               csv_converter:
                 init_parameters:
+                  conversion_mode: file
+                  delimiter: ','
                   encoding: utf-8
+                  quotechar: '"'
                   store_full_path: false
                 type: haystack.components.converters.csv.CSVToDocument
               file_type_router:
@@ -129,6 +132,7 @@ class TestImportPipelineService:
                   mime_types:
                   - text/plain
                   - text/csv
+                  raise_on_failure: false
                 type: haystack.components.routers.file_type_router.FileTypeRouter
               joiner:
                 init_parameters:
@@ -209,6 +213,7 @@ class TestImportPipelineService:
                   additional_mimetypes:
                   mime_types:
                   - text/plain
+                  raise_on_failure: false
                 type: haystack.components.routers.file_type_router.FileTypeRouter
               joiner:
                 init_parameters:
@@ -593,18 +598,25 @@ class TestImportPipelineService:
         validation_response = Mock(spec=Response)
         validation_response.status_code = HTTPStatus.NO_CONTENT.value
 
+        # Mock successful versions response
+        versions_response = Mock(status_code=HTTPStatus.OK.value)
+        versions_response.json.return_value = {
+            "data": [{"version_id": "42abcd"}],
+        }
+
         # Mock successful overwrite response
         overwrite_response = Mock(spec=Response)
         overwrite_response.status_code = HTTPStatus.OK.value
 
         mock_api.post.return_value = validation_response
+        mock_api.get.return_value = versions_response
         mock_api.put.return_value = overwrite_response
 
         await pipeline_service.import_async(index_pipeline, config)
 
         # Should call validation endpoint first, then overwrite endpoint
         assert mock_api.post.call_count == 1
-        assert mock_api.put.call_count == 1
+        assert mock_api.patch.call_count == 1
 
         # Check validation call
         validation_call = mock_api.post.call_args_list[0]
@@ -614,9 +626,9 @@ class TestImportPipelineService:
         assert "name" not in validation_call.kwargs["json"]
 
         # Check overwrite call
-        overwrite_call = mock_api.put.call_args_list[0]
-        assert overwrite_call.kwargs["endpoint"] == "pipelines/test_pipeline_overwrite/yaml"
-        assert "query_yaml" in overwrite_call.kwargs["data"]
+        overwrite_call = mock_api.patch.call_args_list[0]
+        assert overwrite_call.kwargs["endpoint"] == "pipelines/test_pipeline_overwrite/versions/42abcd"
+        assert "config_yaml" in overwrite_call.kwargs["json"]
 
     @pytest.mark.asyncio
     async def test_import_pipeline_with_overwrite_fallback_to_create(
@@ -636,7 +648,7 @@ class TestImportPipelineService:
         validation_response = Mock(spec=Response)
         validation_response.status_code = HTTPStatus.NO_CONTENT.value
 
-        # Mock 404 response for PUT (resource not found)
+        # Mock 404 response for GET (resource not found)
         not_found_response = Mock(spec=Response)
         not_found_response.status_code = HTTPStatus.NOT_FOUND.value
 
@@ -645,13 +657,13 @@ class TestImportPipelineService:
         create_response.status_code = HTTPStatus.CREATED.value
 
         mock_api.post.side_effect = [validation_response, create_response]
-        mock_api.put.return_value = not_found_response
+        mock_api.get.return_value = not_found_response
 
         await pipeline_service.import_async(index_pipeline, config)
 
-        # Should call validation endpoint, then PUT (which returns 404), then POST to create
+        # Should call validation endpoint, then GET (which returns 404), then POST to create
         assert mock_api.post.call_count == 2
-        assert mock_api.put.call_count == 1
+        assert mock_api.get.call_count == 1
 
         # Check validation call
         validation_call = mock_api.post.call_args_list[0]
@@ -660,10 +672,9 @@ class TestImportPipelineService:
         # When overwrite=True, name should be excluded from validation payload
         assert "name" not in validation_call.kwargs["json"]
 
-        # Check PUT attempt
-        put_call = mock_api.put.call_args_list[0]
-        assert put_call.kwargs["endpoint"] == "pipelines/test_pipeline_fallback/yaml"
-        assert "query_yaml" in put_call.kwargs["data"]
+        # Check GET versions attempt
+        get_call = mock_api.get.call_args_list[0]
+        assert get_call.kwargs["endpoint"] == "pipelines/test_pipeline_fallback/versions"
 
         # Check fallback POST call
         create_call = mock_api.post.call_args_list[1]
@@ -1433,7 +1444,14 @@ class TestValidatePipelineYaml:
         import_response.status_code = HTTPStatus.OK.value
 
         mock_api.post.side_effect = [validation_response, import_response]
-        mock_api.put.return_value = import_response
+        mock_api.patch.return_value = import_response
+
+        # Mock successful versions response
+        versions_response = Mock(status_code=HTTPStatus.OK.value)
+        versions_response.json.return_value = {
+            "data": [{"version_id": "42abcd"}],
+        }
+        mock_api.get.return_value = versions_response
 
         config = PipelineConfig(
             name="test_pipeline",
