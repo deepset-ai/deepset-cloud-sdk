@@ -379,16 +379,23 @@ class PipelineService:
         :param name: Name of the pipeline.
         :param pipeline_yaml: Generated pipeline YAML string.
         """
-        response = await self._api.put(
-            workspace_name=self._workspace_name,
-            endpoint=f"pipelines/{name}/yaml",
-            data={"query_yaml": pipeline_yaml},
+        # First get the (last) version id if available
+        version_response = await self._api.get(
+            workspace_name=self._workspace_name, endpoint=f"pipelines/{name}/versions"
         )
 
         # If pipeline doesn't exist (404), create it instead
-        if response.status_code == HTTPStatus.NOT_FOUND:
+        if version_response.status_code == HTTPStatus.NOT_FOUND:
             logger.debug(f"Pipeline {name} not found, creating new pipeline.")
             response = await self._create_pipeline(name=name, pipeline_yaml=pipeline_yaml)
+        else:
+            version_body = version_response.json()
+            version_id = version_body["data"][0]["version_id"]
+            response = await self._api.patch(
+                workspace_name=self._workspace_name,
+                endpoint=f"pipelines/{name}/versions/{version_id}",
+                json={"config_yaml": pipeline_yaml},
+            )
 
         return response
 

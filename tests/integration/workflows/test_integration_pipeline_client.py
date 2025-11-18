@@ -4,7 +4,7 @@ import json
 import uuid
 from datetime import timedelta
 from http import HTTPStatus
-from typing import NamedTuple
+from typing import NamedTuple, Type, Union
 
 import httpx
 import pytest
@@ -173,7 +173,7 @@ def remove_pipeline(integration_config: CommonConfig, workspace_name: str, pipel
 @pytest.mark.parametrize("pipeline_class", [Pipeline, AsyncPipeline])
 class TestImportIndexIntoDeepset:
     @pytest.fixture
-    def sample_index(self, pipeline_class: Pipeline | AsyncPipeline) -> Pipeline:
+    def sample_index(self, pipeline_class: Type[Union[Pipeline, AsyncPipeline]]) -> Union[Pipeline, AsyncPipeline]:
         """Create a simple index for testing."""
         file_type_router = FileTypeRouter(mime_types=["text/plain"])
         text_converter = TextFileToDocument(encoding="utf-8")
@@ -341,7 +341,9 @@ class TestImportIndexIntoDeepset:
 @pytest.mark.parametrize("pipeline_class", [Pipeline, AsyncPipeline])
 class TestImportPipelineIntoDeepset:
     @pytest.fixture
-    def sample_pipeline(self, pipeline_class: Pipeline | AsyncPipeline, monkeypatch: pytest.MonkeyPatch) -> Pipeline:
+    def sample_pipeline(
+        self, pipeline_class: Type[Union[Pipeline, AsyncPipeline]], monkeypatch: pytest.MonkeyPatch
+    ) -> Union[Pipeline, AsyncPipeline]:
         """Create a sample pipeline for testing."""
         monkeypatch.setenv("OPENAI_API_KEY", "test-openai-api-key")
 
@@ -486,9 +488,9 @@ class TestImportPipelineIntoDeepset:
             return_value=Response(status_code=HTTPStatus.NO_CONTENT)
         )
 
-        # Mock 404 response for PUT (resource not found)
-        overwrite_route = respx.put(
-            "https://test-api-url.com/workspaces/test-workspace/pipelines/test-pipeline-fallback/yaml"
+        # Mock 404 response for GET (resource not found)
+        version_check_route = respx.get(
+            "https://test-api-url.com/workspaces/test-workspace/pipelines/test-pipeline-fallback/versions"
         ).mock(return_value=Response(status_code=HTTPStatus.NOT_FOUND))
 
         # Mock successful creation
@@ -508,7 +510,7 @@ class TestImportPipelineIntoDeepset:
 
         # Verify all three endpoints were called in sequence
         assert validation_route.called
-        assert overwrite_route.called
+        assert version_check_route.called
         assert create_route.called
 
         # Check validation request
@@ -517,11 +519,9 @@ class TestImportPipelineIntoDeepset:
         validation_body = json.loads(validation_request.content)
         assert "query_yaml" in validation_body
 
-        # Check PUT attempt
-        overwrite_request = overwrite_route.calls[0].request
-        assert overwrite_request.headers["Authorization"] == "Bearer test-api-key"
-        overwrite_body = json.loads(overwrite_request.content)
-        assert "query_yaml" in overwrite_body
+        # Check GET attempt
+        version_check_request = version_check_route.calls[0].request
+        assert version_check_request.headers["Authorization"] == "Bearer test-api-key"
 
         # Check fallback creation
         create_request = create_route.calls[0].request
