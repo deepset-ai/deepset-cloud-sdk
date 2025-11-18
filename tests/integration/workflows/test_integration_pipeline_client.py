@@ -488,9 +488,9 @@ class TestImportPipelineIntoDeepset:
             return_value=Response(status_code=HTTPStatus.NO_CONTENT)
         )
 
-        # Mock 404 response for PUT (resource not found)
-        overwrite_route = respx.put(
-            "https://test-api-url.com/workspaces/test-workspace/pipelines/test-pipeline-fallback/yaml"
+        # Mock 404 response for GET (resource not found)
+        version_check_route = respx.get(
+            "https://test-api-url.com/workspaces/test-workspace/pipelines/test-pipeline-fallback/versions"
         ).mock(return_value=Response(status_code=HTTPStatus.NOT_FOUND))
 
         # Mock successful creation
@@ -510,7 +510,7 @@ class TestImportPipelineIntoDeepset:
 
         # Verify all three endpoints were called in sequence
         assert validation_route.called
-        assert overwrite_route.called
+        assert version_check_route.called
         assert create_route.called
 
         # Check validation request
@@ -519,11 +519,9 @@ class TestImportPipelineIntoDeepset:
         validation_body = json.loads(validation_request.content)
         assert "query_yaml" in validation_body
 
-        # Check PUT attempt
-        overwrite_request = overwrite_route.calls[0].request
-        assert overwrite_request.headers["Authorization"] == "Bearer test-api-key"
-        overwrite_body = json.loads(overwrite_request.content)
-        assert "query_yaml" in overwrite_body
+        # Check GET attempt
+        version_check_request = version_check_route.calls[0].request
+        assert version_check_request.headers["Authorization"] == "Bearer test-api-key"
 
         # Check fallback creation
         create_request = create_route.calls[0].request
