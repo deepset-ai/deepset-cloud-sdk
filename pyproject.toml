@@ -53,9 +53,9 @@ test = [
   "pytest-asyncio==0.21.0",
   "haystack-ai>=2.13.2",    # only for testing
   "respx==0.22.0",
+  "sniffio>=1.3.1",
 ]
 code-quality = [
-  "pylint==2.17.4",
   "ruff==0.8.4",
   "mypy==1.1.1",
   "pre-commit==2.20.0",
@@ -97,7 +97,7 @@ fixable = [
 ]
 
 [tool.ruff.lint.pydocstyle]
-convention = "google" # or "numpy" or "pep257"
+convention = "google"
 
 [tool.ruff.lint.isort]
 known-first-party = ["deepset_cloud_sdk"]

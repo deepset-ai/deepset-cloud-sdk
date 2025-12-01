@@ -4,14 +4,26 @@
 
 ### Build from source
 
-Install hatch
+Install uv
+```bash
+pip install uv
 ```
-pip install hatch=="v1.14.0"
+
+Sync dependencies
+```bash
+# Install all dependencies including dev dependencies
+uv sync --all-groups
+
+# Or install specific dependency groups
+uv sync --group code-quality
+uv sync --group test
 ```
 
 ### Install pre-commit hooks
-```
-hatch run code-quality:hooks
+```bash
+make hooks
+# or
+uv run pre-commit install
 ```
 
 ## CI
