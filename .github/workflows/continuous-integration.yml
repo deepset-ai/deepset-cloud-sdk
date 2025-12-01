@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   format:
-    name: Format with ruff
+    name: Format Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -18,7 +18,7 @@ jobs:
         with:
           enable-cache: true
           python-version: "3.10"
-      - name: Install dependencies
+      - name: Install Dependencies
         run: uv sync --group code-quality
       - name: Run ruff format
         run: make format
@@ -33,7 +33,7 @@ jobs:
         with:
           enable-cache: true
           python-version: "3.10"
-      - name: Install dependencies
+      - name: Install Dependencies
         run: uv sync --group code-quality
       - name: Run ruff check
         run: make lint
@@ -82,7 +82,7 @@ jobs:
         with:
           enable-cache: true
           python-version: "3.10"
-      - name: Install dependencies
+      - name: Install Dependencies
         run: uv sync --group test
       - name: Run unit tests
         run: make tests-with-cov
