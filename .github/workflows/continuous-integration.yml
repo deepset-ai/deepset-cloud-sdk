@@ -24,7 +24,7 @@ jobs:
         run: make format
 
   lint:
-    name: Lint with ruff (isort, pyflakes, pycodestyle, pydocstyle)
+    name: Lint Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
