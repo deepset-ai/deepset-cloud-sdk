@@ -40,15 +40,23 @@ deepset-cloud --help
 </p>
 
 ### Development Installation
-To install the deepset SDK for development, clone the repository and install the package in editable mode:
+To install the deepset SDK for development, clone the repository and use uv to manage dependencies:
 ```bash
-pip install hatch==1.7.0
-hatch build
+# Install uv if you don't have it
+pip install uv
+
+# Sync all dependencies (including dev dependencies)
+uv sync --all-groups
+
+# Build the package
+uv build
 ```
 
 Instead of calling the CLI from the build package, you can call it directly from the source code:
 ```bash
-python3 -m deepset_cloud_sdk.cli --help
+uv run python -m deepset_cloud_sdk.cli --help
+# or
+uv run deepset-cloud --help
 ```
 
 ## Contributing

@@ -14,25 +14,18 @@ repos:
       - id: end-of-file-fixer # ensures that a file is either empty, or ends with one newline.
       - id: trailing-whitespace # trims trailing whitespace
 
-  - repo: https://github.com/PyCQA/autoflake
-    rev: v2.1.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Please keep these aligned with the versions defined in the pyproject.toml dependency-groups
+    rev: v0.8.4
     hooks:
-      - id: autoflake
-        args:
-          - "--in-place"
-          - "--expand-star-imports"
-          - "--remove-duplicate-keys"
-          - "--remove-unused-variables"
-          - "-v"
-
-  - repo: https://github.com/psf/black
-    # Please keep these aligned with the versions defined in the pyproject.toml [tool.hatch.envs.code-quality]
-    rev: 23.3.0
-    hooks:
-      - id: black
+      # Run the linter (includes isort).
+      - id: ruff
+        args: [ --fix ]
+      # Run the formatter.
+      - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    # Please keep these aligned with the versions defined in the pyproject.toml [tool.hatch.envs.code-quality]
+    # Please keep these aligned with the versions defined in the pyproject.toml dependency-groups
     rev: "v1.1.1"
     hooks:
       - id: mypy
@@ -46,13 +39,6 @@ repos:
         #   - "types-PyYAML~=6.0.12"
         #   - "types-python-dateutil~=2.8.19"
         #   - "types-redis~=4.5.1"
-
-  - repo: https://github.com/pycqa/isort
-    # Please keep these aligned with the versions defined in the pyproject.toml [tool.hatch.envs.code-quality]
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
 
   - repo: https://github.com/zricethezav/gitleaks
     rev: v8.16.1

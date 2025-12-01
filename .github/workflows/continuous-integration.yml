@@ -3,79 +3,55 @@ name: CI
 on:
   pull_request:
 
-env:
-  HATCH_VERSION: "v1.14.0" # keep in sync with deploy.yml
-
 permissions:
   pull-requests: write
   contents: write
 
 jobs:
-  format-black:
-    name: Format black
+  format:
+    name: Format Code
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
+          enable-cache: true
           python-version: "3.10"
-      - name: Install Hatch
-        run: pip install hatch==${{ env.HATCH_VERSION }}
-      - name: Run black
-        run: hatch run code-quality:format
-
-
-  mypy:
-    name: MyPy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.10"
-      - name: Install Hatch
-        run: pip install hatch==${{ env.HATCH_VERSION }}
-      - name: Run mypy
-        run: hatch run code-quality:types
+      - name: Install Dependencies
+        run: uv sync --group code-quality
+      - name: Run ruff format
+        run: make format
 
   lint:
     name: Lint Code
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
+          enable-cache: true
           python-version: "3.10"
-      - name: Install Hatch
-        run: pip install hatch==${{ env.HATCH_VERSION }}
-      - name: Run pylint
-        run: hatch run code-quality:lint
+      - name: Install Dependencies
+        run: uv sync --group code-quality
+      - name: Run ruff check
+        run: make lint
 
-  isort:
-    name: Sort imports
+  mypy:
+    name: Type checking with mypy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
+          enable-cache: true
           python-version: "3.10"
-      - name: Install Hatch
-        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Install dependencies
+        run: uv sync --group code-quality
       - name: Run mypy
-        run: hatch run code-quality:sort
-
-  pydocstyle:
-    name: Check docstrings
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.10"
-      - name: Install Hatch
-        run: pip install hatch==${{ env.HATCH_VERSION }}
-      - name: Run pydocstyle
-        run: hatch run code-quality:docstrings
+        run: make types
 
   scan-for-secrets:
     name: Scan for secrets
@@ -101,13 +77,15 @@ jobs:
         with:
           # for coverage comment action
           fetch-depth: 1000
-      - uses: actions/setup-python@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
+          enable-cache: true
           python-version: "3.10"
-      - name: Install Hatch
-        run: pip install hatch==${{ env.HATCH_VERSION }}
+      - name: Install Dependencies
+        run: uv sync --group test
       - name: Run unit tests
-        run: hatch run test:unit-with-cov
+        run: make tests-with-cov
       - name: Coverage comment
         id: coverage_comment
         uses: py-cov-action/python-coverage-comment-action@e623398c19eb3853a5572d4a516e10b15b5cefbc

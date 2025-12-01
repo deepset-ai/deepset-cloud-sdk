@@ -439,7 +439,9 @@ class TestImportPipelineService:
         config = IndexConfig(
             name="test_index",
             inputs=IndexInputs(
-                files=["file_classifier.sources"], custom_param="custom_value", additional_meta=["test_meta"]  # type: ignore
+                files=["file_classifier.sources"],
+                custom_param="custom_value",
+                additional_meta=["test_meta"],  # type: ignore
             ),
             outputs=IndexOutputs(
                 documents="meta_ranker.documents",  # type: ignore

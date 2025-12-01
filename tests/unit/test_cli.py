@@ -1,4 +1,5 @@
 import datetime
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any, Generator, List
 from unittest.mock import AsyncMock, Mock, patch
@@ -8,7 +9,7 @@ import pytest
 import structlog
 from typer.testing import CliRunner
 
-from deepset_cloud_sdk.__about__ import __version__
+__version__ = version("deepset-cloud-sdk")
 from deepset_cloud_sdk._api.files import File
 from deepset_cloud_sdk._api.upload_sessions import (
     UploadSessionDetail,
@@ -453,7 +454,9 @@ class TestCLIUtils:
         monkeypatch.setattr("deepset_cloud_sdk.cli.ENV_FILE_PATH", global_env_path)
 
         result = runner.invoke(
-            cli_app, ["login"], input="custom\nhttps://custom-api.example.com\ntest_api_key\nmy_workspace\n"
+            cli_app,
+            ["login"],
+            input="custom\nhttps://custom-api.example.com\ntest_api_key\nmy_workspace\n",
         )
         assert result.exit_code == 0
         assert f"Global configuration file created at {global_env_path}" in result.stdout

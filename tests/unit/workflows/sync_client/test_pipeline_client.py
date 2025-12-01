@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from haystack import AsyncPipeline, Pipeline
 
-from deepset_cloud_sdk._api.config import CommonConfig
 from deepset_cloud_sdk._api.deepset_cloud_api import DeepsetCloudAPI
 from deepset_cloud_sdk._service.pipeline_service import PipelineService
 from deepset_cloud_sdk.models import (

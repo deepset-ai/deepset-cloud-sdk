@@ -1,6 +1,7 @@
 """The CLI for the deepset AI Platform SDK."""
 
 import json
+from importlib.metadata import version
 from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
@@ -9,7 +10,7 @@ import click
 import typer
 from tabulate import tabulate
 
-from deepset_cloud_sdk.__about__ import __version__
+__version__ = version("deepset-cloud-sdk")
 from deepset_cloud_sdk._api.config import DEFAULT_WORKSPACE_NAME, ENV_FILE_PATH
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
 from deepset_cloud_sdk.workflows.sync_client.files import download as sync_download
@@ -250,7 +251,14 @@ def list_upload_sessions(
     Example:
     `deepset-cloud list-upload-sessions --workspace-name default`
     """
-    headers: List[str] = ["session_id", "created_by", "created_at", "expires_at", "write_mode", "status"]
+    headers: List[str] = [
+        "session_id",
+        "created_by",
+        "created_at",
+        "expires_at",
+        "write_mode",
+        "status",
+    ]
     try:
         for upload_sessions in sync_list_upload_sessions(
             api_key=api_key,
@@ -303,7 +311,10 @@ def get_upload_session(
     `deepset-cloud get-upload-session --workspace-name default`
     """
     session = sync_get_upload_session(
-        session_id=session_id, api_key=api_key, api_url=api_url, workspace_name=workspace_name
+        session_id=session_id,
+        api_key=api_key,
+        api_url=api_url,
+        workspace_name=workspace_name,
     )
     typer.echo(
         json.dumps(
@@ -337,8 +348,12 @@ def version_callback(value: bool) -> None:
 @cli_app.callback()
 def main(
     _: Optional[bool] = typer.Option(
-        None, "--version", callback=version_callback, is_eager=True, help="Show the SDK version and exit."
-    )
+        None,
+        "--version",
+        callback=version_callback,
+        is_eager=True,
+        help="Show the SDK version and exit.",
+    ),
 ) -> None:  # noqa
     """The CLI for the deepset SDK.
 
