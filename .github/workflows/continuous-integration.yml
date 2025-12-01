@@ -57,7 +57,7 @@ jobs:
     name: Scan for secrets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install gitleaks
@@ -73,7 +73,7 @@ jobs:
     env:
       API_KEY: "not-a-real-api-key"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # for coverage comment action
           fetch-depth: 1000
@@ -88,6 +88,6 @@ jobs:
         run: make tests-with-cov
       - name: Coverage comment
         id: coverage_comment
-        uses: py-cov-action/python-coverage-comment-action@91910686861e4e1d8282a267a896eb39d46240fb
+        uses: py-cov-action/python-coverage-comment-action@e623398c19eb3853a5572d4a516e10b15b5cefbc
         with:
           GITHUB_TOKEN: ${{ github.token }}
