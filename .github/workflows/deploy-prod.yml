@@ -6,9 +6,6 @@ on:
       - published
   workflow_dispatch:
 
-env:
-  HATCH_VERSION: "v1.14.0" # keep in sync with deploy.yml
-
 permissions:
   id-token: write
 
@@ -20,16 +17,16 @@ jobs:
       pypi: ${{ vars.PYPI_URL }}
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/setup-python@v5
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
       with:
-       python-version: "3.10"
-    - name: Install Hatch
-      run: pip install hatch==${{ env.HATCH_VERSION }}
-    - name: Bump version
-      # Bump version to Github action tag
-      run: hatch version ${{github.ref_name}}
+        enable-cache: true
+        python-version: "3.10"
+    - name: Bump version in pyproject.toml
+      run: |
+        sed -i 's/^version = .*/version = "${{github.ref_name}}"/' pyproject.toml
     - name: Build
-      run: hatch build
+      run: make build
     - name: publish
       uses: pypa/gh-action-pypi-publish@release/v1
       with:

@@ -13,14 +13,16 @@ outputs: {}
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-python@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
       with:
+        enable-cache: true
         python-version: "3.10"
-    - name: Install Hatch
+    - name: Install dependencies
       shell: bash
-      run: pip install hatch==${{ env.HATCH_VERSION }}
+      run: uv sync --group test
     # we are using the "automated-tests" organization with predefined users and workspaces
     - name: Run SDK Tests
       shell: bash
       run: |
-        API_KEY=${{inputs.API_KEY}} API_URL=${{inputs.API_URL}} hatch run test:integration
+        API_KEY=${{inputs.API_KEY}} API_URL=${{inputs.API_URL}} make tests-integration

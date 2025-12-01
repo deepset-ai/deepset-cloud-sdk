@@ -98,7 +98,9 @@ class TestPipelineInputs:
     def test_create_pipeline_inputs_with_all_values(self) -> None:
         """Test creating PipelineInputs with all values."""
         inputs = PipelineInputs(
-            query=["retriever.query"], filters=["retriever.filters"], additional_key="additional_value"  # type: ignore
+            query=["retriever.query"],
+            filters=["retriever.filters"],
+            additional_key="additional_value",  # type: ignore
         )
         assert inputs.query == ["retriever.query"]
         assert inputs.filters == ["retriever.filters"]
@@ -123,7 +125,9 @@ class TestPipelineInputs:
     def test_pipeline_inputs_to_yaml_dict(self) -> None:
         """Test that to_yaml_dict correctly transforms PipelineInputs."""
         inputs = PipelineInputs(
-            query=["retriever.query"], filters=["retriever.filters"], additional_key="additional_value"  # type: ignore
+            query=["retriever.query"],
+            filters=["retriever.filters"],
+            additional_key="additional_value",  # type: ignore
         )
         yaml_dict = inputs.to_yaml_dict()
         assert yaml_dict == {
@@ -204,7 +208,9 @@ class TestPipelineOutputs:
     def test_pipeline_outputs_with_additional_fields(self) -> None:
         """Test that PipelineOutputs allows additional fields."""
         outputs = PipelineOutputs(
-            documents="retriever.documents", additional_meta="test", custom_field=123  # type: ignore
+            documents="retriever.documents",
+            additional_meta="test",
+            custom_field=123,  # type: ignore
         )
         assert outputs.documents == "retriever.documents"
         assert outputs.additional_meta == "test"  # type: ignore
@@ -317,7 +323,12 @@ class TestPipelineConfig:
     def test_pipeline_config_with_additional_fields(self) -> None:
         """Test that PipelineConfig forbids additional fields."""
         with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
-            PipelineConfig(name="test_pipeline", extra_field="test", inputs=PipelineInputs(query=["prompt_builder.query"]), outputs=PipelineOutputs(answers="answers_builder.answers"))  # type: ignore
+            PipelineConfig(
+                name="test_pipeline",
+                extra_field="test",
+                inputs=PipelineInputs(query=["prompt_builder.query"]),
+                outputs=PipelineOutputs(answers="answers_builder.answers"),
+            )  # type: ignore
 
     def test_pipeline_config_strict_validation_default_value(self) -> None:
         """Test that PipelineConfig strict_validation field defaults to False."""

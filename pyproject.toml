@@ -1,13 +1,13 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.9.13,<0.10.0"]
+build-backend = "uv_build"
 
 [project]
 name = "deepset-cloud-sdk"
-dynamic = ["version"]
+version = "1.0.2"
 description = 'deepset SDK'
 readme = "README.md"
-requires-python = ">= 3.8"
+requires-python = ">= 3.9"
 license = "Apache-2.0"
 keywords = []
 authors = [{ name = "deepset", email = "rohan.janjua@deepset.ai" }]
@@ -26,7 +26,7 @@ dependencies = [
   "httpx>=0.27.2",
   "python-dotenv>=1.0.1",
   "typer>=0.15.0",
-  "click<=8.2.0",  # fixed because of bug in 8.2.1, see https://github.com/pallets/click/issues/2939
+  "click<=8.2.0",          # fixed because of bug in 8.2.1, see https://github.com/pallets/click/issues/2939
   "tenacity>=8.3.0",
   "aiohttp>=3.10.10",
   "aiofiles>=24.1.0",
@@ -43,86 +43,64 @@ Documentation = "https://github.com/deepset-ai/deepset-cloud-sdk#readme"
 Issues = "https://github.com/deepset-ai/deepset-cloud-sdk/issues"
 Source = "https://github.com/deepset-ai/deepset-cloud-sdk"
 
-
 [project.scripts]
 deepset-cloud = "deepset_cloud_sdk.cli:run_packaged"
 
-[tool.hatch.version]
-path = "deepset_cloud_sdk/__about__.py"
-
-[tool.hatch.envs.default.scripts]
-tests-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
-tests-unit = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
-tests-integration = "pytest tests/integration"
-
-[[tool.hatch.envs.all.matrix]]
-python = ["3.10"]
-
-[tool.hatch.envs.default]
-dependencies = []
-
-[tool.hatch.envs.test.scripts]
-unit-with-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/unit"
-integration = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=deepset_cloud_sdk tests/integration"
-
-[tool.hatch.envs.test]
-template = 'default'
-dependencies = [
+[dependency-groups]
+test = [
   "pytest-cov==4.0.0",
   "pytest==7.3.1",
   "pytest-asyncio==0.21.0",
-  "haystack-ai>=2.13.2",  # only for testing
+  "haystack-ai>=2.13.2",    # only for testing
   "respx==0.22.0",
 ]
-
-
-[tool.hatch.envs.code-quality]
-python = "3.10"
-template = 'default'
-detached = false
-# Please keep these aligned with the versions defined in .pre-commit-config.yaml
-dependencies = [
+code-quality = [
   "pylint==2.17.4",
-  "pydocstyle==6.3.0",
-  "black==23.3.0",
-  "isort==5.12.0",
+  "ruff==0.8.4",
   "mypy==1.1.1",
   "pre-commit==2.20.0",
   "types-aiofiles==23.1.0.2",
   "types-tabulate==0.9.0.2",
-  "autoflake==2.1.1",
 ]
 
-[tool.hatch.envs.code-quality.scripts]
-types = "mypy deepset_cloud_sdk tests"
-format = "black deepset_cloud_sdk tests --check"
-format-fix = "black deepset_cloud_sdk tests"
-lint = "pylint deepset_cloud_sdk"
-sort = "isort --check --profile black ."
-sort-fix = "isort --profile black ."
-hooks = "pre-commit install"
-docstrings = "pydocstyle deepset_cloud_sdk"
-flake = "autoflake --remove-all-unused-imports --remove-duplicate-keys --remove-unused-variables -v -r ./deepset_cloud_sdk"
-all = "hatch run types && hatch run format-fix && hatch run lint && hatch run sort && hatch run docstrings && hatch run flake"
-
-[tool.hatch.envs.tools]
-detached = false
-# Please keep these aligned with the versions defined in .pre-commit-config.yaml
-dependencies = ["pip-tools==6.13.0"]
-
-[tool.hatch.envs.tools.scripts]
-requirements = "pip-compile -o requirements.txt pyproject.toml"
+[tool.uv.build-backend]
+module-name = "deepset_cloud_sdk"
+module-root = ""
 
 [tool.coverage.run]
 branch = true
 relative_files = true
-omit = ["deepset_cloud_sdk/__about__.py"]
 
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 
-[tool.black]
+[tool.ruff]
 line-length = 120
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint]
+ignore = [
+  "E501", # line too long
+]
+select = [
+  "E", # pycodestyle errors
+  "F", # pyflakes
+  "I", # isort
+]
+fixable = [
+  "E", # pycodestyle errors
+  "F", # pyflakes
+  "I", # isort
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google" # or "numpy" or "pep257"
+
+[tool.ruff.lint.isort]
+known-first-party = ["deepset_cloud_sdk"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -141,6 +119,7 @@ disable = [
   "wrong-spelling-in-docstring",
   "missing-module-docstring",
 ]
+
 [tool.pylint.'DESIGN']
 max-args = 9
 
@@ -149,9 +128,3 @@ min-similarity-lines = 10
 
 [tool.pylint.'BASIC']
 good-names = ["i", "k", "v", "_", "f1"]
-
-[tool.hatch.build.targets.sdist]
-exclude = ["/.github", "/tests"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["deepset_cloud_sdk"]

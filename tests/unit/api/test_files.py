@@ -15,7 +15,6 @@ from deepset_cloud_sdk._api.files import (
     FileList,
     FileNotFoundInDeepsetCloudException,
     FilesAPI,
-    NotMatchingFileTypeException,
 )
 from deepset_cloud_sdk._api.upload_sessions import WriteMode
 
