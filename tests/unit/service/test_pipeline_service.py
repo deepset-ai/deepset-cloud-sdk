@@ -587,7 +587,7 @@ class TestImportPipelineService:
     async def test_import_pipeline_with_overwrite_true(
         self, pipeline_service: PipelineService, index_pipeline: Pipeline, mock_api: AsyncMock
     ) -> None:
-        """Test importing a pipeline with overwrite=True uses PUT endpoint."""
+        """Test importing a pipeline with overwrite=True creates a new version via POST endpoint."""
         config = PipelineConfig(
             name="test_pipeline_overwrite",
             inputs=PipelineInputs(query=["retriever.query"]),
@@ -600,25 +600,21 @@ class TestImportPipelineService:
         validation_response = Mock(spec=Response)
         validation_response.status_code = HTTPStatus.NO_CONTENT.value
 
-        # Mock successful versions response
-        versions_response = Mock(status_code=HTTPStatus.OK.value)
-        versions_response.json.return_value = {
-            "data": [{"version_id": "42abcd"}],
-        }
-
-        # Mock successful overwrite response
+        # Mock successful "create new version" response
         overwrite_response = Mock(spec=Response)
-        overwrite_response.status_code = HTTPStatus.OK.value
+        overwrite_response.status_code = HTTPStatus.CREATED.value
 
-        mock_api.post.return_value = validation_response
-        mock_api.get.return_value = versions_response
-        mock_api.put.return_value = overwrite_response
+        # First POST is validation, second POST is "create new version"
+        mock_api.post.side_effect = [validation_response, overwrite_response]
 
         await pipeline_service.import_async(index_pipeline, config)
 
-        # Should call validation endpoint first, then overwrite endpoint
-        assert mock_api.post.call_count == 1
-        assert mock_api.patch.call_count == 1
+        # Should call validation endpoint first, then create-version endpoint
+        assert mock_api.post.call_count == 2
+        # No GET/PATCH/PUT calls in the overwrite path anymore
+        assert mock_api.get.call_count == 0
+        assert mock_api.patch.call_count == 0
+        assert mock_api.put.call_count == 0
 
         # Check validation call
         validation_call = mock_api.post.call_args_list[0]
@@ -627,16 +623,16 @@ class TestImportPipelineService:
         # When overwrite=True, name should be excluded from validation payload
         assert "name" not in validation_call.kwargs["json"]
 
-        # Check overwrite call
-        overwrite_call = mock_api.patch.call_args_list[0]
-        assert overwrite_call.kwargs["endpoint"] == "pipelines/test_pipeline_overwrite/versions/42abcd"
+        # Check create-version call
+        overwrite_call = mock_api.post.call_args_list[1]
+        assert overwrite_call.kwargs["endpoint"] == "pipelines/test_pipeline_overwrite/versions"
         assert "config_yaml" in overwrite_call.kwargs["json"]
 
     @pytest.mark.asyncio
     async def test_import_pipeline_with_overwrite_fallback_to_create(
         self, pipeline_service: PipelineService, index_pipeline: Pipeline, mock_api: AsyncMock
     ) -> None:
-        """Test importing a pipeline with overwrite=True that falls back to create when resource doesn't exist."""
+        """Test importing a pipeline with overwrite=True that falls back to create when version creation fails."""
 
         config = PipelineConfig(
             name="test_pipeline_fallback",
@@ -650,22 +646,26 @@ class TestImportPipelineService:
         validation_response = Mock(spec=Response)
         validation_response.status_code = HTTPStatus.NO_CONTENT.value
 
-        # Mock 404 response for GET (resource not found)
-        not_found_response = Mock(spec=Response)
-        not_found_response.status_code = HTTPStatus.NOT_FOUND.value
+        # Mock non-201 response for POST /pipelines/{name}/versions (version creation fails)
+        version_fail_response = Mock(spec=Response)
+        version_fail_response.status_code = HTTPStatus.BAD_REQUEST.value
 
-        # Mock successful creation response
+        # Mock successful creation response for POST /pipelines
         create_response = Mock(spec=Response)
         create_response.status_code = HTTPStatus.CREATED.value
 
-        mock_api.post.side_effect = [validation_response, create_response]
-        mock_api.get.return_value = not_found_response
+        # POST calls: validation, create-version (fails), create-pipeline (fallback)
+        mock_api.post.side_effect = [validation_response, version_fail_response, create_response]
 
         await pipeline_service.import_async(index_pipeline, config)
 
-        # Should call validation endpoint, then GET (which returns 404), then POST to create
-        assert mock_api.post.call_count == 2
-        assert mock_api.get.call_count == 1
+        # Should call validation endpoint, then POST to create new version (fails),
+        # then POST to create the pipeline
+        assert mock_api.post.call_count == 3
+        # No GET anymore; overwrite logic doesn't fetch versions
+        assert mock_api.get.call_count == 0
+        assert mock_api.patch.call_count == 0
+        assert mock_api.put.call_count == 0
 
         # Check validation call
         validation_call = mock_api.post.call_args_list[0]
@@ -674,12 +674,13 @@ class TestImportPipelineService:
         # When overwrite=True, name should be excluded from validation payload
         assert "name" not in validation_call.kwargs["json"]
 
-        # Check GET versions attempt
-        get_call = mock_api.get.call_args_list[0]
-        assert get_call.kwargs["endpoint"] == "pipelines/test_pipeline_fallback/versions"
+        # Check attempted version creation call
+        version_call = mock_api.post.call_args_list[1]
+        assert version_call.kwargs["endpoint"] == "pipelines/test_pipeline_fallback/versions"
+        assert "config_yaml" in version_call.kwargs["json"]
 
-        # Check fallback POST call
-        create_call = mock_api.post.call_args_list[1]
+        # Check fallback create-pipeline call
+        create_call = mock_api.post.call_args_list[2]
         assert create_call.kwargs["endpoint"] == "pipelines"
         assert create_call.kwargs["json"]["name"] == "test_pipeline_fallback"
         assert "query_yaml" in create_call.kwargs["json"]

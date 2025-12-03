@@ -488,10 +488,10 @@ class TestImportPipelineIntoDeepset:
             return_value=Response(status_code=HTTPStatus.NO_CONTENT)
         )
 
-        # Mock 404 response for GET (resource not found)
-        version_check_route = respx.get(
+        # Mock failed version creation (non-201 for POST /pipelines/{name}/versions)
+        version_create_route = respx.post(
             "https://test-api-url.com/workspaces/test-workspace/pipelines/test-pipeline-fallback/versions"
-        ).mock(return_value=Response(status_code=HTTPStatus.NOT_FOUND))
+        ).mock(return_value=Response(status_code=HTTPStatus.BAD_REQUEST))
 
         # Mock successful creation
         create_route = respx.post("https://test-api-url.com/workspaces/test-workspace/pipelines").mock(
@@ -508,9 +508,9 @@ class TestImportPipelineIntoDeepset:
 
         await test_async_client.import_into_deepset(sample_pipeline, pipeline_config)
 
-        # Verify all three endpoints were called in sequence
+        # Verify all three endpoints were called
         assert validation_route.called
-        assert version_check_route.called
+        assert version_create_route.called
         assert create_route.called
 
         # Check validation request
@@ -518,10 +518,14 @@ class TestImportPipelineIntoDeepset:
         assert validation_request.headers["Authorization"] == "Bearer test-api-key"
         validation_body = json.loads(validation_request.content)
         assert "query_yaml" in validation_body
+        # When overwrite=True, name should be excluded from validation payload (if your code does that)
+        # assert "name" not in validation_body
 
-        # Check GET attempt
-        version_check_request = version_check_route.calls[0].request
-        assert version_check_request.headers["Authorization"] == "Bearer test-api-key"
+        # Check attempted version creation request
+        version_create_request = version_create_route.calls[0].request
+        assert version_create_request.headers["Authorization"] == "Bearer test-api-key"
+        version_body = json.loads(version_create_request.content)
+        assert "config_yaml" in version_body
 
         # Check fallback creation
         create_request = create_route.calls[0].request
