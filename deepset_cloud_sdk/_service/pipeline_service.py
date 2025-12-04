@@ -374,32 +374,59 @@ class PipelineService:
         )
 
     async def _overwrite_pipeline(self, name: str, pipeline_yaml: str) -> Response:
-        """Overwrite a pipeline in deepset AI Platform by creating a new version.
-        If creating a new version fails (e.g. pipeline doesn't exist), create the
-        pipeline instead.
+        """Overwrite a pipeline in deepset AI Platform.
+
+        Behavior:
+        - First try to fetch the latest version.
+        - If the pipeline doesn't exist (404), create it instead.
+        - If the latest version is a draft (is_draft == True), PATCH that version.
+        - Otherwise, create a new version via POST /pipelines/{name}/versions.
 
         :param name: Name of the pipeline.
         :param pipeline_yaml: Generated pipeline YAML string.
         """
-        # First try to create a new version of the existing pipeline
-        version_response = await self._api.post(
+        # First get the (last) version id if available
+        version_response = await self._api.get(
             workspace_name=self._workspace_name,
             endpoint=f"pipelines/{name}/versions",
-            json={"config_yaml": pipeline_yaml},
         )
 
-        if version_response.status_code == HTTPStatus.CREATED:
-            logger.debug("Created new version for pipeline %s.", name)
-            return version_response
-        # If creating a version fails, assume the pipeline doesn't exist and create it
-        logger.debug(
-            "Failed to create new version for pipeline %s (status %s). "
-            "Assuming pipeline does not exist and creating it instead.",
-            name,
-            version_response.status_code,
-        )
+        # If pipeline doesn't exist (404), create it instead
+        if version_response.status_code == HTTPStatus.NOT_FOUND:
+            logger.debug("Pipeline %s not found, creating new pipeline.", name)
+            response = await self._create_pipeline(name=name, pipeline_yaml=pipeline_yaml)
+            return response
 
-        response = await self._create_pipeline(name=name, pipeline_yaml=pipeline_yaml)
+        version_body = version_response.json()
+        latest_version = version_body["data"][0]
+        version_id = latest_version["version_id"]
+        is_draft = latest_version.get("is_draft", False)
+
+        if is_draft:
+            # If the latest version is a draft, patch that version
+            logger.debug(
+                "Latest version %s of pipeline %s is a draft, patching existing version.",
+                version_id,
+                name,
+            )
+            response = await self._api.patch(
+                workspace_name=self._workspace_name,
+                endpoint=f"pipelines/{name}/versions/{version_id}",
+                json={"config_yaml": pipeline_yaml},
+            )
+        else:
+            # Otherwise, create a new version
+            logger.debug(
+                "Latest version %s of pipeline %s is not a draft, creating new version.",
+                version_id,
+                name,
+            )
+            response = await self._api.post(
+                workspace_name=self._workspace_name,
+                endpoint=f"pipelines/{name}/versions",
+                json={"config_yaml": pipeline_yaml, "is_draft": True},
+            )
+
         return response
 
     async def _create_pipeline(self, name: str, pipeline_yaml: str) -> Response:
