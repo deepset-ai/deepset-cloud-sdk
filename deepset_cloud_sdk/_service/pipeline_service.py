@@ -7,7 +7,9 @@ from http import HTTPStatus
 from io import StringIO
 from typing import Any, List, Optional, Protocol, runtime_checkable
 
+import httpx
 import structlog
+
 from httpx import Response
 from pydantic import BaseModel
 from ruamel.yaml import YAML
@@ -383,13 +385,16 @@ class PipelineService:
         - Otherwise, create a new version via POST /pipelines/{name}/versions.
         """
         # Fetch versions
-        version_response = await self._api.get(
-            workspace_name=self._workspace_name,
-            endpoint=f"pipelines/{name}/versions",
-        )
-
-        # Pipeline not found → create
-        if version_response.status_code == HTTPStatus.NOT_FOUND:
+        try:
+            version_response = await self._api.get(
+                workspace_name=self._workspace_name,
+                endpoint=f"pipelines/{name}/versions",
+            )
+            version_response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code != HTTPStatus.NOT_FOUND:
+                raise
+            # the pipeline does not exist, let's create it.
             logger.debug(f"Pipeline '{name}' not found, creating new pipeline.")
             return await self._create_pipeline(name=name, pipeline_yaml=pipeline_yaml)
 
