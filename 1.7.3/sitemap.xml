@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://deepset-ai.github.io/deepset-cloud-sdk/1.7.3/</loc>
+         <lastmod>2025-12-05</lastmod>
+    </url>
+    <url>
+         <loc>https://deepset-ai.github.io/deepset-cloud-sdk/1.7.3/upload_files/</loc>
+         <lastmod>2025-12-05</lastmod>
+    </url>
+    <url>
+         <loc>https://deepset-ai.github.io/deepset-cloud-sdk/1.7.3/_pydoc/temp/async_client/</loc>
+         <lastmod>2025-12-05</lastmod>
+    </url>
+    <url>
+         <loc>https://deepset-ai.github.io/deepset-cloud-sdk/1.7.3/_pydoc/temp/cli/</loc>
+         <lastmod>2025-12-05</lastmod>
+    </url>
+    <url>
+         <loc>https://deepset-ai.github.io/deepset-cloud-sdk/1.7.3/_pydoc/temp/sync_client/</loc>
+         <lastmod>2025-12-05</lastmod>
+    </url>
+    <url>
+         <loc>https://deepset-ai.github.io/deepset-cloud-sdk/1.7.3/examples/cli/</loc>
+         <lastmod>2025-12-05</lastmod>
+    </url>
+    <url>
+         <loc>https://deepset-ai.github.io/deepset-cloud-sdk/1.7.3/examples/sdk/</loc>
+         <lastmod>2025-12-05</lastmod>
+    </url>
+</urlset>
