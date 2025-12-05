@@ -9,7 +9,6 @@ from typing import Any, List, Optional, Protocol, runtime_checkable
 
 import httpx
 import structlog
-
 from httpx import Response
 from pydantic import BaseModel
 from ruamel.yaml import YAML

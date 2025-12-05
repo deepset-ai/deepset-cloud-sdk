@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, Mock
 
 import httpx
 import pytest
-
 from haystack import AsyncPipeline, Pipeline
 from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
@@ -16,10 +15,7 @@ from haystack.components.routers import FileTypeRouter
 from httpx import Response
 from structlog.testing import capture_logs
 
-from deepset_cloud_sdk._service.pipeline_service import (
-    DeepsetValidationError,
-    PipelineService,
-)
+from deepset_cloud_sdk._service.pipeline_service import DeepsetValidationError, PipelineService
 from deepset_cloud_sdk.models import (
     IndexConfig,
     IndexInputs,
