@@ -6,7 +6,9 @@ from http import HTTPStatus
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
+import httpx
 import pytest
+
 from haystack import AsyncPipeline, Pipeline
 from haystack.components.converters import CSVToDocument, TextFileToDocument
 from haystack.components.joiners import DocumentJoiner
@@ -703,6 +705,9 @@ class TestImportPipelineService:
         # Mock 404 response for GET (resource not found)
         not_found_response = Mock(spec=Response)
         not_found_response.status_code = HTTPStatus.NOT_FOUND.value
+        not_found_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "Not Found", request=Mock(), response=not_found_response
+        )
 
         # Mock successful creation response
         create_response = Mock(spec=Response)
