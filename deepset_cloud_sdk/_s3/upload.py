@@ -1,6 +1,7 @@
 """Module for upload-related S3 operations."""
 
 import asyncio
+import inspect
 import os
 import re
 from dataclasses import dataclass
@@ -24,6 +25,11 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk.models import DeepsetCloudFileBase
 
 logger = structlog.get_logger(__name__)
+
+# Check if pyrate-limiter supports the new API (v4.0.0+)
+# In v4.0.0+, Limiter.__init__ no longer accepts raise_when_fail and max_delay
+# and try_acquire accepts a blocking parameter
+_LIMITER_SUPPORTS_BLOCKING = "blocking" in inspect.signature(Limiter.try_acquire).parameters
 
 
 class RetryableHttpError(Exception):
@@ -94,7 +100,15 @@ class S3:
         """
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
-        self.limiter = Limiter(rate_limit, raise_when_fail=False, max_delay=Duration.SECOND * 1)
+        
+        # Initialize limiter with backward compatibility for pyrate-limiter 3.x and 4.x
+        if _LIMITER_SUPPORTS_BLOCKING:
+            # pyrate-limiter 4.0.0+ - simplified API
+            self.limiter = Limiter(rate_limit)
+        else:
+            # pyrate-limiter 3.x - old API with raise_when_fail and max_delay
+            self.limiter = Limiter(rate_limit, raise_when_fail=False, max_delay=Duration.SECOND * 1)
+        
         self.max_attempts = max_attempts
 
     async def __aenter__(self) -> "S3":
@@ -158,7 +172,12 @@ class S3:
         file_data = self._build_file_data(content, aws_safe_name, aws_config)
 
         try:
-            self.limiter.try_acquire("")  # rate limit requests
+            # Rate limit requests - use blocking=False for pyrate-limiter 4.0.0+
+            if _LIMITER_SUPPORTS_BLOCKING:
+                self.limiter.try_acquire("", blocking=False)
+            else:
+                self.limiter.try_acquire("")
+            
             async with client_session.post(
                 aws_config.url,
                 data=file_data,
@@ -172,7 +191,13 @@ class S3:
                     # for example during automatic redirects. See https://github.com/aio-libs/aiohttp/issues/5577
                     redirect_url = response.headers["Location"]
                     file_data = self._build_file_data(content, aws_safe_name, aws_config)
-                    self.limiter.try_acquire("")  # rate limit requests
+                    
+                    # Rate limit requests - use blocking=False for pyrate-limiter 4.0.0+
+                    if _LIMITER_SUPPORTS_BLOCKING:
+                        self.limiter.try_acquire("", blocking=False)
+                    else:
+                        self.limiter.try_acquire("")
+                    
                     async with client_session.post(
                         redirect_url,
                         json=file_data,
