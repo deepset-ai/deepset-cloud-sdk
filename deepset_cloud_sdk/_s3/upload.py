@@ -31,8 +31,10 @@ logger = structlog.get_logger(__name__)
 # and try_acquire accepts a blocking parameter
 try:
     _LIMITER_SUPPORTS_BLOCKING = "blocking" in inspect.signature(Limiter.try_acquire).parameters
-except (AttributeError, ValueError):
+except (AttributeError, TypeError):
     # Fallback to False if we can't inspect the signature
+    # AttributeError: if Limiter.try_acquire doesn't exist
+    # TypeError: if Limiter.try_acquire is not callable
     _LIMITER_SUPPORTS_BLOCKING = False
 
 
@@ -137,19 +139,23 @@ class S3:
         except AttributeError:
             pass
 
-    def _rate_limit_acquire(self, name: str = "") -> None:
+    def _rate_limit_acquire(self) -> None:
         """
         Acquire a rate limit token.
         
-        Uses blocking=False for pyrate-limiter 4.0.0+ to maintain non-blocking behavior,
-        or the default behavior for 3.x which was non-blocking with raise_when_fail=False.
+        Uses blocking=False for pyrate-limiter 4.0.0+ to maintain non-blocking behavior
+        consistent with the old raise_when_fail=False behavior in 3.x.
         
-        :param name: The name of the item to acquire (default: "")
+        In pyrate-limiter 3.x, using raise_when_fail=False made try_acquire non-blocking.
+        In pyrate-limiter 4.0.0+, we need to explicitly pass blocking=False to get the same
+        non-blocking behavior (returns immediately without waiting for rate limit).
         """
         if _LIMITER_SUPPORTS_BLOCKING:
-            self.limiter.try_acquire(name, blocking=False)
+            # pyrate-limiter 4.0.0+: use blocking=False for non-blocking behavior
+            self.limiter.try_acquire("", blocking=False)
         else:
-            self.limiter.try_acquire(name)
+            # pyrate-limiter 3.x: non-blocking when initialized with raise_when_fail=False
+            self.limiter.try_acquire("")
 
     async def _upload_file_with_retries(
         self,
