@@ -29,7 +29,11 @@ logger = structlog.get_logger(__name__)
 # Check if pyrate-limiter supports the new API (v4.0.0+)
 # In v4.0.0+, Limiter.__init__ no longer accepts raise_when_fail and max_delay
 # and try_acquire accepts a blocking parameter
-_LIMITER_SUPPORTS_BLOCKING = "blocking" in inspect.signature(Limiter.try_acquire).parameters
+try:
+    _LIMITER_SUPPORTS_BLOCKING = "blocking" in inspect.signature(Limiter.try_acquire).parameters
+except (AttributeError, ValueError):
+    # Fallback to False if we can't inspect the signature
+    _LIMITER_SUPPORTS_BLOCKING = False
 
 
 class RetryableHttpError(Exception):
@@ -133,6 +137,20 @@ class S3:
         except AttributeError:
             pass
 
+    def _rate_limit_acquire(self, name: str = "") -> None:
+        """
+        Acquire a rate limit token.
+        
+        Uses blocking=False for pyrate-limiter 4.0.0+ to maintain non-blocking behavior,
+        or the default behavior for 3.x which was non-blocking with raise_when_fail=False.
+        
+        :param name: The name of the item to acquire (default: "")
+        """
+        if _LIMITER_SUPPORTS_BLOCKING:
+            self.limiter.try_acquire(name, blocking=False)
+        else:
+            self.limiter.try_acquire(name)
+
     async def _upload_file_with_retries(
         self,
         file_name: str,
@@ -172,11 +190,7 @@ class S3:
         file_data = self._build_file_data(content, aws_safe_name, aws_config)
 
         try:
-            # Rate limit requests - use blocking=False for pyrate-limiter 4.0.0+
-            if _LIMITER_SUPPORTS_BLOCKING:
-                self.limiter.try_acquire("", blocking=False)
-            else:
-                self.limiter.try_acquire("")
+            self._rate_limit_acquire()
             
             async with client_session.post(
                 aws_config.url,
@@ -191,12 +205,7 @@ class S3:
                     # for example during automatic redirects. See https://github.com/aio-libs/aiohttp/issues/5577
                     redirect_url = response.headers["Location"]
                     file_data = self._build_file_data(content, aws_safe_name, aws_config)
-                    
-                    # Rate limit requests - use blocking=False for pyrate-limiter 4.0.0+
-                    if _LIMITER_SUPPORTS_BLOCKING:
-                        self.limiter.try_acquire("", blocking=False)
-                    else:
-                        self.limiter.try_acquire("")
+                    self._rate_limit_acquire()
                     
                     async with client_session.post(
                         redirect_url,
