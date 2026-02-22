@@ -35,14 +35,14 @@ jobs:
 
       - name: Send license report to Fossa
         # This will collect all necessary information (mostly used dependencies) and send it to the Fossa API
-        uses: fossas/fossa-action@3ebcea1862c6ffbd5cf1b4d0bd6b3fe7bd6f2cac # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@c414b9ad82eaad041e47a7cf62a4f02411f427a0 # Use a specific version if locking is preferred
         with:
           api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
 
       - name: Check license compliance
         # This will poll the Fossa API until they have processed the information which we've sent in the previous step
         # and fail if Fossa found an issue with the licences of our dependencies.
-        uses: fossas/fossa-action@3ebcea1862c6ffbd5cf1b4d0bd6b3fe7bd6f2cac # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@c414b9ad82eaad041e47a7cf62a4f02411f427a0 # Use a specific version if locking is preferred
         with:
           api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
           run-tests: true
