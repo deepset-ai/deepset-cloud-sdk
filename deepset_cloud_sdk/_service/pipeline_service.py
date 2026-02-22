@@ -7,6 +7,7 @@ from http import HTTPStatus
 from io import StringIO
 from typing import Any, List, Optional, Protocol, runtime_checkable
 
+import httpx
 import structlog
 from httpx import Response
 from pydantic import BaseModel
@@ -376,28 +377,47 @@ class PipelineService:
     async def _overwrite_pipeline(self, name: str, pipeline_yaml: str) -> Response:
         """Overwrite a pipeline in deepset AI Platform.
 
-        :param name: Name of the pipeline.
-        :param pipeline_yaml: Generated pipeline YAML string.
+        Behavior:
+        - First try to fetch the latest version.
+        - If the pipeline doesn't exist (404), create it instead.
+        - If the latest version is a draft (is_draft == True), PATCH that version.
+        - Otherwise, create a new version via POST /pipelines/{name}/versions.
         """
-        # First get the (last) version id if available
-        version_response = await self._api.get(
-            workspace_name=self._workspace_name, endpoint=f"pipelines/{name}/versions"
-        )
+        # Fetch versions
+        try:
+            version_response = await self._api.get(
+                workspace_name=self._workspace_name,
+                endpoint=f"pipelines/{name}/versions",
+            )
+            version_response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code != HTTPStatus.NOT_FOUND:
+                raise
+            # the pipeline does not exist, let's create it.
+            logger.debug(f"Pipeline '{name}' not found, creating new pipeline.")
+            return await self._create_pipeline(name=name, pipeline_yaml=pipeline_yaml)
 
-        # If pipeline doesn't exist (404), create it instead
-        if version_response.status_code == HTTPStatus.NOT_FOUND:
-            logger.debug(f"Pipeline {name} not found, creating new pipeline.")
-            response = await self._create_pipeline(name=name, pipeline_yaml=pipeline_yaml)
-        else:
-            version_body = version_response.json()
-            version_id = version_body["data"][0]["version_id"]
-            response = await self._api.patch(
+        version_body = version_response.json()
+        latest_version = version_body["data"][0]
+        version_id = latest_version["version_id"]
+        is_draft = latest_version.get("is_draft", False)
+
+        if is_draft:
+            # Patch existing draft version
+            logger.debug(f"Patching existing draft version '{version_id}' of pipeline '{name}'.")
+            return await self._api.patch(
                 workspace_name=self._workspace_name,
                 endpoint=f"pipelines/{name}/versions/{version_id}",
                 json={"config_yaml": pipeline_yaml},
             )
 
-        return response
+        # Create a new version
+        logger.debug(f"Latest version '{version_id}' of pipeline '{name}' is not a draft, creating new version.")
+        return await self._api.post(
+            workspace_name=self._workspace_name,
+            endpoint=f"pipelines/{name}/versions",
+            json={"config_yaml": pipeline_yaml},
+        )
 
     async def _create_pipeline(self, name: str, pipeline_yaml: str) -> Response:
         """Create a pipeline in deepset AI Platform.
