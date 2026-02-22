@@ -48,9 +48,9 @@ class TestUploadsFileService:
 
             for file in files:
                 if file.name in names_of_uploaded_files:
-                    assert (
-                        file.meta.get("source") == "msmarco"
-                    ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
+                    assert file.meta.get("source") == "msmarco", (
+                        f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
+                    )
 
     async def test_direct_upload_path_multiple_file_types(
         self, integration_config: CommonConfig, workspace_name: str
@@ -91,9 +91,9 @@ class TestUploadsFileService:
 
             for file in uploaded_files:
                 if file.name in local_file_names:
-                    assert (
-                        file.meta.get("source") == "multiple file types"
-                    ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
+                    assert file.meta.get("source") == "multiple file types", (
+                        f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
+                    )
 
     async def test_async_upload(
         self, integration_config: CommonConfig, workspace_name: str, monkeypatch: MonkeyPatch
@@ -135,9 +135,9 @@ class TestUploadsFileService:
 
         for file in uploaded_files:
             if file.name in local_file_names:
-                assert (
-                    file.meta.get("source") == "msmarco"
-                ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
+                assert file.meta.get("source") == "msmarco", (
+                    f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
+                )
 
     async def test_async_upload_multiple_file_types(
         self, integration_config: CommonConfig, workspace_name: str, monkeypatch: MonkeyPatch
@@ -189,9 +189,9 @@ class TestUploadsFileService:
 
         for file in uploaded_files:
             if file.name in local_file_names:
-                assert (
-                    file.meta.get("source") == "multiple file types"
-                ), f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
+                assert file.meta.get("source") == "multiple file types", (
+                    f"Metadata was not uploaded correctly for file '{file.name}': {file.meta}"
+                )
 
         # Make sure that the metadata for File00.txt and file00.txt are mapped correctly
         File00_metadata = next((file.meta for file in uploaded_files if file.name == "File00.txt"), None)

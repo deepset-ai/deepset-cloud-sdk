@@ -116,6 +116,8 @@ class PipelineClient:  # pylint: disable=too-few-public-methods
         """
         try:
             loop = asyncio.get_event_loop()
+            if loop.is_closed():
+                raise RuntimeError("Event loop is closed")
             # do not close if event loop already exists, e.g. in Jupyter notebooks
             should_close = False
         except RuntimeError:

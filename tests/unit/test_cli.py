@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, Mock, patch
 from uuid import UUID
 
 import pytest
-import structlog
 from typer.testing import CliRunner
 
 __version__ = version("deepset-cloud-sdk")
@@ -23,31 +22,17 @@ from deepset_cloud_sdk.cli import cli_app
 from deepset_cloud_sdk.models import UserInfo
 from deepset_cloud_sdk.workflows.sync_client.files import download as sync_download
 
-logger = structlog.get_logger(__name__)
 runner = CliRunner()
 
 
 class TestCLIMethods:
     @patch("deepset_cloud_sdk.workflows.sync_client.files.async_upload")
     def test_uploading(self, async_upload_mock: AsyncMock) -> None:
-        # Configure logger to output to stdout and avoid interference with other tests
-        structlog.configure(
-            processors=[
-                structlog.processors.UnicodeDecoder(),
-                structlog.processors.format_exc_info,
-                structlog.dev.ConsoleRenderer(),
-            ],
-            wrapper_class=structlog.BoundLogger,
-            context_class=dict,
-            logger_factory=structlog.PrintLoggerFactory(),
-            cache_logger_on_first_use=True,
-        )
-
         def log_upload_folder_mock(
             *args: Any,
             **kwargs: Any,
         ) -> None:
-            logger.info("Fake log line")
+            print("Fake log line")
 
         async_upload_mock.side_effect = log_upload_folder_mock
         result = runner.invoke(cli_app, ["upload", "./test/data/upload_folder/example.txt"])
