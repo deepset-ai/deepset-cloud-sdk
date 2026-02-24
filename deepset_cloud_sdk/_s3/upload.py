@@ -1,14 +1,13 @@
 """Module for upload-related S3 operations."""
 
 import asyncio
-import inspect
 import os
 import re
 from dataclasses import dataclass
 from http import HTTPStatus
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Coroutine, List, Optional, Sequence, Type, Union
+from typing import Any, Coroutine, Dict, List, Optional, Sequence, Type, Union
 
 import aiofiles
 import aiohttp
@@ -25,17 +24,6 @@ from deepset_cloud_sdk._api.upload_sessions import (
 from deepset_cloud_sdk.models import DeepsetCloudFileBase
 
 logger = structlog.get_logger(__name__)
-
-# Check if pyrate-limiter supports the new API (v4.0.0+)
-# In v4.0.0+, Limiter.__init__ no longer accepts raise_when_fail and max_delay
-# and try_acquire accepts a blocking parameter
-try:
-    _LIMITER_SUPPORTS_BLOCKING = "blocking" in inspect.signature(Limiter.try_acquire).parameters
-except (AttributeError, TypeError):
-    # Fallback to False if we can't inspect the signature
-    # AttributeError: if Limiter.try_acquire doesn't exist
-    # TypeError: if Limiter.try_acquire is not callable
-    _LIMITER_SUPPORTS_BLOCKING = False
 
 
 class RetryableHttpError(Exception):
@@ -106,15 +94,16 @@ class S3:
         """
         self.connector = aiohttp.TCPConnector(limit=concurrency)
         self.semaphore = asyncio.BoundedSemaphore(concurrency)
-        
-        # Initialize limiter with backward compatibility for pyrate-limiter 3.x and 4.x
-        if _LIMITER_SUPPORTS_BLOCKING:
-            # pyrate-limiter 4.0.0+ - simplified API
-            self.limiter = Limiter(rate_limit)
-        else:
-            # pyrate-limiter 3.x - old API with raise_when_fail and max_delay
+
+        try:
+            # pyrate-limiter 3.x
             self.limiter = Limiter(rate_limit, raise_when_fail=False, max_delay=Duration.SECOND * 1)
-        
+            self._try_acquire_kwargs: Dict[str, Any] = {}
+        except TypeError:
+            # pyrate-limiter 4.0.0+ removed raise_when_fail and max_delay
+            self.limiter = Limiter(rate_limit)
+            self._try_acquire_kwargs = {"blocking": False}
+
         self.max_attempts = max_attempts
 
     async def __aenter__(self) -> "S3":
@@ -130,32 +119,14 @@ class S3:
         """Exit the context manager."""
         await self.connector.close()
 
-        # Handle limiter cleanup based on available methods
-        # Support both older and newer versions of pyrate_limiter
-        # In version 3.7.0, the dispose method was added to the Limiter class
-        # See diff here: https://github.com/vutran1710/PyrateLimiter/compare/v3.6.2...master
         try:
             list(map(self.limiter.dispose, self.limiter.buckets()))
         except AttributeError:
             pass
 
     def _rate_limit_acquire(self) -> None:
-        """
-        Acquire a rate limit token.
-        
-        Uses blocking=False for pyrate-limiter 4.0.0+ to maintain non-blocking behavior
-        consistent with the old raise_when_fail=False behavior in 3.x.
-        
-        In pyrate-limiter 3.x, using raise_when_fail=False made try_acquire non-blocking.
-        In pyrate-limiter 4.0.0+, we need to explicitly pass blocking=False to get the same
-        non-blocking behavior (returns immediately without waiting for rate limit).
-        """
-        if _LIMITER_SUPPORTS_BLOCKING:
-            # pyrate-limiter 4.0.0+: use blocking=False for non-blocking behavior
-            self.limiter.try_acquire("", blocking=False)
-        else:
-            # pyrate-limiter 3.x: non-blocking when initialized with raise_when_fail=False
-            self.limiter.try_acquire("")
+        """Acquire a rate limit token with backward compat for pyrate-limiter 3.x and 4.x."""
+        self.limiter.try_acquire("", **self._try_acquire_kwargs)
 
     async def _upload_file_with_retries(
         self,
@@ -197,7 +168,7 @@ class S3:
 
         try:
             self._rate_limit_acquire()
-            
+
             async with client_session.post(
                 aws_config.url,
                 data=file_data,
@@ -212,7 +183,7 @@ class S3:
                     redirect_url = response.headers["Location"]
                     file_data = self._build_file_data(content, aws_safe_name, aws_config)
                     self._rate_limit_acquire()
-                    
+
                     async with client_session.post(
                         redirect_url,
                         json=file_data,
