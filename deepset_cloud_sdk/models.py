@@ -240,11 +240,9 @@ class PipelineConfig(BaseConfig):
     """
 
     inputs: PipelineInputs = Field(
-        default_factory=PipelineInputs,
         description=("Pipeline input configuration. Use `PipelineInputs` model to define the inputs."),
     )
     outputs: PipelineOutputs = Field(
-        default_factory=PipelineOutputs,
         description=("Pipeline output configuration. Use `PipelineOutputs` model to define the outputs."),
     )
     pipeline_output_type: PipelineOutputType | None = Field(
