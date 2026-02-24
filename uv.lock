@@ -645,6 +645,7 @@ dependencies = [
     { name = "pyrate-limiter" },
     { name = "python-dotenv" },
     { name = "ruamel-yaml" },
+    { name = "sniffio" },
     { name = "structlog" },
     { name = "tabulate" },
     { name = "tenacity" },
@@ -667,7 +668,6 @@ test = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "respx" },
-    { name = "sniffio" },
 ]
 
 [package.metadata]
@@ -680,6 +680,7 @@ requires-dist = [
     { name = "pyrate-limiter", specifier = ">=3.7.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "ruamel-yaml", specifier = ">=0.18.10" },
+    { name = "sniffio", specifier = ">=1.3.1" },
     { name = "structlog", specifier = ">=24.0.0" },
     { name = "tabulate", specifier = ">=0.9.0" },
     { name = "tenacity", specifier = ">=8.3.0" },
@@ -694,7 +695,7 @@ code-quality = [
     { name = "pre-commit", specifier = "==2.20.0" },
     { name = "ruff", specifier = "==0.8.4" },
     { name = "types-aiofiles", specifier = "==23.1.0.2" },
-    { name = "types-tabulate", specifier = "==0.9.0.2" },
+    { name = "types-tabulate", specifier = "==0.9.0.20241207" },
 ]
 test = [
     { name = "haystack-ai", specifier = ">=2.13.2" },
@@ -702,7 +703,6 @@ test = [
     { name = "pytest-asyncio", specifier = "==0.21.0" },
     { name = "pytest-cov", specifier = "==4.0.0" },
     { name = "respx", specifier = "==0.22.0" },
-    { name = "sniffio", specifier = ">=1.3.1" },
 ]
 
 [[package]]
@@ -2993,11 +2993,11 @@ wheels = [
 
 [[package]]
 name = "types-tabulate"
-version = "0.9.0.2"
+version = "0.9.0.20241207"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/51/43/b049d9f82cc6c76f9ffa25064a75cc8cb224fa24954d83382bea42675236/types-tabulate-0.9.0.2.tar.gz", hash = "sha256:1dd4322a3a146e9073169c74278b8f14a58eb9905ca9db0d2588df408f27cac9", size = 3214, upload-time = "2023-03-28T12:32:55.931Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3f/43/16030404a327e4ff8c692f2273854019ed36718667b2993609dc37d14dd4/types_tabulate-0.9.0.20241207.tar.gz", hash = "sha256:ac1ac174750c0a385dfd248edc6279fa328aaf4ea317915ab879a2ec47833230", size = 8195, upload-time = "2024-12-07T02:54:42.554Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/46/9a/ae4184c682e214538e2be364a6ea02f00cecdf5c51cfc86fedb21435da89/types_tabulate-0.9.0.2-py3-none-any.whl", hash = "sha256:a2e41cc41b6b46bfaec78f8fd8e03058fda7a31af6f203a4b235f5482f571f6f", size = 3080, upload-time = "2023-03-28T12:32:54.393Z" },
+    { url = "https://files.pythonhosted.org/packages/5e/86/a9ebfd509cbe74471106dffed320e208c72537f9aeb0a55eaa6b1b5e4d17/types_tabulate-0.9.0.20241207-py3-none-any.whl", hash = "sha256:b8dad1343c2a8ba5861c5441370c3e35908edd234ff036d4298708a1d4cf8a85", size = 8307, upload-time = "2024-12-07T02:54:41.031Z" },
 ]
 
 [[package]]
