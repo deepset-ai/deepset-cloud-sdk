@@ -200,6 +200,7 @@ class TestPipelineClientImport:
         )
 
         mock_loop = Mock()
+        mock_loop.is_closed.return_value = False
         mock_loop.run_until_complete.return_value = None
         mock_loop.close = Mock()
 
