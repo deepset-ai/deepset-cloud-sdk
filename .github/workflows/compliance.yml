@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
           python-version: "3.10"
@@ -35,20 +35,20 @@ jobs:
 
       - name: Send license report to Fossa
         # This will collect all necessary information (mostly used dependencies) and send it to the Fossa API
-        uses: fossas/fossa-action@c414b9ad82eaad041e47a7cf62a4f02411f427a0 # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@ff70fe9fe17cbd2040648f1c45e8ec4e4884dcf3 # Use a specific version if locking is preferred
         with:
           api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
 
       - name: Check license compliance
         # This will poll the Fossa API until they have processed the information which we've sent in the previous step
         # and fail if Fossa found an issue with the licences of our dependencies.
-        uses: fossas/fossa-action@c414b9ad82eaad041e47a7cf62a4f02411f427a0 # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@ff70fe9fe17cbd2040648f1c45e8ec4e4884dcf3 # Use a specific version if locking is preferred
         with:
           api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
           run-tests: true
 
       - name: Send Slack notification if license check failed
-        uses: act10ns/slack@44541246747a30eb3102d87f7a4cc5471b0ffb7d
+        uses: act10ns/slack@d96404edccc6d6467fc7f8134a420c851b1e9054
         if: failure() && github.ref == 'refs/heads/main'
         with:
           status: ${{ job.status }}
