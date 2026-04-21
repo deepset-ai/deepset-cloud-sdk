@@ -266,23 +266,28 @@ class S3:
     ) -> S3UploadResult:
         """Upload content to the prefixed S3 namespace.
 
+        Uses the same concurrency limit as :meth:`upload_from_file` so bulk in-memory
+        uploads (including sidecar ``.meta.json`` objects) do not open unbounded
+        parallel connections—important behind corporate HTTP proxies.
+
         :param file_name: Name of the file.
         :param upload_session: UploadSession to associate the upload with.
         :param content: Content of the file.
         :param client_session: The aiohttp ClientSession to use for this request.
         :return: S3UploadResult object.
         """
-        try:
-            await self._upload_file_with_retries(file_name, upload_session, content, client_session)
-            return S3UploadResult(file_name=file_name, success=True)
-        except Exception as exception:  # pylint: disable=bare-except, disable=broad-exception-caught
-            logger.warning(
-                "Could not upload a file to deepset AI Platform",
-                file_name=file_name,
-                session_id=upload_session.session_id,
-                reason=str(exception),
-            )
-            return S3UploadResult(file_name=file_name, success=False, exception=exception)
+        async with self.semaphore:
+            try:
+                await self._upload_file_with_retries(file_name, upload_session, content, client_session)
+                return S3UploadResult(file_name=file_name, success=True)
+            except Exception as exception:  # pylint: disable=broad-exception-caught
+                logger.warning(
+                    "Could not upload a file to deepset AI Platform",
+                    file_name=file_name,
+                    session_id=upload_session.session_id,
+                    reason=str(exception),
+                )
+                return S3UploadResult(file_name=file_name, success=False, exception=exception)
 
     async def _process_results(
         self,
