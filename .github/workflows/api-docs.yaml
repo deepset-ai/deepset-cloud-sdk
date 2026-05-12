@@ -61,6 +61,6 @@ jobs:
           CATEGORY_ID: ${{env.CATEGORY_ID}}
 
       - name: Run `docs` command 🚀
-        uses: readmeio/rdme@3c41af599df44e516c90ba4107a81c05d4945822 # v10.6.2
+        uses: readmeio/rdme@919e1182da5b37517f20692cf8603361964669a6 # v10.7.0
         with:
           rdme: docs docs/_pydoc/temp --key=${{ secrets.README_API_KEY }} --version=1.0
