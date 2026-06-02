@@ -13,7 +13,7 @@ import aiofiles
 import aiohttp
 import structlog
 from pyrate_limiter import Duration, Limiter, Rate
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 from tqdm.asyncio import tqdm
 
 from deepset_cloud_sdk._api.config import ASYNC_CLIENT_TIMEOUT
@@ -147,7 +147,7 @@ class S3:
         @retry(
             retry=retry_if_exception_type(RetryableHttpError),
             stop=stop_after_attempt(self.max_attempts),
-            wait=wait_fixed(0.5),
+            wait=wait_exponential(multiplier=1, min=1, max=30),
             reraise=True,
         )
         async def retry_wrapper() -> aiohttp.ClientResponse:
