@@ -6,11 +6,27 @@ on:
       - labeled
   workflow_dispatch:
 
+permissions:
+  id-token: write
+
 jobs:
   deploy-test:
-    if: ${{ github.event.label.name == 'test-deploy' }} || github.event.label.name !='integration'`
-    uses: ./.github/workflows/deploy.yml
-    with:
-      deployment_env: test
-      api_url: "https://api.dev.cloud.dpst.dev/api/v1"
-    secrets: inherit
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.label.name == 'test-deploy') }}
+    runs-on: ubuntu-latest
+    environment: test
+    env:
+      pypi: ${{ vars.PYPI_URL }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          python-version: "3.10"
+      - name: Build
+        run: make build
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        with:
+          repository-url: ${{ env.pypi }}

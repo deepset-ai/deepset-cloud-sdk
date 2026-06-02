@@ -39,9 +39,28 @@ logger = structlog.get_logger(__name__)
 META_SUFFIX = ".meta.json"
 DIRECT_UPLOAD_THRESHOLD = 20
 DEFAULT_S3_CONCURRENCY = 10
+# Fewer parallel TLS connections through typical corporate proxies (avoids Windows
+# socket / semaphore exhaustion when many files upload at once; see ECO-410).
+PROXY_S3_CONCURRENCY = 4
 DEFAULT_MAX_ATTEMPTS = 5
 SAFE_MODE_CONCURRENCY = 1
 SAFE_MODE_MAX_ATTEMPTS = 10
+
+_PROXY_ENV_KEYS = ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy", "ALL_PROXY", "all_proxy")
+
+
+def _http_proxy_configured() -> bool:
+    """Return True when a proxy is set via common environment variables."""
+    return any(os.environ.get(key, "").strip() for key in _PROXY_ENV_KEYS)
+
+
+def _resolve_s3_concurrency(safe_mode: bool) -> int:
+    """Pick S3 client concurrency: safe mode, proxy-capped, or default."""
+    if safe_mode:
+        return SAFE_MODE_CONCURRENCY
+    if _http_proxy_configured():
+        return PROXY_S3_CONCURRENCY
+    return DEFAULT_S3_CONCURRENCY
 
 
 class FilesService:
@@ -69,8 +88,13 @@ class FilesService:
         async with DeepsetCloudAPI.factory(config) as deepset_cloud_api:
             files_api = FilesAPI(deepset_cloud_api)
             upload_sessions_api = UploadSessionsAPI(deepset_cloud_api)
-            concurrency = SAFE_MODE_CONCURRENCY if config.safe_mode else DEFAULT_S3_CONCURRENCY
+            concurrency = _resolve_s3_concurrency(config.safe_mode)
             max_attempts = SAFE_MODE_MAX_ATTEMPTS if config.safe_mode else DEFAULT_MAX_ATTEMPTS
+            if not config.safe_mode and _http_proxy_configured():
+                logger.info(
+                    "HTTP(S) proxy detected: using reduced S3 upload concurrency.",
+                    concurrency=concurrency,
+                )
             async with S3(concurrency=concurrency, max_attempts=max_attempts) as s3:
                 yield cls(upload_sessions_api, files_api, s3)
 

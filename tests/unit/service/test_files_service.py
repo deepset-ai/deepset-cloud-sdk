@@ -28,7 +28,14 @@ from deepset_cloud_sdk._api.upload_sessions import (
     WriteMode,
 )
 from deepset_cloud_sdk._s3.upload import S3UploadResult, S3UploadSummary
-from deepset_cloud_sdk._service.files_service import FilesService
+from deepset_cloud_sdk._service.files_service import (
+    DEFAULT_S3_CONCURRENCY,
+    PROXY_S3_CONCURRENCY,
+    SAFE_MODE_CONCURRENCY,
+    FilesService,
+    _http_proxy_configured,
+    _resolve_s3_concurrency,
+)
 from deepset_cloud_sdk.models import DeepsetCloudFile, UserInfo
 
 
@@ -1117,3 +1124,36 @@ class TestGetFilePaths:
         paths = [Path("tests/data/upload_folder_nested")]
         file_paths = FilesService._get_file_paths(paths=paths, recursive=False)
         assert file_paths == [Path("tests/data/upload_folder_nested/example.txt")]
+
+
+class TestResolveS3Concurrency:
+    @staticmethod
+    def _clear_proxy_env(monkeypatch: MonkeyPatch) -> None:
+        for key in (
+            "HTTP_PROXY",
+            "HTTPS_PROXY",
+            "http_proxy",
+            "https_proxy",
+            "ALL_PROXY",
+            "all_proxy",
+        ):
+            monkeypatch.delenv(key, raising=False)
+
+    def test_safe_mode_ignores_proxy(self, monkeypatch: MonkeyPatch) -> None:
+        self._clear_proxy_env(monkeypatch)
+        monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example:8080")
+        assert _resolve_s3_concurrency(safe_mode=True) == SAFE_MODE_CONCURRENCY
+
+    def test_proxy_lowers_concurrency(self, monkeypatch: MonkeyPatch) -> None:
+        self._clear_proxy_env(monkeypatch)
+        monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example:8080")
+        assert _resolve_s3_concurrency(safe_mode=False) == PROXY_S3_CONCURRENCY
+
+    def test_no_proxy_uses_default(self, monkeypatch: MonkeyPatch) -> None:
+        self._clear_proxy_env(monkeypatch)
+        assert _resolve_s3_concurrency(safe_mode=False) == DEFAULT_S3_CONCURRENCY
+
+    def test_http_proxy_configured_empty_string(self, monkeypatch: MonkeyPatch) -> None:
+        self._clear_proxy_env(monkeypatch)
+        monkeypatch.setenv("HTTP_PROXY", "   ")
+        assert _http_proxy_configured() is False
