@@ -903,7 +903,7 @@ test = [
 requires-dist = [
     { name = "aiofiles", specifier = ">=24.1.0" },
     { name = "aiohttp", specifier = ">=3.10.10" },
-    { name = "click", specifier = "!=8.2.1,!=8.2.2" },
+    { name = "click", specifier = ">=7.0.0" },
     { name = "httpx", specifier = ">=0.27.2" },
     { name = "pydantic", specifier = ">=2.11.4" },
     { name = "pyrate-limiter", specifier = ">=3.7.0,<4.0.0" },

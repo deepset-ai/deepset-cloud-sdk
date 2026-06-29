@@ -26,7 +26,7 @@ dependencies = [
   "httpx>=0.27.2",
   "python-dotenv>=1.0.1",
   "typer>=0.15.0",
-  "click!=8.2.1,!=8.2.2",  # bug in 8.2.1 and 8.2.2, see https://github.com/pallets/click/issues/2939
+  "click>=7.0.0",
   "tenacity>=8.3.0",
   "aiohttp>=3.10.10",
   "aiofiles>=24.1.0",

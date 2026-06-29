@@ -194,7 +194,7 @@ class TestCLIMethods:
                 ]
 
             sync_list_files_mock.side_effect = mocked_list_files
-            result = runner.invoke(cli_app, ["list-files"])
+            result = runner.invoke(cli_app, ["list-files"], input="\n")
             assert result.exit_code == 0
             assert (
                 " cd16435f-f6eb-423f-bf6f-994dc8a36a10 | /api/v1/workspaces/search tests/files/cd16435f-f6eb-423f-bf6f-994dc8a36a10 | silly_things_1.txt |    611 | 2022-06-21 16:40:00.634653+00:00 | {}  "
@@ -252,7 +252,7 @@ class TestCLIMethods:
                 ]
 
             sync_list_files_mock.side_effect = mocked_list_files
-            result = runner.invoke(cli_app, ["list-files", "--batch-size", "1"], input="y")
+            result = runner.invoke(cli_app, ["list-files", "--batch-size", "1"], input="y\n\n")
             assert result.exit_code == 0
             # check that two batches are printed
             assert (
@@ -319,7 +319,7 @@ class TestCLIMethods:
                 ]
 
             sync_list_upload_sessions.side_effect = mocked_list_upload_sessions
-            result = runner.invoke(cli_app, ["list-upload-sessions"])
+            result = runner.invoke(cli_app, ["list-upload-sessions"], input="\n")
             assert result.exit_code == 0
             assert (
                 "cd16435f-f6eb-423f-bf6f-994dc8a36a10 | Fake User    | 2022-06-21 16:10:00.634653+00:00 | 2022-06-21 16:40:00.634653+00:00 | KEEP         | OPEN"
