@@ -16,10 +16,10 @@ jobs:
     name: Check license compliance
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@d31148d669074a8d0a63714ba94f3201e7020bc3 # v8.3.0
         with:
           enable-cache: true
           python-version: "3.10"
@@ -35,14 +35,14 @@ jobs:
 
       - name: Send license report to Fossa
         # This will collect all necessary information (mostly used dependencies) and send it to the Fossa API
-        uses: fossas/fossa-action@ff70fe9fe17cbd2040648f1c45e8ec4e4884dcf3 # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@29693cc50323968e039056be419b32989fc5880c # Use a specific version if locking is preferred
         with:
           api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
 
       - name: Check license compliance
         # This will poll the Fossa API until they have processed the information which we've sent in the previous step
         # and fail if Fossa found an issue with the licences of our dependencies.
-        uses: fossas/fossa-action@ff70fe9fe17cbd2040648f1c45e8ec4e4884dcf3 # Use a specific version if locking is preferred
+        uses: fossas/fossa-action@29693cc50323968e039056be419b32989fc5880c # Use a specific version if locking is preferred
         with:
           api-key: ${{ secrets.FOSSA_LICENSE_SCAN_TOKEN }}
           run-tests: true
