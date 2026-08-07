@@ -681,6 +681,52 @@ class TestImportPipelineService:
         assert "config_yaml" in create_version_call.kwargs["json"]
 
     @pytest.mark.asyncio
+    async def test_import_pipeline_with_overwrite_true_creates_new_version_when_no_versions_exist(
+        self, pipeline_service: PipelineService, index_pipeline: Pipeline, mock_api: AsyncMock
+    ) -> None:
+        """Test importing a pipeline with overwrite=True creates a new version when the pipeline has no versions.
+
+        A pipeline can exist (GET /versions returns 200) with an empty `data` list -- e.g. it was
+        created but never versioned. This must not raise an IndexError; it should create a new
+        version the same way it would if the latest version simply wasn't a draft.
+        """
+        config = PipelineConfig(
+            name="test_pipeline_overwrite",
+            inputs=PipelineInputs(query=["retriever.query"]),
+            outputs=PipelineOutputs(documents="meta_ranker.documents"),
+            strict_validation=False,
+            overwrite=True,
+        )
+
+        # Mock successful validation response
+        validation_response = Mock(spec=Response)
+        validation_response.status_code = HTTPStatus.NO_CONTENT.value
+
+        # Mock versions response: pipeline exists, but has zero saved versions
+        versions_response = Mock(status_code=HTTPStatus.OK.value)
+        versions_response.json.return_value = {"data": []}
+
+        # Mock successful "create new version" response
+        new_version_response = Mock(spec=Response)
+        new_version_response.status_code = HTTPStatus.CREATED.value
+
+        # First POST is validation, second POST is "create new version"
+        mock_api.post.side_effect = [validation_response, new_version_response]
+        mock_api.get.return_value = versions_response
+
+        await pipeline_service.import_async(index_pipeline, config)
+
+        # validation + GET versions + POST versions (new version)
+        assert mock_api.post.call_count == 2
+        assert mock_api.get.call_count == 1
+        assert mock_api.patch.call_count == 0
+
+        # Check create-version POST call
+        create_version_call = mock_api.post.call_args_list[1]
+        assert create_version_call.kwargs["endpoint"] == "pipelines/test_pipeline_overwrite/versions"
+        assert "config_yaml" in create_version_call.kwargs["json"]
+
+    @pytest.mark.asyncio
     async def test_import_pipeline_with_overwrite_fallback_to_create(
         self, pipeline_service: PipelineService, index_pipeline: Pipeline, mock_api: AsyncMock
     ) -> None:

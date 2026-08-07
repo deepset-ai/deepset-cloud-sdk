@@ -398,11 +398,13 @@ class PipelineService:
             return await self._create_pipeline(name=name, pipeline_yaml=pipeline_yaml)
 
         version_body = version_response.json()
-        latest_version = version_body["data"][0]
-        version_id = latest_version["version_id"]
-        is_draft = latest_version.get("is_draft", False)
+        versions = version_body["data"]
 
-        if is_draft:
+        # The pipeline exists but may have no saved versions yet (e.g. created but never
+        # versioned) -- there's then no draft to patch, same as when the latest version
+        # simply isn't a draft.
+        if versions and versions[0].get("is_draft", False):
+            version_id = versions[0]["version_id"]
             # Patch existing draft version
             logger.debug(f"Patching existing draft version '{version_id}' of pipeline '{name}'.")
             return await self._api.patch(
@@ -412,7 +414,7 @@ class PipelineService:
             )
 
         # Create a new version
-        logger.debug(f"Latest version '{version_id}' of pipeline '{name}' is not a draft, creating new version.")
+        logger.debug(f"Pipeline '{name}' has no draft version, creating new version.")
         return await self._api.post(
             workspace_name=self._workspace_name,
             endpoint=f"pipelines/{name}/versions",
