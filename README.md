@@ -2,6 +2,10 @@
   <a href="https://cloud.deepset.ai/"><img src="/assets/logo.png"  alt="deepset SDK"></a>
 </p>
 
+> [!IMPORTANT]
+> **This SDK is being replaced by the [Haystack Enterprise SDK](https://github.com/deepset-ai/haystack-enterprise-sdk).**
+> New features land there. Install it with `pip install haystack-enterprise-sdk` (CLI: `haystack-enterprise`).
+
 [![Coverage badge](https://github.com/deepset-ai/deepset-cloud-sdk/raw/python-coverage-comment-action-data/badge.svg)](https://github.com/deepset-ai/deepset-cloud-sdk/tree/python-coverage-comment-action-data)
 [![Tests](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/continuous-integration.yml)
 [![Deploy PyPi](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/deploy-prod.yml/badge.svg)](https://github.com/deepset-ai/deepset-cloud-sdk/actions/workflows/deploy-prod.yml)
